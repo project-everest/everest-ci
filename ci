@@ -50,14 +50,21 @@ case "$1" in
     check_pwd_ends_with "mitls-fstar"
     if [[ $CI_LOGS == "" ]]; then
       echo "Don't know where to checkout the logs"
+      exit 1
     fi
 
     # Clone F* from the specified revision, set FSTAR_HOME
-    mkdir -p fstar && cd fstar
-    git init
-    git remote add origin https://github.com/FStarLang/FStar/
-    git fetch origin $(cat .fstar_version)
-    git reset --hard FETCH_HEAD
+    if [ ! -d fstar ]; then
+      mkdir -p fstar && cd fstar
+      git init
+      git remote add origin https://github.com/FStarLang/FStar/
+      cd ..
+    fi
+    cd fstar
+    git fetch origin
+    git reset --hard $(cat ../.fstar_version)
+    make -C src/ocaml-output clean
+    make -C src/ocaml-output -j 15
     cd ..
     export FSTAR_HOME=$(pwd)/fstar
 
