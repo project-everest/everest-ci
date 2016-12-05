@@ -30,9 +30,18 @@ set -o pipefail
 
 UBUNTU_SCRIPT=https://raw.githubusercontent.com/project-everest/everest/master/ubuntu-from-scratch
 
+# $1: channel
+# $2: message
+post_to_slack () {
+  curl -X POST --data-urlencode "payload={\"channel\": \"#$1\", \
+    \"username\": \"dzomo\", \"text\": \"$2\", \
+    \"icon_emoji\": \":ghost:\"}" "$SLACK_FSTAR_WEBHOOK"
+}
+
 # $1: the command to run
 # $2: the stem of the log file
 # $3: commit message
+# $4: slack channel
 run_log_commit () {
   if [[ $CI_LOGS == "" ]]; then
     echo "Don't know where to checkout the logs"
@@ -52,6 +61,7 @@ run_log_commit () {
   else
     success=false
   fi
+  commit=$(git rev-parse HEAD | cut -c 1-8)
 
   # Commit & push the logs. This does not prevent interleaving from concurrent
   # build jobs.
@@ -61,11 +71,20 @@ run_log_commit () {
   git add $log_out
   git add $log_err
   if $success; then
-    git commit -am "$3 (success)"
+    git commit -am "$3 / $commit (success)"
   else
-    git commit -am "$3 (failure)"
+    git commit -am "$3 / $commit (failure)"
   fi
   git push
+
+  raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master/
+  if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
+    if $success; then
+      post_to_slack "$4" "$commit is a success -- woohoo!"
+    else
+      post_to_slack "$4" "$commit is a failure -- oh noes :( <$raw_url/$log_err|stderr> <$raw_url/$log_out|stderr>"
+    fi
+  fi
 
   $success
 }
@@ -78,7 +97,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest" "fstar-$(date +%Y%m%d%H%M%S)" "F* CI"
+    run_log_commit "make -C src utest" "fstar-$(date +%Y%m%d%H%M%S)" "F* CI" "#fstar-build"
     ;;
 
   fstar-nightly)
@@ -87,7 +106,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest uexamples examples" "fstar-$(date +%Y%m%d%H%M%S)" "F* nightly"
+    run_log_commit "make -C src utest uexamples examples" "fstar-$(date +%Y%m%d%H%M%S)" "F* nightly" "#fstar-build"
     ;;
 
   mitls-ci)
@@ -115,7 +134,7 @@ case "$1" in
       export FSTAR_HOME=$(pwd)/fstar
     fi
 
-    run_log_commit "make -C src/tls -j 15 all-ver tls-ffi" "mitls-$(date +%Y%m%d%H%M%S)" "miTLS CI"
+    run_log_commit "make -C src/tls -j 15 all-ver tls-ffi" "mitls-$(date +%Y%m%d%H%M%S)" "miTLS CI" "#mitls-build"
     ;;
 
   everest-ci)
