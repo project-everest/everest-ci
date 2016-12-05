@@ -39,14 +39,14 @@ run_log_commit () {
   log_err=$2.err
 
   # The actual CI
-  if ! $1 \
+  if $1 \
     2> >( tee -a $CI_LOGS/$log_err | sed 's/^/STDERR : /' >&2 ) \
     | tee -a $CI_LOGS/$log_out
   then
-    echo "BUILD FAILED"
+    echo "BUILD SUCCEEDED"
     msg="success"
   else
-    echo "BUILD SUCCEEDED"
+    echo "BUILD FAILED"
     msg="failure"
   fi
 
