@@ -42,6 +42,7 @@ post_to_slack () {
 # $2: the stem of the log file
 # $3: commit message
 # $4: slack channel
+# $5: commit web url stem
 run_log_commit () {
   if [[ $CI_LOGS == "" ]]; then
     echo "Don't know where to checkout the logs"
@@ -53,6 +54,7 @@ run_log_commit () {
   log_err=$2.err
 
   # The actual CI
+  SECONDS=0
   if $1 \
     2> >( tee -a $CI_LOGS/$log_err | sed 's/^/STDERR : /' >&2 ) \
     | tee -a $CI_LOGS/$log_out
@@ -61,11 +63,10 @@ run_log_commit () {
   else
     success=false
   fi
-  commit=$(git rev-parse HEAD | cut -c 1-8)
 
   # Commit & push the logs. This does not prevent interleaving from concurrent
   # build jobs.
-  cd $CI_LOGS
+  pushd $CI_LOGS
   export GIT_MERGE_AUTOEDIT=no
   git pull
   git add $log_out
@@ -76,14 +77,26 @@ run_log_commit () {
     git commit -am "$3 / $commit (failure)"
   fi
   git push
+  popd
 
-  raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master/
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
+    raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master/
+    slack_log=$(git log --pretty=format:"%s" -1)
+    slack_author=$(git log --pretty=format:"%cn" -1)
+    slack_time=$(date -d@$SECONDS +%Mm%Ss)
+    slack_msg="<$raw_url/$log_err|stderr> <$raw_url/$log_out|stdout>"
+    slack_commit=$(git rev-parse HEAD | cut -c 1-8)
     if $success; then
-      post_to_slack "$4" "$commit is a success -- woohoo!"
+      slack_type="success 😺"
     else
-      post_to_slack "$4" "$commit is a failure -- oh noes :( <$raw_url/$log_err|stderr> <$raw_url/$log_out|stdout>"
+      slack_type="failure 😿"
     fi
+    post_to_slack "$4" \
+      "Commit <https://github.com/FStarLang/FStar/commit/$slack_commit|$slack_commit> is a *$slack_type*\n\
+      *Duration:* $slack_time\n\
+      *Author:* $slack_author\n\
+      *Message:* $slack_log\n\
+      *Logs:* $slack_msg"
   fi
 
   $success
@@ -106,7 +119,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest uexamples examples" "fstar-$(date +%Y%m%d%H%M%S)" "F* nightly" "#fstar-build"
+    run_log_commit "make -C src utest examples" "fstar-$(date +%Y%m%d%H%M%S)" "F* nightly" "#fstar-build"
     ;;
 
   mitls-ci)
