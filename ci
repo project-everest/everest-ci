@@ -43,11 +43,9 @@ run_log_commit () {
     2> >( tee -a $CI_LOGS/$log_err | sed 's/^/STDERR : /' >&2 ) \
     | tee -a $CI_LOGS/$log_out
   then
-    echo "BUILD SUCCEEDED"
-    msg="success"
+    success=true
   else
-    echo "BUILD FAILED"
-    msg="failure"
+    success=false
   fi
 
   # Commit & push the logs. This does not prevent interleaving from concurrent
@@ -57,8 +55,14 @@ run_log_commit () {
   git pull
   git add $log_out
   git add $log_err
-  git commit -am "$3 ($msg)"
+  if $success; then
+    git commit -am "$3 (success)"
+  else
+    git commit -am "$3 (failure)"
+  fi
   git push
+
+  $success
 }
 
 # Main commands.
