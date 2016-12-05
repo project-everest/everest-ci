@@ -118,7 +118,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest" "fstar-$(date +%Y%m%d%H%M%S)" \
+    run_log_commit "make -C src utest -j 24" "fstar-$(date +%Y%m%d%H%M%S)" \
       "F* CI" "#fstar-build" "FStarLang/FStar"
     ;;
 
@@ -128,7 +128,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest examples" "fstar-$(date +%Y%m%d%H%M%S)" \
+    run_log_commit "make -C src utest examples -j 24" "fstar-$(date +%Y%m%d%H%M%S)" \
       "F* nightly" "#fstar-build" "FStarLang/FStar"
     ;;
 
@@ -157,7 +157,7 @@ case "$1" in
       export FSTAR_HOME=$(pwd)/fstar
     fi
 
-    run_log_commit "make -C src/tls -j 15 all-ver tls-ffi" "mitls-$(date +%Y%m%d%H%M%S)" \
+    run_log_commit "make -C src/tls -j 24 all-ver tls-ffi" "mitls-$(date +%Y%m%d%H%M%S)" \
       "miTLS CI" "#mitls-build" "mitls/mitls-fstar"
     ;;
 
