@@ -162,7 +162,7 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints"
-    run_log_commit "make -C src utest examples -j 24" "fstar-$(date +%Y%m%d%H%M%S)" \
+    run_log_commit "make -C src utest extra -j 24" "fstar-$(date +%Y%m%d%H%M%S)" \
       "F* nightly" "#fstar-build" "FStarLang/FStar"
     refresh_fstar_hints
     ;;
