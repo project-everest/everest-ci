@@ -13,6 +13,11 @@ if (( ${BASH_VERSION%%.*} < 4 )); then
   exit 1
 fi
 
+# CI runs [bash -c path/to/ci] without [--login].
+if [[ -f ~/.bash_profile ]]; then
+  source ~/.bash_profile
+fi
+
 # Any error is fatal.
 set -e
 set -o pipefail
@@ -42,8 +47,35 @@ case "$1" in
     ;;
 
   mitls-ci)
-    # Clone F* from the specified revision, set FSTAR_HOME, run miTLS CI
     check_pwd_ends_with "mitls-fstar"
+    if [[ $CI_LOGS == "" ]]; then
+      echo "Don't know where to checkout the logs"
+    fi
+
+    # Clone F* from the specified revision, set FSTAR_HOME
+    mkdir -p fstar && cd fstar
+    git init
+    git remote add origin https://github.com/FStarLang/FStar/
+    git fetch origin $(cat .fstar_version)
+    git reset --hard FETCH_HEAD
+    cd ..
+    export FSTAR_HOME=$(pwd)/fstar
+
+    # Determine where the logs are going
+    LOG_OUT=mitls-$(date +%Y%m%d%H%M%S).out
+    LOG_ERR=mitls-$(date +%Y%m%d%H%M%S).err
+
+    # The actual CI
+    make -C src/tls all-ver tls-ffi -j 15 \
+      2> >( tee $CI_LOGS/$LOG_ERR | sed s/^/STDERR : / >&2 ) \
+      | tee $CI_LOGS/$LOG_OUT
+
+    # Commit & push the logs
+    cd $CI_LOGS
+    git add $LOG_OUT
+    git add $LOG_ERR
+    git commit -am "[miTLS CI] regular continuous integration"
+    git push
     ;;
 
   everest-ci)
