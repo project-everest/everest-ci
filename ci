@@ -91,6 +91,8 @@ case "$1" in
 
     # Commit & push the logs
     cd $CI_LOGS
+    git fetch
+    git reset --hard origin/master
     git add $LOG_OUT
     git add $LOG_ERR
     git commit -am "[miTLS CI] regular continuous integration"
