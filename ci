@@ -79,8 +79,8 @@ run_log_commit () {
   # The actual CI
   SECONDS=0
   if $1 \
-    2> >( tee -a $CI_LOGS/$log_err | sed 's/^/STDERR : /' >&2 ) \
-    | tee -a $CI_LOGS/$log_out
+    2> >( tee $CI_LOGS/$log_err | sed 's/^/STDERR : /' >&2 ) \
+    | tee $CI_LOGS/$log_out
   then
     success=true
   else
