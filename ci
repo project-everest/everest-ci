@@ -47,7 +47,10 @@ case "$1" in
     ;;
 
   mitls-ci)
-    check_pwd_ends_with "mitls-fstar"
+    if [ ! -f miTLS_icla.txt ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
     if [[ $CI_LOGS == "" ]]; then
       echo "Don't know where to checkout the logs"
       exit 1
