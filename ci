@@ -14,6 +14,7 @@ if (( ${BASH_VERSION%%.*} < 4 )); then
 fi
 
 # Self-update
+echo "... trying to self-update"
 if [[ ${0##*/} == $0 ]]; then
   pushd $(dirname $(which $0))
 else
