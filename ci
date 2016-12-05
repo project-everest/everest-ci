@@ -21,15 +21,20 @@ else
   pushd $(dirname $0)
 fi
 old_revision=$(git rev-parse HEAD)
-git pull
-if [[ $(git rev-parse HEAD) != $old_revision ]]; then
-  echo "... new version of CI script available, updated"
-  popd
-  $0 "$@"
-  exit 0
+git fetch
+if ! git merge --ff origin/master; then
+  echo "WARNING: script cannot self-update"
 else
-  popd
+  if [[ $(git rev-parse HEAD) != $old_revision ]]; then
+    echo "... new version of CI script available, updated"
+    popd
+    $0 "$@"
+    exit 0
+  else
+    echo "... no new version available"
+  fi
 fi
+popd
 
 # CI runs [bash -c path/to/ci] without [--login]. This makes sure we have /bin
 # and /usr/bin first...!
