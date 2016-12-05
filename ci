@@ -23,36 +23,67 @@ set -e
 set -o pipefail
 # set -x # uncomment for debugging.
 
-# Checks that the current directory ends with $1
-check_pwd_ends_with () {
-  pwd=$(pwd)
-  if [[ ${pwd%$1} == $pwd ]]; then
-    echo "I don't seem to be in the right repository"
+UBUNTU_SCRIPT=https://raw.githubusercontent.com/project-everest/everest/master/ubuntu-from-scratch
+
+# $1: the command to run
+# $2: the stem of the log file
+# $3: commit message
+run_log_commit () {
+  if [[ $CI_LOGS == "" ]]; then
+    echo "Don't know where to checkout the logs"
     exit 1
   fi
-}
 
-UBUNTU_SCRIPT=https://raw.githubusercontent.com/project-everest/everest/master/ubuntu-from-scratch
+  # Determine where the logs are going
+  log_out=$2.out
+  log_err=$2.err
+
+  # The actual CI
+  if ! $1 \
+    2> >( tee -a $CI_LOGS/$log_err | sed 's/^/STDERR : /' >&2 ) \
+    | tee -a $CI_LOGS/$log_out
+  then
+    echo "BUILD FAILED"
+    msg="success"
+  else
+    echo "BUILD SUCCEEDED"
+    msg="failure"
+  fi
+
+  # Commit & push the logs. This does not prevent interleaving from concurrent
+  # build jobs.
+  cd $CI_LOGS
+  export GIT_MERGE_AUTOEDIT=no
+  git pull
+  git add $LOG_OUT
+  git add $LOG_ERR
+  git commit -am "$3 ($msg)"
+  git push
+}
 
 # Main commands.
 case "$1" in
   fstar-ci)
     # Run the test suite minus the long tests (e.g. crypto)
-    check_pwd_ends_with "FStar"
+    if [ ! -d ulib ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
+    run_log_commit "make -C src utest" "fstar-$(date +%Y%m%d%H%M%S)" "F* CI"
     ;;
 
   fstar-nightly)
     # Run the test suite including the long tests and the examples directory
-    check_pwd_ends_with "FStar"
+    if [ ! -d ulib ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
+    run_log_commit "make -C src utest uexamples examples" "fstar-$(date +%Y%m%d%H%M%S)" "F* nightly"
     ;;
 
   mitls-ci)
     if [ ! -f miTLS_icla.txt ]; then
       echo "I don't seem to be in the right directory, bailing"
-      exit 1
-    fi
-    if [[ $CI_LOGS == "" ]]; then
-      echo "Don't know where to checkout the logs"
       exit 1
     fi
 
@@ -75,33 +106,11 @@ case "$1" in
       export FSTAR_HOME=$(pwd)/fstar
     fi
 
-    # Determine where the logs are going
-    LOG_OUT=mitls-$(date +%Y%m%d%H%M%S).out
-    LOG_ERR=mitls-$(date +%Y%m%d%H%M%S).err
-
-    # The actual CI
-    if ! (cd src/tls; make -j 15 all-ver; make -j 15 tls-ffi) \
-      2> >( tee $CI_LOGS/$LOG_ERR | sed 's/^/STDERR : /' >&2 ) \
-      | tee $CI_LOGS/$LOG_OUT
-    then
-      echo "BUILD FAILED"
-    else
-      echo "BUILD SUCCEEDED"
-    fi
-
-    # Commit & push the logs
-    cd $CI_LOGS
-    git fetch
-    git reset --hard origin/master
-    git add $LOG_OUT
-    git add $LOG_ERR
-    git commit -am "[miTLS CI] regular continuous integration"
-    git push
+    run_log_commit "make -C src/tls -j 15 all-ver tls-ffi" "mitls-$(date +%Y%m%d%H%M%S)" "miTLS CI"
     ;;
 
   everest-ci)
     # Clone all projects together and make sure they test and build together
-    check_pwd_ends_with "everest"
     ;;
 
   everest-nightly-check)
