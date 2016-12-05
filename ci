@@ -55,8 +55,8 @@ run_log_commit () {
   cd $CI_LOGS
   export GIT_MERGE_AUTOEDIT=no
   git pull
-  git add $LOG_OUT
-  git add $LOG_ERR
+  git add $log_out
+  git add $log_err
   git commit -am "$3 ($msg)"
   git push
 }
