@@ -29,4 +29,4 @@ Planning to have the following soon:
 - **everest / nightly**: check that the install script, when run from an empty
   Ubuntu Docker container, leads to a successful build & run of mitls.exe
 
-Read [[ci]] for more information.
+Read [ci](ci) for more information.
