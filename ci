@@ -15,11 +15,13 @@ fi
 
 # CI runs [bash -c path/to/ci] without [--login]. This makes sure we have /bin
 # and /usr/bin first...!
+BUILD_DIR=$(pwd)
 source /etc/profile
 if [[ -f ~/.bash_profile ]]; then
   source ~/.bash_profile
 fi
 echo "... PATH is $PATH"
+cd "$BUILD_DIR"
 
 # Any error is fatal.
 set -e
