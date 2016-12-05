@@ -13,6 +13,23 @@ if (( ${BASH_VERSION%%.*} < 4 )); then
   exit 1
 fi
 
+# Self-update
+if [[ ${0##*/} == $0 ]]; then
+  pushd $(dirname $(which $0))
+else
+  pushd $(dirname $0)
+fi
+old_revision=$(git rev-parse HEAD)
+git pull
+if [[ $(git rev-parse HEAD) != $old_revision ]]; then
+  echo "... new version of CI script available, updated"
+  popd
+  $0 "$@"
+  exit 0
+else
+  popd
+fi
+
 # CI runs [bash -c path/to/ci] without [--login]. This makes sure we have /bin
 # and /usr/bin first...!
 BUILD_DIR=$(pwd)
@@ -110,6 +127,16 @@ run_log_commit () {
   $success
 }
 
+refresh_fstar_hints () {
+  find . -iname '*.hints' | xargs git add
+  git commit -am "[CI] regenerate hints"
+  export GIT_MERGE_AUTOEDIT=no
+  if ! git pull; then
+    echo "NON-FATAL ERROR: could not regenerate hints (did someone push in the meanwhile?)"
+  fi
+  git push
+}
+
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -128,8 +155,10 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
+    export OTHERFLAGS="--record_hints"
     run_log_commit "make -C src utest examples -j 24" "fstar-$(date +%Y%m%d%H%M%S)" \
       "F* nightly" "#fstar-build" "FStarLang/FStar"
+    refresh_fstar_hints
     ;;
 
   mitls-ci)
