@@ -76,9 +76,14 @@ case "$1" in
     LOG_ERR=mitls-$(date +%Y%m%d%H%M%S).err
 
     # The actual CI
-    make -C src/tls all-ver tls-ffi -j 15 \
+    if ! make -C src/tls all-ver tls-ffi -j 15 \
       2> >( tee $CI_LOGS/$LOG_ERR | sed s/^/STDERR : / >&2 ) \
       | tee $CI_LOGS/$LOG_OUT
+    then
+      echo "BUILD FAILED"
+    else
+      echo "BUILD SUCCEEDED"
+    fi
 
     # Commit & push the logs
     cd $CI_LOGS
