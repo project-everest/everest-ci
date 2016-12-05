@@ -119,8 +119,7 @@ run_log_commit () {
     else
       slack_type="failure 😿"
     fi
-    payload=\
-      "Commit <https://github.com/$5/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
+    payload="Commit <https://github.com/$5/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
       *Duration:* $slack_time\n\
       *Author:* $slack_author\n\
       *Message:* $slack_log\n\
