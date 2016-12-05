@@ -8,7 +8,11 @@ One can log onto the machine if connected to the Microsoft Corporate Network,
 via rdesktop (user: everbld, password: ask Jonathan or Sreekanth), or using Mark
 Russinovitch's excellent psexec.
 
-[Build Logs](https://github.com/project-everest/ci-logs)
+The machine shares the folder `C:\Users\everbld\Agents\Linux2` with the Docker
+Ubuntu instance (mounted as `/LinuxAgent`). One can skip CI by putting
+`***NO_CI***` in the commit message.
+
+[GO TO BUILD LOGS](https://github.com/project-everest/ci-logs)
 
 The logs are pushed to a public repository to make them easily accessible to
 everyone. The CI machine uses GitHub SSH-key authentication to push build logs
@@ -19,11 +23,11 @@ Here's a quick overview of the current implemented CI jobs:
 - **miTLS / CI**
   ![mitls-ci build status](https://msresearch-ext.visualstudio.com/_apis/public/build/definitions/83f09286-c288-4766-89cd-d267b6d93772/12/badge)
   run on every commit, run verification and build the FFI
-
-Planning to have the following soon:
 - **F\* / CI**: run on every commit, doesn't include expensive verification like crypto.
 - **F\* / nightly**: verify all the things, including crypto and everything in
   examples/
+
+Planning to have the following soon:
 - **everest / CI**: check that the given revisions of all projects lead to a
   successful build & run of mitls.exe
 - **everest / upgrade**: check that the latest revisions of all projects lead to a
