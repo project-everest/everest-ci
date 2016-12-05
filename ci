@@ -119,7 +119,7 @@ run_log_commit () {
     else
       slack_type="failure 😿"
     fi
-    post_to_slack "$4" \
+    payload=\
       "Commit <https://github.com/$5/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
       *Duration:* $slack_time\n\
       *Author:* $slack_author\n\
@@ -128,9 +128,13 @@ run_log_commit () {
       *Command:* $1\n\
       *OS:* $slack_os\n\
       *Logs:* $slack_msg"
+    echo "$payload"
+    post_to_slack "$4" "$payload"
   fi
 
-  $success
+  if ! $success; then
+    exit 255
+  fi
 }
 
 refresh_fstar_hints () {
