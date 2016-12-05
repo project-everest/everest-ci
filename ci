@@ -110,6 +110,16 @@ run_log_commit () {
   $success
 }
 
+refresh_fstar_hints () {
+  find . -iname '*.hints' | xargs git add
+  git commit -am "[CI] regenerate hints"
+  export GIT_MERGE_AUTOEDIT=no
+  if ! git pull; then
+    echo "NON-FATAL ERROR: could not regenerate hints (did someone push in the meanwhile?)"
+  fi
+  git push
+}
+
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -128,8 +138,10 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
+    export OTHERFLAGS="--record_hints"
     run_log_commit "make -C src utest examples -j 24" "fstar-$(date +%Y%m%d%H%M%S)" \
       "F* nightly" "#fstar-build" "FStarLang/FStar"
+    refresh_fstar_hints
     ;;
 
   mitls-ci)
