@@ -90,6 +90,7 @@ run_log_commit () {
     slack_name=${slack_name##*/}
     slack_name=${slack_name%.git}
     slack_branch=$(git branch -r --contains HEAD | tail -n 1 | tr -d ' ')
+    slack_os=$(uname)
     if $success; then
       slack_type="success 😺"
     else
@@ -102,6 +103,7 @@ run_log_commit () {
       *Message:* $slack_log\n\
       *Project:* $slack_name\n\
       *Command:* $1\n\
+      *OS:* $slack_os\n\
       *Logs:* $slack_msg"
   fi
 
