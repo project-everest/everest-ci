@@ -42,7 +42,7 @@ post_to_slack () {
 # $2: the stem of the log file
 # $3: commit message
 # $4: slack channel
-# $5: commit web url stem
+# $5: github org/project
 run_log_commit () {
   if [[ $CI_LOGS == "" ]]; then
     echo "Don't know where to checkout the logs"
@@ -92,7 +92,7 @@ run_log_commit () {
       slack_type="failure 😿"
     fi
     post_to_slack "$4" \
-      "Commit <https://github.com/FStarLang/FStar/commit/$slack_commit|$slack_commit> is a *$slack_type*\n\
+      "Commit <https://github.com/$5/commit/$slack_commit|$slack_commit> is a *$slack_type*\n\
       *Duration:* $slack_time\n\
       *Author:* $slack_author\n\
       *Message:* $slack_log\n\
@@ -110,7 +110,8 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest" "fstar-$(date +%Y%m%d%H%M%S)" "F* CI" "#fstar-build"
+    run_log_commit "make -C src utest" "fstar-$(date +%Y%m%d%H%M%S)" \
+      "F* CI" "#fstar-build" "FStarLang/FStar"
     ;;
 
   fstar-nightly)
@@ -119,7 +120,8 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest examples" "fstar-$(date +%Y%m%d%H%M%S)" "F* nightly" "#fstar-build"
+    run_log_commit "make -C src utest examples" "fstar-$(date +%Y%m%d%H%M%S)" \
+      "F* nightly" "#fstar-build" "FStarLang/FStar"
     ;;
 
   mitls-ci)
@@ -147,7 +149,8 @@ case "$1" in
       export FSTAR_HOME=$(pwd)/fstar
     fi
 
-    run_log_commit "make -C src/tls -j 15 all-ver tls-ffi" "mitls-$(date +%Y%m%d%H%M%S)" "miTLS CI" "#mitls-build"
+    run_log_commit "make -C src/tls -j 15 all-ver tls-ffi" "mitls-$(date +%Y%m%d%H%M%S)" \
+      "miTLS CI" "#mitls-build" "mitls/mitls-fstar"
     ;;
 
   everest-ci)
