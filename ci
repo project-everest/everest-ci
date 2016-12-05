@@ -69,15 +69,19 @@ case "$1" in
     make -C src/ocaml-output clean
     make -C src/ocaml-output -j 15
     cd ..
-    export FSTAR_HOME=$(pwd)/fstar
+    if command -v cygpath >/dev/null 2>&1; then
+      export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
+    else
+      export FSTAR_HOME=$(pwd)/fstar
+    fi
 
     # Determine where the logs are going
     LOG_OUT=mitls-$(date +%Y%m%d%H%M%S).out
     LOG_ERR=mitls-$(date +%Y%m%d%H%M%S).err
 
     # The actual CI
-    if ! make -C src/tls all-ver tls-ffi -j 15 \
-      2> >( tee $CI_LOGS/$LOG_ERR | sed s/^/STDERR : / >&2 ) \
+    if ! (cd src/tls; make -j 15 all-ver; make -j 15 tls-ffi) \
+      2> >( tee $CI_LOGS/$LOG_ERR | sed 's/^/STDERR : /' >&2 ) \
       | tee $CI_LOGS/$LOG_OUT
     then
       echo "BUILD FAILED"
