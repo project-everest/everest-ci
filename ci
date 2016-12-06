@@ -58,7 +58,7 @@ UBUNTU_SCRIPT=https://raw.githubusercontent.com/project-everest/everest/master/u
 post_to_slack () {
   curl -X POST --data-urlencode "payload={\"channel\": \"#$1\", \
     \"username\": \"dzomo\", \"text\": \"$2\", \
-    \"icon_emoji\": \":ghost:\"}" "$SLACK_FSTAR_WEBHOOK"
+    \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
 }
 
 # $1: the command to run
