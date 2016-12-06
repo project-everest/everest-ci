@@ -51,8 +51,6 @@ else
 fi
 popd
 
-exit 253
-
 UBUNTU_SCRIPT=https://raw.githubusercontent.com/project-everest/everest/master/ubuntu-from-scratch
 
 # $1: channel
