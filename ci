@@ -51,8 +51,6 @@ else
 fi
 popd
 
-UBUNTU_SCRIPT=https://raw.githubusercontent.com/project-everest/everest/master/ubuntu-from-scratch
-
 # $1: channel
 # $2: message
 post_to_slack () {
@@ -165,7 +163,7 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints"
-    run_log_commit "make -C src utest extra -j 24" "fstar-$(date +%Y%m%d%H%M%S)" \
+    run_log_commit "make -C src ulong -j 24" "fstar-$(date +%Y%m%d%H%M%S)" \
       "F* nightly" "#fstar-build" "FStarLang/FStar"
     refresh_fstar_hints
     ;;
