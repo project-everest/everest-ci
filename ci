@@ -49,6 +49,7 @@ cd "$BUILD_DIR"
 # Any error is fatal.
 set -e
 set -o pipefail
+false
 # set -x # uncomment for debugging.
 
 UBUNTU_SCRIPT=https://raw.githubusercontent.com/project-everest/everest/master/ubuntu-from-scratch
@@ -178,7 +179,8 @@ case "$1" in
 
     # Clone F* from the specified revision, set FSTAR_HOME
     if [ ! -d fstar ]; then
-      mkdir -p fstar && cd fstar
+      mkdir -p fstar
+      cd fstar
       git init
       git remote add origin https://github.com/FStarLang/FStar/
       cd ..
