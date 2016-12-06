@@ -13,6 +13,11 @@ if (( ${BASH_VERSION%%.*} < 4 )); then
   exit 1
 fi
 
+# Any error is fatal.
+set -e
+set -o pipefail
+# set -x # uncomment for debugging.
+
 # Self-update
 echo "... trying to self-update"
 if [[ ${0##*/} == $0 ]]; then
@@ -46,12 +51,7 @@ fi
 echo "... PATH is $PATH"
 cd "$BUILD_DIR"
 
-# Any error is fatal.
-set -e
-set -o pipefail
-echo "About to fail with exit 255"
-exit 255
-# set -x # uncomment for debugging.
+exit 253
 
 UBUNTU_SCRIPT=https://raw.githubusercontent.com/project-everest/everest/master/ubuntu-from-scratch
 
