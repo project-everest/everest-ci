@@ -104,7 +104,7 @@ run_log_commit () {
     raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master/
     slack_log=$(git log --pretty=format:"%s" -1)
     slack_author=$(git log --pretty=format:"%cn" -1)
-    slack_time=$(date -d@$SECONDS +%Mm%Ss)
+    slack_time=$(date -d@$SECONDS +%Hh%Mm%Ss)
     slack_msg="<$raw_url/$log_err|stderr> <$raw_url/$log_out|stdout>"
     slack_commit=$(git rev-parse HEAD | cut -c 1-8)
     slack_name=$(git remote get-url origin)
@@ -135,6 +135,14 @@ run_log_commit () {
 }
 
 refresh_fstar_hints () {
+  branch=$(git branch -r --contains HEAD | tail -n 1 | tr -d ' ')
+  branch=${branch#origin/}
+  commit=$(git rev-parse HEAD)
+  git checkout $branch
+  if ! git merge --ff $commit; then
+    echo "Inconsistent state... commit is not on branch?!"
+    exit 1
+  fi
   find . -iname '*.hints' | xargs git add
   git commit -am "[CI] regenerate hints"
   export GIT_MERGE_AUTOEDIT=no
