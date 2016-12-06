@@ -49,6 +49,7 @@ cd "$BUILD_DIR"
 # Any error is fatal.
 set -e
 set -o pipefail
+echo "About to fail"
 false
 # set -x # uncomment for debugging.
 
