@@ -34,6 +34,7 @@ else
     echo "... new version of CI script available, updated"
     popd
     $0 "$@"
+    echo error code is $?
     exit 0
   else
     echo "... no new version available"
