@@ -148,7 +148,7 @@ refresh_fstar_hints () {
     exit 1
   fi
   # For SSH authentication
-  git remote set-url origin git@github.com/FStarLang/FStar.git
+  git remote set-url origin git@github.com:FStarLang/FStar.git
   # Add all the hints, even those not under version control
   find . -iname '*.hints' | xargs git add
   git commit -am "[CI] regenerate hints"
