@@ -133,18 +133,36 @@ run_log_commit () {
   fi
 }
 
+# Note: this performs an _approximate_ refresh of the hints, in the sense that
+# since the hint refreshing job takes about 80 minutes, it's very likely someone
+# merged to master in the meanwhile, which would invalidate some hints. So, we
+# reset to origin/master, take in our hints, and push. This is short enough that
+# the chances of someone merging in-between fetch and push are low.
 refresh_fstar_hints () {
+  # Yayz.
   if ! git branch -r --contains HEAD | grep 'origin/master'; then
     echo "Not regenerating hints for branches other than master!"
   fi
+  if ! git remote get-url origin | grep FStar.git; then
+    echo "Inconsistency: wrong remote URL"
+    exit 1
+  fi
+  # For SSH authentication
+  git remote set-url origin git@github.com/FStarLang/FStar.git
+  # Add all the hints, even those not under version control
   find . -iname '*.hints' | xargs git add
   git commit -am "[CI] regenerate hints"
+  # Memorize that commit
   commit=$(git rev-parse HEAD)
+  # Move to whatever is the most recent master (that most likely changed in the
+  # meantime)
   git fetch
   git checkout master
   git reset --hard origin/master
+  # Silent, always=successful merge
   export GIT_MERGE_AUTOEDIT=no
   git merge $commit -Xtheirs
+  # Push.
   git push
 }
 
