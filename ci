@@ -171,7 +171,9 @@ refresh_fstar_hints () {
 }
 
 everest_yes () {
-  yes | ./everest check pull make test
+  ./everest check pull make test \
+    < <( yes ) \
+    3< <( false )
 }
 
 # Main commands.
