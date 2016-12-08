@@ -60,23 +60,27 @@ post_to_slack () {
 }
 
 # $1: the command to run
-# $2: the stem of the log file
-# $3: commit message
-# $4: slack channel
-# $5: github org/project
+# $2: name of the project
+# $3: slack channel
+# $4: github org/project
 run_log_commit () {
   if [[ $CI_LOGS == "" ]]; then
     echo "Don't know where to checkout the logs"
     exit 1
   fi
 
+  build_command="$1"
+  stem=$2
+  slack_channel=$3
+  github_project=$4
+
   # Determine where the logs are going
-  log_out=$2.out
-  log_err=$2.err
+  log_out=$stem-$(date +%Y%m%d%H%M%S).out
+  log_err=$stem-$(date +%Y%m%d%H%M%S).err
 
   # The actual CI
   SECONDS=0
-  if $1 \
+  if $build_command \
     2> >( tee $CI_LOGS/$log_err | sed 's/^/STDERR : /' >&2 ) \
     | tee $CI_LOGS/$log_out
   then
@@ -93,9 +97,9 @@ run_log_commit () {
   git add $log_out
   git add $log_err
   if $success; then
-    git commit -am "$3 / $commit (success)"
+    git commit -am "[CI] $stem logs / $commit (success)"
   else
-    git commit -am "$3 / $commit (failure)"
+    git commit -am "[CI] $stem logs / $commit (failure)"
   fi
   git push
   popd
@@ -119,15 +123,15 @@ run_log_commit () {
       slack_emoji=":no_entry:"
       slack_type="failure 😿"
     fi
-    payload="$slack_emoji commit <https://github.com/$5/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
+    payload="$slack_emoji commit <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
       *Duration:* $slack_time\n\
       *Author:* $slack_author\n\
       *Message:* $slack_log\n\
       *Project:* $slack_name\n\
-      *Command:* $1\n\
+      *Command:* $build_command\n\
       *OS:* $slack_os\n\
       *Logs:* $slack_msg"
-    post_to_slack "$4" "$payload"
+    post_to_slack "$slack_channel" "$payload"
   fi
 
   if ! $success; then
@@ -174,8 +178,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest -j 24" "fstar-$(date +%Y%m%d%H%M%S)" \
-      "F* CI" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src utest -j 24" "fstar" "#fstar-build" "FStarLang/FStar"
     ;;
 
   fstar-nightly)
@@ -185,8 +188,7 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints"
-    run_log_commit "make -C src ulong -j 24" "fstar-$(date +%Y%m%d%H%M%S)" \
-      "F* nightly" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src ulong -j 24" "fstar" "#fstar-build" "FStarLang/FStar"
     refresh_fstar_hints
     ;;
 
@@ -216,19 +218,16 @@ case "$1" in
       export FSTAR_HOME=$(pwd)/fstar
     fi
 
-    run_log_commit "make -C src/tls -j 24 all-ver tls-ffi" "mitls-$(date +%Y%m%d%H%M%S)" \
-      "miTLS CI" "#mitls-build" "mitls/mitls-fstar"
+    run_log_commit "make -C src/tls -j 24 all-ver tls-ffi" "miTLS" "#mitls-build" "mitls/mitls-fstar"
     ;;
 
   everest-ci)
     # Clone all projects together and make sure they test and build together
-    if [ -x everest ]; then
+    if ! [ -x everest ]; then
       echo "Not in the right directory"
       exit 1
     fi
-    yes | ./everest check pull make
-    FStar/examples/low-level/krml-test.exe
-    mitls-fstar/src/tls/mitls.exe
+    run_log_commit "yes | ./everest check pull make test" "everest" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
