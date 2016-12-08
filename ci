@@ -231,6 +231,7 @@ case "$1" in
       echo "Not in the right directory"
       exit 1
     fi
+    export EVEREST_CI=1
     run_log_commit "everest_yes" "everest" "#everest-build" "project-everest/everest"
     ;;
 
