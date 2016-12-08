@@ -222,6 +222,13 @@ case "$1" in
 
   everest-ci)
     # Clone all projects together and make sure they test and build together
+    if [ -x everest ]; then
+      echo "Not in the right directory"
+      exit 1
+    fi
+    yes | ./everest check pull make
+    FStar/examples/low-level/krml-test.exe
+    mitls-fstar/src/tls/mitls.exe
     ;;
 
   everest-nightly-check)
