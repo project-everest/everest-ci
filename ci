@@ -171,7 +171,8 @@ refresh_fstar_hints () {
 }
 
 everest_yes () {
-  yes | ./everest check clean pull make test
+  git clean -fdx
+  yes | ./everest check pull make test
 }
 
 # Main commands.
