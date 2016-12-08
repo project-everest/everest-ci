@@ -170,6 +170,10 @@ refresh_fstar_hints () {
   git push git@github.com:FStarLang/FStar.git master
 }
 
+everest_yes () {
+  yes | ./everest check pull make test
+}
+
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -227,7 +231,7 @@ case "$1" in
       echo "Not in the right directory"
       exit 1
     fi
-    run_log_commit "yes | ./everest check pull make test" "everest" "#everest-build" "project-everest/everest"
+    run_log_commit "everest_yes" "everest" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
