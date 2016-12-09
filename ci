@@ -86,7 +86,7 @@ run_log_commit () {
   then
     success=true
   else
-    echo "ERROR: command exited with ${PIPESTATUS[0]} (pipe: $?)"
+    echo "ERROR: PIPESTATUS=${PIPESTATUS[@]}"
     success=false
   fi
 
@@ -150,7 +150,6 @@ run_log_commit () {
 # reset to origin/master, take in our hints, and push. This is short enough that
 # the chances of someone merging in-between fetch and push are low.
 refresh_fstar_hints () {
-  # Yayz.
   if ! git branch -r --contains HEAD | grep 'origin/master'; then
     echo "Not regenerating hints for branches other than master!"
   fi
@@ -168,7 +167,7 @@ refresh_fstar_hints () {
   git fetch
   git checkout master
   git reset --hard origin/master
-  # Silent, always=successful merge
+  # Silent, always-successful merge
   export GIT_MERGE_AUTOEDIT=no
   git merge $commit -Xtheirs
   # Push.
@@ -239,6 +238,8 @@ case "$1" in
     fi
     export EVEREST_CI=1
     run_log_commit "everest_rebuild" "everest-build" "#everest-build" "project-everest/everest"
+    # This second command is only run if the first one succeeds (the script
+    # aborts otherwise).
     run_log_commit "./everest test" "everest-interop" "#everest-build" "project-everest/everest"
     ;;
 
