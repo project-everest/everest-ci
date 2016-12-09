@@ -221,6 +221,9 @@ everest_move () {
     post_to_slack "everest-build" "$msg"
     ./everest snapshot
     git commit -am "[CI] automatic upgrade"
+    rev=$(git rev-parse HEAD)
+    git checkout master
+    git merge $rev
     git push git@github.com:project-everest/everest.git master
   fi
 }
