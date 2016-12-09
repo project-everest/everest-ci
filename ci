@@ -180,6 +180,52 @@ everest_rebuild () {
   ./everest pull make
 }
 
+everest_move () {
+  # This is a TODO since for the life of me I can't figure out which branch VSTS
+  # instructs us to build
+  if [[ $(git rev-parse HEAD) != $(git rev-parse origin/master) ]]; then
+    echo "ERROR: not moving master (TODO)"
+    return 255
+  fi
+  # VSTS does not clean things properly... no point in fighting that, let's just
+  # do it ourselves
+  git clean -ffdx
+  # Sanity check that will fail if something is off the rails
+  yes | ./everest check
+  # Update every project to its know good version and branch, then for each
+  # project run git pull
+  ./everest pull
+  source hashes.sh
+  fresh=false
+  for r in ${hashes[@]}; do
+    cd $r
+    git pull
+    if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
+      fresh=true
+    fi
+  done
+  if ! $fresh; then
+    # Bail out early if there's nothing to do
+    post_to_slack "everest-build" "*Nightly Everest Upgrade:* nothing to upgrade"
+  elif ! ./everest make; then
+    # Provide a meaningful summary of what we tried
+    branch=$(git branch | cut -c 2-)
+    msg="*Nightly Everest Upgrade:* on $branch, upgrading each project to its latest version breaks the build"
+    msg="$msg\nHere's a summary of the versions I tried:"
+    for r in ${repositories[@]}; do
+      msg="$msg\n"$(cd $r && echo "$r at $(git rev-parse HEAD | cut -c 1-8) on branch $(git branch | cut -c 2-)")
+    done
+    msg="$msg\n"
+    post_to_slack "everest-build" "$msg"
+    return 255
+  else
+    # Life is good, record new revisions and commit
+    ./everest snapshot
+    git commit -am "[CI] automatic upgrade"
+    git push git@github.com:project-everest/everest.git master
+  fi
+}
+
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -256,6 +302,12 @@ case "$1" in
 
   everest-nightly-move)
     # Try to move the package to their last revision
+    if ! [ -x everest ]; then
+      echo "Not in the right directory"
+      exit 1
+    fi
+    export EVEREST_CI=1
+    run_log_commit "everest_move" "everest-move-to-latest" "#everest-build" "project-everest/everest"
     ;;
 
   *)
