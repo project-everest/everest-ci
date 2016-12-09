@@ -86,6 +86,7 @@ run_log_commit () {
   then
     success=true
   else
+    echo "ERROR: command exited with ${PIPESTATUS[0]} (pipe: $?)"
     success=false
   fi
 
@@ -245,7 +246,7 @@ case "$1" in
     # Start a fresh docker container that sets up everything, checks that
     # everything builds and runs on a fresh Ubuntu setup
     yes | docker run ubuntu bash -c "$(cat ubuntu-from-scratch)" | tee docker-log
-    if [[ $(cat docker-log | tail -n 1) != "EVEREST-SUCCESS" ]]; then
+    if [[ $(cat docker-log | tail -n 1) != "EVEREST-SUCCESS" ]]; then
       echo "Docker script did not reach completion -- failure"
       exit 1
     fi
