@@ -80,6 +80,7 @@ run_log_commit () {
   stem=$2
   slack_channel=$3
   github_project=$4
+  slack_branch=$(git branch -r --contains HEAD | tail -n 1 | tr -d ' ')
 
   # Determine where the logs are going
   log_out=$stem-$($DATE +%Y%m%d%H%M%S).out
@@ -122,7 +123,6 @@ run_log_commit () {
     slack_name=$(git remote get-url origin)
     slack_name=${slack_name##*/}
     slack_name=${slack_name%.git}
-    slack_branch=$(git branch -r --contains HEAD | tail -n 1 | tr -d ' ')
     slack_os=$(uname)
     if $success; then
       slack_emoji=":white_check_mark:"
