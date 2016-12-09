@@ -135,12 +135,11 @@ run_log_commit () {
       slack_channel=${slack_branch##origin/c_}
       slack_channel=${slack_channel%%_*}
     fi
-    payload="$slack_emoji commit <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
+    payload="$slack_emoji `$build_command` on <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
       *Duration:* $slack_time\n\
       *Author:* $slack_author\n\
       *Message:* $slack_log\n\
       *Project:* $slack_name\n\
-      *Command:* $build_command\n\
       *OS:* $slack_os\n\
       *Logs:* $slack_msg"
     post_to_slack "$slack_channel" "$payload"
