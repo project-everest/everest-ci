@@ -97,9 +97,9 @@ run_log_commit () {
   git add $log_out
   git add $log_err
   if $success; then
-    git commit -am "[CI] $stem logs / $commit (success)"
+    git commit -am "[CI] $stem logs (success)"
   else
-    git commit -am "[CI] $stem logs / $commit (failure)"
+    git commit -am "[CI] $stem logs (failure)"
   fi
   git push
   popd
