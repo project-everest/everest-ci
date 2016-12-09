@@ -28,6 +28,13 @@ set -e
 set -o pipefail
 # set -x # uncomment for debugging.
 
+# Some commands...
+if [[ $(uname) = "Darwin" ]]; then
+  DATE=gdate
+else
+  DATE=date
+fi
+
 # Self-update
 echo "... trying to self-update"
 if [[ ${0##*/} == $0 ]]; then
@@ -75,8 +82,8 @@ run_log_commit () {
   github_project=$4
 
   # Determine where the logs are going
-  log_out=$stem-$(date +%Y%m%d%H%M%S).out
-  log_err=$stem-$(date +%Y%m%d%H%M%S).err
+  log_out=$stem-$($DATE +%Y%m%d%H%M%S).out
+  log_err=$stem-$($DATE +%Y%m%d%H%M%S).err
 
   # The actual CI
   SECONDS=0
@@ -109,7 +116,7 @@ run_log_commit () {
     raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master/
     slack_log=$(git log --pretty=format:"%s" -1)
     slack_author=$(git log --pretty=format:"%cn" -1)
-    slack_time=$(if (( $SECONDS >= 3600 )); then date -d@$SECONDS -u +%Hh%Mm%Ss; else date -d@$SECONDS -u +%Mm%Ss; fi)
+    slack_time=$(if (( $SECONDS >= 3600 )); then $DATE -d@$SECONDS -u +%Hh%Mm%Ss; else $DATE -d@$SECONDS -u +%Mm%Ss; fi)
     slack_msg="<$raw_url/$log_err|stderr> <$raw_url/$log_out|stdout>"
     slack_commit=$(git rev-parse HEAD | cut -c 1-8)
     slack_name=$(git remote get-url origin)
@@ -203,7 +210,8 @@ everest_move () {
     if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
       fresh=true
     fi
-    versions="$versions\n$r at $(git rev-parse HEAD | cut -c 1-8) on branch $(git branch | cut -c 2-)"
+    versions="$versions\n    *$r* at $(git rev-parse HEAD | cut -c 1-8) on branch $(git rev-parse --abbrev-ref HEAD)"
+    cd ..
   done
   versions="$versions\n"
   if ! $fresh; then
@@ -211,13 +219,13 @@ everest_move () {
     post_to_slack "everest-build" "*Nightly Everest Upgrade:* nothing to upgrade"
   elif ! ./everest make; then
     # Provide a meaningful summary of what we tried
-    msg=":white_check_mark: *Nightly Everest Upgrade:* upgrading each project to its latest version breaks the build\n$versions"
+    msg=":no_entry: *Nightly Everest Upgrade:* upgrading each project to its latest version breaks the build\n$versions"
     post_to_slack "everest-build" "$msg"
     return 255
   else
     # Life is good, record new revisions and commit. NOTE: this does not include
     # "everest test"... this is a TODO.
-    msg=":no_entry: *Nightly Everest Upgrade:* upgrading each project to its latest version works!\n$versions"
+    msg=":white_check_mark: *Nightly Everest Upgrade:* upgrading each project to its latest version works!\n$versions"
     post_to_slack "everest-build" "$msg"
     ./everest snapshot
     git commit -am "[CI] automatic upgrade"
