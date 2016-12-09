@@ -196,30 +196,29 @@ everest_move () {
   # project run git pull
   source hashes.sh
   fresh=false
+  versions=""
   for r in ${hashes[@]}; do
     cd $r
     git pull
     if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
       fresh=true
     fi
+    versions="$versions\n$r at $(git rev-parse HEAD | cut -c 1-8) on branch $(git branch | cut -c 2-)"
   done
+  versions="$versions\n"
   if ! $fresh; then
     # Bail out early if there's nothing to do
     post_to_slack "everest-build" "*Nightly Everest Upgrade:* nothing to upgrade"
   elif ! ./everest make; then
     # Provide a meaningful summary of what we tried
-    branch=$(git branch | cut -c 2-)
-    msg="*Nightly Everest Upgrade:* on $branch, upgrading each project to its latest version breaks the build"
-    msg="$msg\nHere's a summary of the versions I tried:"
-    for r in ${repositories[@]}; do
-      msg="$msg\n"$(cd $r && echo "$r at $(git rev-parse HEAD | cut -c 1-8) on branch $(git branch | cut -c 2-)")
-    done
-    msg="$msg\n"
+    msg=":white_check_mark: *Nightly Everest Upgrade:* upgrading each project to its latest version breaks the build\n$versions"
     post_to_slack "everest-build" "$msg"
     return 255
   else
     # Life is good, record new revisions and commit. NOTE: this does not include
     # "everest test"... this is a TODO.
+    msg=":no_entry: *Nightly Everest Upgrade:* upgrading each project to its latest version works!\n$versions"
+    post_to_slack "everest-build" "$msg"
     ./everest snapshot
     git commit -am "[CI] automatic upgrade"
     git push git@github.com:project-everest/everest.git master
