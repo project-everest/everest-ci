@@ -191,10 +191,9 @@ everest_move () {
   # do it ourselves
   git clean -ffdx
   # Sanity check that will fail if something is off the rails
-  yes | ./everest check
+  yes | ./everest check pull
   # Update every project to its know good version and branch, then for each
   # project run git pull
-  ./everest pull
   source hashes.sh
   fresh=false
   for r in ${hashes[@]}; do
@@ -219,7 +218,8 @@ everest_move () {
     post_to_slack "everest-build" "$msg"
     return 255
   else
-    # Life is good, record new revisions and commit
+    # Life is good, record new revisions and commit. NOTE: this does not include
+    # "everest test"... this is a TODO.
     ./everest snapshot
     git commit -am "[CI] automatic upgrade"
     git push git@github.com:project-everest/everest.git master
