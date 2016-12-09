@@ -197,7 +197,7 @@ everest_move () {
   source hashes.sh
   fresh=false
   versions=""
-  for r in ${hashes[@]}; do
+  for r in ${!hashes[@]}; do
     cd $r
     git pull
     if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
