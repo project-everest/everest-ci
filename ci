@@ -60,7 +60,7 @@ post_to_slack () {
 }
 
 # $1: the command to run
-# $2: name of the project
+# $2: job description without space (e.g. everest-interop or fstar)
 # $3: slack channel
 # $4: github org/project
 run_log_commit () {
@@ -174,9 +174,9 @@ refresh_fstar_hints () {
   git push git@github.com:FStarLang/FStar.git master
 }
 
-everest_yes () {
+everest_rebuild () {
   git clean -ffdx
-  yes | ./everest check pull make test
+  yes | ./everest check pull make
 }
 
 # Main commands.
@@ -237,7 +237,8 @@ case "$1" in
       exit 1
     fi
     export EVEREST_CI=1
-    run_log_commit "everest_yes" "everest" "#everest-build" "project-everest/everest"
+    run_log_commit "everest_rebuild" "everest-build" "#everest-build" "project-everest/everest"
+    run_log_commit "./everest test" "everest-interop" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
