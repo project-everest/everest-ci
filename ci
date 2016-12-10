@@ -237,7 +237,7 @@ everest_move () {
 
 docker_from_scratch () {
   yes | docker run ubuntu bash -c "$(cat ubuntu-from-scratch)" | tee docker-log
-  [[ $(cat docker-log | tail -n 1) != "EVEREST-SUCCESS" ]]
+  [[ $(cat docker-log | tail -n 1) == "EVEREST-SUCCESS" ]]
 }
 
 # Main commands.
