@@ -235,6 +235,11 @@ everest_move () {
   fi
 }
 
+docker_from_scratch () {
+  yes | docker run ubuntu bash -c "$(cat ubuntu-from-scratch)" | tee docker-log
+  [[ $(cat docker-log | tail -n 1) != "EVEREST-SUCCESS" ]]
+}
+
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -302,11 +307,7 @@ case "$1" in
   everest-nightly-check)
     # Start a fresh docker container that sets up everything, checks that
     # everything builds and runs on a fresh Ubuntu setup
-    yes | docker run ubuntu bash -c "$(cat ubuntu-from-scratch)" | tee docker-log
-    if [[ $(cat docker-log | tail -n 1) != "EVEREST-SUCCESS" ]]; then
-      echo "Docker script did not reach completion -- failure"
-      exit 1
-    fi
+    run_log_commit "docker_from_scratch" "everest-from-scratch-ubuntu" "#everest-build" "project-everest/everest-ci"
     ;;
 
   everest-nightly-move)
