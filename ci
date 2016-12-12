@@ -58,6 +58,9 @@ else
 fi
 popd
 
+# Some environment variables we want
+export OCAMLRUNPARAM=b
+
 # $1: channel
 # $2: message
 post_to_slack () {
