@@ -11,7 +11,9 @@ cd $HOME
 # Known required packages
 export DEBIAN_FRONTEND=noninteractive
 apt-get --yes update
-apt-get --yes install wget build-essential opam libsqlite3-dev libgmp-dev libssl-dev m4 automake git fsharp vim
+# Getting lots of hash sum mismatch on CI
+PACKAGES="wget build-essential opam libsqlite3-dev libgmp-dev libssl-dev m4 automake git fsharp vim"
+apt-get --yes install $PACKAGES || apt-get --yes install $PACKAGES || apt-get --yes install $PACKAGES
 
 # Z3
 wget https://github.com/Z3Prover/z3/releases/download/z3-4.5.0/z3-4.5.0-x64-ubuntu-14.04.zip
