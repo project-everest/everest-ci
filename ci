@@ -182,8 +182,8 @@ refresh_fstar_hints () {
 
 everest_rebuild () {
   git clean -ffdx
-  yes | ./everest check
-  ./everest pull make
+  yes | ./everest check reset
+  ./everest make
 }
 
 everest_move () {
