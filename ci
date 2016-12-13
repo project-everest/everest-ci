@@ -89,10 +89,11 @@ run_log_commit () {
   log_out=$stem-$($DATE +%Y%m%d%H%M%S).out
   log_err=$stem-$($DATE +%Y%m%d%H%M%S).err
 
-  # The actual CI
+  # The actual CI; stderr goes into the err file and both stderr and stdout are
+  # redirected to the out file.
   SECONDS=0
   if $build_command \
-    2> >( tee $CI_LOGS/$log_err | sed 's/^/STDERR : /' >&2 ) \
+    2> >( tee $CI_LOGS/$log_err | sed 's/^/STDERR : /' ) \
     | tee $CI_LOGS/$log_out
   then
     success=true
