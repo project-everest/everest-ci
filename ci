@@ -200,7 +200,7 @@ everest_move () {
   # do it ourselves
   git clean -ffdx
   # Sanity check that will fail if something is off the rails
-  yes | ./everest check pull
+  yes | ./everest check reset
   # Update every project to its know good version and branch, then for each
   # project run git pull
   source hashes.sh
