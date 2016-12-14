@@ -116,8 +116,7 @@ export OCAMLRUNPARAM=b
 # $2: message
 post_to_slack () {
 
-	echo "... posting to channel:"$1
-     curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
+     curl -X POST --data-urlencode "payload={\"channel\": \"#$1\", \
      \"username\": \"dzomo\", \"text\": \"$2\", \
      \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"      
 }
@@ -142,11 +141,10 @@ run_log_commit () {
   log_out=$stem-$($DATE +%Y%m%d%H%M%S).out
   log_err=$stem-$($DATE +%Y%m%d%H%M%S).err
 
-  # The actual CI; stderr goes into the err file and both stderr and stdout are
-  # redirected to the out file.
+  # The actual CI
   SECONDS=0
   if $build_command \
-    2> >( tee $CI_LOGS/$log_err | sed 's/^/STDERR : /' ) \
+	2> >( tee $CI_LOGS/$log_err | sed 's/^/STDERR : /' >&2 ) \    
     | tee $CI_LOGS/$log_out
   then
     success=true
@@ -154,7 +152,6 @@ run_log_commit () {
     echo "ERROR: PIPESTATUS=${PIPESTATUS[@]}"
     success=false
   fi
-
 
   # Commit & push the logs. This does not prevent interleaving from concurrent
   # build jobs.
@@ -176,7 +173,7 @@ run_log_commit () {
     # set var to false just to make sure not used wrong elsewhere
     VALID_MEMBER=false
 
-    raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master/
+    raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
     slack_log=$(git log --pretty=format:"%s" -1)
     slack_author=$(git log --pretty=format:"%cn" -1)
     slack_time=$(if (( $SECONDS >= 3600 )); then $DATE -d@$SECONDS -u +%Hh%Mm%Ss; else $DATE -d@$SECONDS -u +%Mm%Ss; fi)
@@ -227,7 +224,7 @@ run_log_commit () {
       *OS:* $slack_os\n\
       *Logs:* $slack_msg"
 
-       post_to_slack "$slack_channel" "$payload"
+    post_to_slack "$slack_channel" "$payload"
   fi
 
   if ! $success; then
@@ -241,7 +238,6 @@ run_log_commit () {
 # reset to origin/master, take in our hints, and push. This is short enough that
 # the chances of someone merging in-between fetch and push are low.
 refresh_fstar_hints () {
-  # Yayz.
   if ! git branch -r --contains HEAD | grep 'origin/master'; then
     echo "Not regenerating hints for branches other than master!"
   fi
@@ -328,18 +324,16 @@ docker_from_scratch () {
 
 verify_everest_team_member () {
 
-	VALID_MEMBER="false"
+    VALID_MEMBER="false"
 
-	# go through and see if there is an element in the array that is 
+    # go through and see if there is an element in the array that is 
     for K in "${!EverestSlackUsers[@]}"; 
     do 
        if [[ $1 == $K ]]; then
 			VALID_MEMBER="true"
-			echo "*** FOUND! ****"
        fi
     done
 }
-
 
 # Main commands.
 case "$1" in
