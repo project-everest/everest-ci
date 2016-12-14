@@ -7,6 +7,57 @@ This is the Everest CI script.
 ... environment: $(uname -a)
 INFO
 
+# set list of Everest Slack Users - added name for readability and way to associate who is who just in case want to use name in future
+declare -A EverestSlackUsers
+EverestSlackUsers[adg]="Andy"
+EverestSlackUsers[adl]="Antoine"
+EverestSlackUsers[anitha]="Anitha"
+EverestSlackUsers[anilam]="Ann"
+EverestSlackUsers[aozgaa]="Arthur"
+EverestSlackUsers[aseem]="Aseem"
+EverestSlackUsers[ashay]="Ashary"
+EverestSlackUsers[barrybo]="Barry"
+EverestSlackUsers[bryan.parno]="Bryan"
+EverestSlackUsers[dowling]="Ben"
+EverestSlackUsers[beurdouche]="Benjamin"
+EverestSlackUsers[dowlingbj]="Benjamin"
+EverestSlackUsers[catalin]="Catalin"
+EverestSlackUsers[fournet]="Cedric"
+EverestSlackUsers[chris.brzuska]="Chris"
+EverestSlackUsers[chris.hawblitzel]="Chris"
+EverestSlackUsers[wintersteiger]="Christoph"
+EverestSlackUsers[danelahman]="Danel"
+EverestSlackUsers[danfab]="Dany"
+EverestSlackUsers[darrenge]="Darren"
+EverestSlackUsers[gonthier]="Georges"
+EverestSlackUsers[guido]="Guido"
+EverestSlackUsers[irinasp]="Irina"
+EverestSlackUsers[jaylorch]="Jay"
+EverestSlackUsers[jk]="Jean"
+EverestSlackUsers[karthik]="Karthikeyan"
+EverestSlackUsers[kyod]="Kenji"
+EverestSlackUsers[konrad.kohbrok]="Konrad"
+EverestSlackUsers[laure]="Laure"
+EverestSlackUsers[leodemoura]="Leonardo"
+EverestSlackUsers[polubelova]="Marina"
+EverestSlackUsers[markulf]="Markulf"
+EverestSlackUsers[mlr-msft]="Michael"
+EverestSlackUsers[nadim]="Nadim"
+EverestSlackUsers[nickbenton]="Nick"
+EverestSlackUsers[nik]="Nik"
+EverestSlackUsers[osavaryb]="Oliver"
+EverestSlackUsers[wangpeng]="Peng"
+EverestSlackUsers[protz]="Jonathan"
+EverestSlackUsers[leino]="Rustan"
+EverestSlackUsers[sishtiaq]="Samin"
+EverestSlackUsers[santiago]="Santiago"
+EverestSlackUsers[vkanne]="Sreekanth"
+EverestSlackUsers[srinath]="Srinath"
+EverestSlackUsers[taramana]="Tahina"
+EverestSlackUsers[thomas.sibut-pinote]="Thomas"
+EverestSlackUsers[shaolintl]="Tomer"
+EverestSlackUsers[vdum]="Victor"
+
 # Sorry, everyone
 if (( ${BASH_VERSION%%.*} < 4 )); then
   echo "This script requires Bash >= 4. On OSX, try: brew install bash"
@@ -54,9 +105,11 @@ popd
 # $1: channel
 # $2: message
 post_to_slack () {
-  curl -X POST --data-urlencode "payload={\"channel\": \"#$1\", \
-    \"username\": \"dzomo\", \"text\": \"$2\", \
-    \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
+
+	echo "... posting to channel:"$1
+     curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
+     \"username\": \"dzomo\", \"text\": \"$2\", \
+     \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"      
 }
 
 # $1: the command to run
@@ -89,6 +142,7 @@ run_log_commit () {
     success=false
   fi
 
+
   # Commit & push the logs. This does not prevent interleaving from concurrent
   # build jobs.
   pushd $CI_LOGS
@@ -103,8 +157,12 @@ run_log_commit () {
   fi
   git push
   popd
-
+   
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
+
+    # set var to false just to make sure not used wrong elsewhere
+    VALID_MEMBER=false
+
     raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master/
     slack_log=$(git log --pretty=format:"%s" -1)
     slack_author=$(git log --pretty=format:"%cn" -1)
@@ -116,6 +174,7 @@ run_log_commit () {
     slack_name=${slack_name%.git}
     slack_branch=$(git branch -r --contains HEAD | tail -n 1 | tr -d ' ')
     slack_os=$(uname)
+   
     if $success; then
       slack_emoji=":white_check_mark:"
       slack_type="success 😺"
@@ -123,10 +182,31 @@ run_log_commit () {
       slack_emoji=":no_entry:"
       slack_type="failure 😿"
     fi
+
+    # check if branch has c_ to send to appropriate channel - else check if has individual name in branch
 	if [[ ${slack_branch##origin/c_} != $slack_branch ]]; then
+	
 	  slack_channel=${slack_branch##origin/c_}
 	  slack_channel=${slack_channel%%_*}
+
+	else  #check individual name - use temp vars just in case doesn't pass valid member
+	  
+	  temp_slack_channel=${slack_branch##origin/}
+	  temp_slack_channel=${temp_slack_channel%%_*}
+  
+	  # got name so make sure they are valid team member before sending direct message
+	  verify_everest_team_member $temp_slack_channel
+    
+      # if Valid_Member set to true then know it is a user (and valid) so send direct message which needs the "@"
+      # Also set slack channel to the valid user ... if not valid user then slack branch and channel just what they were 
+	  if [[ $VALID_MEMBER == true ]]; then 
+		slack_channel="@"$temp_slack_channel
+		echo "Valid member of team!" $slack_channel
+	  fi
+	  
 	fi
+
+	#Set up payload. If branch is not c_ or a valid slack name_ then just leave payload as default
     payload="$slack_emoji commit <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
       *Duration:* $slack_time\n\
       *Author:* $slack_author\n\
@@ -135,7 +215,8 @@ run_log_commit () {
       *Command:* $build_command\n\
       *OS:* $slack_os\n\
       *Logs:* $slack_msg"
-    post_to_slack "$slack_channel" "$payload"
+
+       post_to_slack "$slack_channel" "$payload"
   fi
 
   if ! $success; then
@@ -149,6 +230,8 @@ run_log_commit () {
 # reset to origin/master, take in our hints, and push. This is short enough that
 # the chances of someone merging in-between fetch and push are low.
 refresh_fstar_hints () {
+echo "## DG - refresh_fstar_hints ##"  
+
   # Yayz.
   if ! git branch -r --contains HEAD | grep 'origin/master'; then
     echo "Not regenerating hints for branches other than master!"
@@ -174,10 +257,26 @@ refresh_fstar_hints () {
   git push git@github.com:FStarLang/FStar.git master
 }
 
+
 everest_yes () {
   git clean -ffdx
   yes | ./everest check pull make test
 }
+
+verify_everest_team_member () {
+
+	VALID_MEMBER="false"
+
+	# go through and see if there is an element in the array that is 
+    for K in "${!EverestSlackUsers[@]}"; 
+    do 
+       if [[ $1 == $K ]]; then
+			VALID_MEMBER="true"
+			echo "*** FOUND! ****"
+       fi
+    done
+}
+
 
 # Main commands.
 case "$1" in
@@ -252,6 +351,7 @@ case "$1" in
 
   everest-nightly-move)
     # Try to move the package to their last revision
+    echo "DG - nightly run"
     ;;
 
   *)
