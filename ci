@@ -79,6 +79,13 @@ set -e
 set -o pipefail
 # set -x # uncomment for debugging.
 
+# Some commands...
+if [[ $(uname) = "Darwin" ]]; then
+  DATE=gdate
+else
+  DATE=date
+fi
+
 # Self-update
 echo "... trying to self-update"
 if [[ ${0##*/} == $0 ]]; then
@@ -102,6 +109,9 @@ else
 fi
 popd
 
+# Some environment variables we want
+export OCAMLRUNPARAM=b
+
 # $1: channel
 # $2: message
 post_to_slack () {
@@ -113,7 +123,7 @@ post_to_slack () {
 }
 
 # $1: the command to run
-# $2: name of the project
+# $2: job description without space (e.g. everest-interop or fstar)
 # $3: slack channel
 # $4: github org/project
 run_log_commit () {
@@ -126,19 +136,22 @@ run_log_commit () {
   stem=$2
   slack_channel=$3
   github_project=$4
+  slack_branch=$(git branch -r --contains HEAD | tail -n 1 | tr -d ' ')
 
   # Determine where the logs are going
-  log_out=$stem-$(date +%Y%m%d%H%M%S).out
-  log_err=$stem-$(date +%Y%m%d%H%M%S).err
+  log_out=$stem-$($DATE +%Y%m%d%H%M%S).out
+  log_err=$stem-$($DATE +%Y%m%d%H%M%S).err
 
-  # The actual CI
+  # The actual CI; stderr goes into the err file and both stderr and stdout are
+  # redirected to the out file.
   SECONDS=0
   if $build_command \
-    2> >( tee $CI_LOGS/$log_err | sed 's/^/STDERR : /' >&2 ) \
+    2> >( tee $CI_LOGS/$log_err | sed 's/^/STDERR : /' ) \
     | tee $CI_LOGS/$log_out
   then
     success=true
   else
+    echo "ERROR: PIPESTATUS=${PIPESTATUS[@]}"
     success=false
   fi
 
@@ -151,9 +164,9 @@ run_log_commit () {
   git add $log_out
   git add $log_err
   if $success; then
-    git commit -am "[CI] $stem logs / $commit (success)"
+    git commit -am "[CI] $stem logs (success)"
   else
-    git commit -am "[CI] $stem logs / $commit (failure)"
+    git commit -am "[CI] $stem logs (failure)"
   fi
   git push
   popd
@@ -166,13 +179,12 @@ run_log_commit () {
     raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master/
     slack_log=$(git log --pretty=format:"%s" -1)
     slack_author=$(git log --pretty=format:"%cn" -1)
-    slack_time=$(if (( $SECONDS >= 3600 )); then date -d@$SECONDS -u +%Hh%Mm%Ss; else date -d@$SECONDS -u +%Mm%Ss; fi)
+    slack_time=$(if (( $SECONDS >= 3600 )); then $DATE -d@$SECONDS -u +%Hh%Mm%Ss; else $DATE -d@$SECONDS -u +%Mm%Ss; fi)
     slack_msg="<$raw_url/$log_err|stderr> <$raw_url/$log_out|stdout>"
     slack_commit=$(git rev-parse HEAD | cut -c 1-8)
     slack_name=$(git remote get-url origin)
     slack_name=${slack_name##*/}
     slack_name=${slack_name%.git}
-    slack_branch=$(git branch -r --contains HEAD | tail -n 1 | tr -d ' ')
     slack_os=$(uname)
    
     if $success; then
@@ -207,12 +219,11 @@ run_log_commit () {
 	fi
 
 	#Set up payload. If branch is not c_ or a valid slack name_ then just leave payload as default
-    payload="$slack_emoji commit <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
-      *Duration:* $slack_time\n\
-      *Author:* $slack_author\n\
-      *Message:* $slack_log\n\
+    payload="$slack_emoji \`$build_command\` on <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
       *Project:* $slack_name\n\
-      *Command:* $build_command\n\
+      *Message:* $slack_log\n\
+      *Author:* $slack_author\n\
+      *Duration:* $slack_time\n\
       *OS:* $slack_os\n\
       *Logs:* $slack_msg"
 
@@ -230,8 +241,6 @@ run_log_commit () {
 # reset to origin/master, take in our hints, and push. This is short enough that
 # the chances of someone merging in-between fetch and push are low.
 refresh_fstar_hints () {
-echo "## DG - refresh_fstar_hints ##"  
-
   # Yayz.
   if ! git branch -r --contains HEAD | grep 'origin/master'; then
     echo "Not regenerating hints for branches other than master!"
@@ -250,17 +259,71 @@ echo "## DG - refresh_fstar_hints ##"
   git fetch
   git checkout master
   git reset --hard origin/master
-  # Silent, always=successful merge
+  # Silent, always-successful merge
   export GIT_MERGE_AUTOEDIT=no
   git merge $commit -Xtheirs
   # Push.
   git push git@github.com:FStarLang/FStar.git master
 }
 
-
-everest_yes () {
+everest_rebuild () {
   git clean -ffdx
-  yes | ./everest check pull make test
+  yes | ./everest check reset
+  ./everest make
+}
+
+everest_move () {
+  # This is a TODO since for the life of me I can't figure out which branch VSTS
+  # instructs us to build
+  if [[ $(git rev-parse HEAD) != $(git rev-parse origin/master) ]]; then
+    echo "ERROR: not moving master (TODO)"
+    return 255
+  fi
+  # VSTS does not clean things properly... no point in fighting that, let's just
+  # do it ourselves
+  git clean -ffdx
+  # Sanity check that will fail if something is off the rails
+  yes | ./everest check reset
+  # Update every project to its know good version and branch, then for each
+  # project run git pull
+  source hashes.sh
+  fresh=false
+  versions=""
+  for r in ${!hashes[@]}; do
+    cd $r
+    git pull
+    if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
+      fresh=true
+    fi
+    versions="$versions\n    *$r* at $(git rev-parse HEAD | cut -c 1-8) on branch $(git rev-parse --abbrev-ref HEAD)"
+    cd ..
+  done
+  versions="$versions\n"
+  if ! $fresh; then
+    # Bail out early if there's nothing to do
+    post_to_slack "everest-build" "*Nightly Everest Upgrade:* nothing to upgrade"
+  elif ! ./everest make; then
+    # Provide a meaningful summary of what we tried
+    msg=":no_entry: *Nightly Everest Upgrade:* upgrading each project to its latest version breaks the build\n$versions"
+    post_to_slack "everest-build" "$msg"
+    return 255
+  else
+    # Life is good, record new revisions and commit. NOTE: this does not include
+    # "everest test"... this is a TODO.
+    msg=":white_check_mark: *Nightly Everest Upgrade:* upgrading each project to its latest version works!\n$versions"
+    post_to_slack "everest-build" "$msg"
+    ./everest snapshot
+    git commit -am "[CI] automatic upgrade"
+    rev=$(git rev-parse HEAD)
+    git checkout master
+    git merge $rev
+    git push git@github.com:project-everest/everest.git master
+  fi
+}
+
+docker_from_scratch () {
+  yes | docker run ubuntu bash -c "$(cat ubuntu-from-scratch)" | tee docker-log
+  [[ $(cat docker-log | tail -n 1) == "EVEREST-SUCCESS" ]]
 }
 
 verify_everest_team_member () {
@@ -336,22 +399,26 @@ case "$1" in
       exit 1
     fi
     export EVEREST_CI=1
-    run_log_commit "everest_yes" "everest" "#everest-build" "project-everest/everest"
+    run_log_commit "everest_rebuild" "everest-build" "#everest-build" "project-everest/everest"
+    # This second command is only run if the first one succeeds (the script
+    # aborts otherwise).
+    run_log_commit "./everest test" "everest-interop" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
     # Start a fresh docker container that sets up everything, checks that
     # everything builds and runs on a fresh Ubuntu setup
-    yes | docker run ubuntu bash -c "$(cat ubuntu-from-scratch)" | tee docker-log
-    if [[ $(cat docker-log | tail -n 1) != "EVEREST-SUCCESS" ]]; then
-      echo "Docker script did not reach completion -- failure"
-      exit 1
-    fi
+    run_log_commit "docker_from_scratch" "everest-from-scratch-ubuntu" "#everest-build" "project-everest/everest-ci"
     ;;
 
   everest-nightly-move)
     # Try to move the package to their last revision
-    echo "DG - nightly run"
+    if ! [ -x everest ]; then
+      echo "Not in the right directory"
+      exit 1
+    fi
+    export EVEREST_CI=1
+    run_log_commit "everest_move" "everest-move-to-latest" "#everest-build" "project-everest/everest"
     ;;
 
   *)

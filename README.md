@@ -30,12 +30,10 @@ Here's a quick overview of the current implemented CI jobs:
   ![fstar-nightly build status](https://msresearch-ext.visualstudio.com/_apis/public/build/definitions/83f09286-c288-4766-89cd-d267b6d93772/22/badge)
   verify all the things, including crypto and everything in
   examples/ -- also regenerate the hints and push!
-
-Planning to have the following soon:
-- **everest / CI**: check that the given revisions of all projects lead to a
-  successful build & run of mitls.exe
+- **everest / CI**: check that the designated revisions of all projects (in
+  `hashes.sh`) lead to a successful build & run of mitls.exe
 - **everest / upgrade**: check that the latest revisions of all projects lead to a
-  successful build & run of mitls.exe
+  successful build & run of mitls.exe; record it as a new set of revisions
 - **everest / nightly**: check that the install script, when run from an empty
   Ubuntu Docker container, leads to a successful build & run of mitls.exe
 
