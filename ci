@@ -31,10 +31,8 @@ set -o pipefail
 # Some commands...
 if [[ $(uname) = "Darwin" ]]; then
   DATE=gdate
-  STDBUF=gstdbuf
 else
   DATE=date
-  STDBUF=stdbuf
 fi
 
 # Self-update
@@ -94,7 +92,7 @@ run_log_commit () {
   # The actual CI; stderr goes into the err file and both stderr and stdout are
   # redirected to the out file.
   SECONDS=0
-  if $STDBUF -oL -eL $build_command \
+  if $build_command \
     2> >( tee $CI_LOGS/$log_err | sed 's/^/STDERR : /' ) \
     | tee $CI_LOGS/$log_out
   then
