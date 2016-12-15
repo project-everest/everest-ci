@@ -56,6 +56,7 @@ else
     echo "... no new version available"
   fi
 fi
+EVEREST_CI_HOME=$(pwd)
 popd
 
 # Some environment variables we want
@@ -64,7 +65,8 @@ export OCAMLRUNPARAM=b
 # $1: channel
 # $2: message
 post_to_slack () {
-  curl -X POST --data-urlencode "payload={\"channel\": \"#$1\", \
+
+  curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
     \"username\": \"dzomo\", \"text\": \"$2\", \
     \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
 }
@@ -91,6 +93,7 @@ run_log_commit () {
 
   # The actual CI
   SECONDS=0
+
   if $build_command \
     2> >( \
       while read -r line; do
@@ -128,6 +131,7 @@ run_log_commit () {
   popd
 
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
+
     raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
     slack_log=$(git log --pretty=format:"%s" -1)
     slack_author=$(git log --pretty=format:"%cn" -1)
@@ -138,6 +142,7 @@ run_log_commit () {
     slack_name=${slack_name##*/}
     slack_name=${slack_name%.git}
     slack_os=$(uname)
+
     if $success; then
       slack_emoji=":white_check_mark:"
       slack_type="success 😺"
@@ -145,10 +150,19 @@ run_log_commit () {
       slack_emoji=":no_entry:"
       slack_type="failure 😿"
     fi
+
+    #see if the user name is before _
+    user_slack_channel="${slack_branch%%_*}"
+
+    # check if branch has c_ to send to appropriate channel - else check if has individual name in branch using slack-users file
     if [[ ${slack_branch##origin/c_} != $slack_branch ]]; then
       slack_channel=${slack_branch##origin/c_}
-      slack_channel=${slack_channel%%_*}
+      slack_channel="#${slack_channel%%_*}"
+    elif [[ $(egrep ^$user_slack_channel$ $EVEREST_CI_HOME/slack-users) == $user_slack_channel ]]; then
+      slack_channel="@$user_slack_channel"
     fi
+
+    #Set up payload. If branch is not c_ or a valid slack name_ then just leave payload as default
     payload="$slack_emoji \`$build_command\` on <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
       *Project:* $slack_name\n\
       *Message:* $slack_log\n\
@@ -156,6 +170,7 @@ run_log_commit () {
       *Duration:* $slack_time\n\
       *OS:* $slack_os\n\
       *Logs:* $slack_msg"
+
     post_to_slack "$slack_channel" "$payload"
   fi
 
