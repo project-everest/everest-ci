@@ -93,14 +93,14 @@ run_log_commit () {
   SECONDS=0
   if $build_command \
     2> >( \
-      while read line; do
+      while read -r line; do
         echo "$line" >> $CI_LOGS/$log_err;
         echo "$line" >> $CI_LOGS/$log_all
         echo STDERR: "$line" >&2
       done;
     ) \
     > >( \
-      while read line; do
+      while read -r line; do
         echo "$line" >> $CI_LOGS/$log_all
         echo "$line"
       done
