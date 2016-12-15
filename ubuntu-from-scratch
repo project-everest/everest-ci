@@ -7,6 +7,7 @@ set -o pipefail
 # Ubuntu container, setup the environment and build project everest, all the way
 # to the final (known) working test.
 cd $HOME
+export EVEREST_CI=1
 
 # Known required packages
 export DEBIAN_FRONTEND=noninteractive
