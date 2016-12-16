@@ -64,14 +64,11 @@ if [[ $BUILD_SOURCEBRANCHNAME != "" ]]; then
   CI_BRANCH=${BUILD_SOURCEBRANCHNAME##refs/heads/}
   echo "... running in a VSTS environment, branch=$CI_BRANCH"
 else
-  CI_BRANCH=$(git symbolic-ref HEAD)
+  echo "... trying to figure out the current branch"
+  CI_BRANCH=$(git symbolic-ref HEAD) # fails if not on a branch
   CI_BRANCH=${CI_BRANCH##refs/heads/}
-  if [[ $CI_BRANCH == $(git rev-parse HEAD) ]]; then
-    echo "looks like the current working git repository is in the detached head state, aborting"
-    exit 1
-  fi
   tput setaf 1
-  echo "... not running in a VSTS environment, $CI_BRANCH is our approximate current branch"
+  echo "... not running in a VSTS environment, $CI_BRANCH is the working directory's current branch"
   tput sgr0
 fi
 
