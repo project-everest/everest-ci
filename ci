@@ -136,7 +136,7 @@ run_log_commit () {
   if [ -f $log_all ]; then
     git add $log_all
   fi
-  if [ -f $log_err]; then
+  if [ -f $log_err ]; then
     git add $log_err
   fi
   if $success; then

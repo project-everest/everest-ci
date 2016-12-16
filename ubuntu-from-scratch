@@ -26,7 +26,7 @@ export OPAMYES=true
 git clone https://github.com/project-everest/everest
 
 # Build everything
-yes | everest/everest check pull
+yes | everest/everest check reset
 ./everest make
 
 # The "final" test... disabled because mitls.exe doesn't quite work yet
