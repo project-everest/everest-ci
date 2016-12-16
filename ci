@@ -59,13 +59,28 @@ fi
 EVEREST_CI_HOME=$(pwd)
 popd
 
+# Figure out the branch
+if [[ $BUILD_SOURCEBRANCHNAME != "" ]]; then
+  CI_BRANCH=${BUILD_SOURCEBRANCHNAME##refs/heads/}
+  echo "... running in a VSTS environment, branch=$CI_BRANCH"
+else
+  CI_BRANCH=$(git symbolic-ref HEAD)
+  if [[ $CI_BRANCH == $(git rev-parse HEAD) ]];
+    echo "looks like the current working git repository is in the detached head state, aborting"
+    exit 1
+  fi
+  tput setaf 1
+  echo "... not running in a VSTS environment, $CI_BRANCH is our approximate current branch"
+  tput sgr0
+fi
+
+
 # Some environment variables we want
 export OCAMLRUNPARAM=b
 
 # $1: channel
 # $2: message
 post_to_slack () {
-
   curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
     \"username\": \"dzomo\", \"text\": \"$2\", \
     \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
@@ -85,7 +100,7 @@ run_log_commit () {
   stem=$2
   slack_channel=$3
   github_project=$4
-  slack_branch=$(git branch -r --contains HEAD | tail -n 1 | tr -d ' ')
+  slack_branch=$CI_BRANCH
 
   # Determine where the logs are going
   log_all=$stem-$($DATE +%Y%m%d%H%M%S).all
@@ -131,7 +146,6 @@ run_log_commit () {
   popd
 
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
-
     raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
     slack_log=$(git log --pretty=format:"%s" -1)
     slack_author=$(git log --pretty=format:"%cn" -1)
@@ -151,18 +165,19 @@ run_log_commit () {
       slack_type="failure 😿"
     fi
 
-    #see if the user name is before _
-    user_slack_channel="${slack_branch%%_*}"
+    # The branch *may* be of the form user_foobar
+    maybe_slack_user="${slack_branch%%_*}"
 
-    # check if branch has c_ to send to appropriate channel - else check if has individual name in branch using slack-users file
-    if [[ ${slack_branch##origin/c_} != $slack_branch ]]; then
-      slack_channel=${slack_branch##origin/c_}
+    # Check if the branch has c_ to send to the appropriate channel - otherwise
+    # check if the tentative user name is a match using slack-users file
+    if [[ ${slack_branch##c_} != $slack_branch ]]; then
+      slack_channel=${slack_branch##c_}
       slack_channel="#${slack_channel%%_*}"
-    elif [[ $(egrep ^$user_slack_channel$ $EVEREST_CI_HOME/slack-users) == $user_slack_channel ]]; then
-      slack_channel="@$user_slack_channel"
+    elif egrep ^$maybe_slack_user$ $EVEREST_CI_HOME/slack-users >/dev/null 2>&1; then
+      slack_channel="@$maybe_slack_user"
     fi
 
-    #Set up payload. If branch is not c_ or a valid slack name_ then just leave payload as default
+    # Set up payload. If branch is not c_ or a valid slack name_ then just leave payload as default
     payload="$slack_emoji \`$build_command\` on <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
       *Project:* $slack_name\n\
       *Message:* $slack_log\n\
@@ -181,13 +196,10 @@ run_log_commit () {
 
 # Note: this performs an _approximate_ refresh of the hints, in the sense that
 # since the hint refreshing job takes about 80 minutes, it's very likely someone
-# merged to master in the meanwhile, which would invalidate some hints. So, we
-# reset to origin/master, take in our hints, and push. This is short enough that
+# merged to $CI_BRANCH in the meanwhile, which would invalidate some hints. So, we
+# reset to origin/$CI_BRANCH, take in our hints, and push. This is short enough that
 # the chances of someone merging in-between fetch and push are low.
 refresh_fstar_hints () {
-  if ! git branch -r --contains HEAD | grep 'origin/master'; then
-    echo "Not regenerating hints for branches other than master!"
-  fi
   if ! git remote get-url origin | grep FStar.git; then
     echo "Inconsistency: wrong remote URL"
     exit 1
@@ -200,13 +212,13 @@ refresh_fstar_hints () {
   # Move to whatever is the most recent master (that most likely changed in the
   # meantime)
   git fetch
-  git checkout master
-  git reset --hard origin/master
+  git checkout $CI_BRANCH
+  git reset --hard origin/$CI_BRANCH
   # Silent, always-successful merge
   export GIT_MERGE_AUTOEDIT=no
   git merge $commit -Xtheirs
   # Push.
-  git push git@github.com:FStarLang/FStar.git master
+  git push git@github.com:FStarLang/FStar.git $CI_BRANCH
 }
 
 everest_rebuild () {
@@ -216,12 +228,6 @@ everest_rebuild () {
 }
 
 everest_move () {
-  # This is a TODO since for the life of me I can't figure out which branch VSTS
-  # instructs us to build
-  if [[ $(git rev-parse HEAD) != $(git rev-parse origin/master) ]]; then
-    echo "ERROR: not moving master (TODO)"
-    return 255
-  fi
   # VSTS does not clean things properly... no point in fighting that, let's just
   # do it ourselves
   git clean -ffdx
@@ -258,9 +264,12 @@ everest_move () {
     ./everest snapshot
     git commit -am "[CI] automatic upgrade"
     rev=$(git rev-parse HEAD)
-    git checkout master
-    git merge $rev
-    git push git@github.com:project-everest/everest.git master
+    git checkout $CI_BRANCH
+    if ! git merge --ff $rev; then
+      echo "Someone else pushed to the everest project in the meanwhile...  aborting."
+      exit 1
+    fi
+    git push git@github.com:project-everest/everest.git $CI_BRANCH
   fi
 }
 
