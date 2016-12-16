@@ -133,8 +133,12 @@ run_log_commit () {
   pushd $CI_LOGS
   export GIT_MERGE_AUTOEDIT=no
   git pull
-  git add $log_all
-  git add $log_err
+  if [ -f $log_all ]; then
+    git add $log_all
+  fi
+  if [ -f $log_err]; then
+    git add $log_err
+  fi
   if $success; then
     git commit -am "[CI] $stem logs (success)"
   else
