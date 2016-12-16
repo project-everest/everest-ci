@@ -65,7 +65,8 @@ if [[ $BUILD_SOURCEBRANCHNAME != "" ]]; then
   echo "... running in a VSTS environment, branch=$CI_BRANCH"
 else
   CI_BRANCH=$(git symbolic-ref HEAD)
-  if [[ $CI_BRANCH == $(git rev-parse HEAD) ]];
+  CI_BRANCH=${CI_BRANCH##refs/heads/}
+  if [[ $CI_BRANCH == $(git rev-parse HEAD) ]]; then
     echo "looks like the current working git repository is in the detached head state, aborting"
     exit 1
   fi
