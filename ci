@@ -107,7 +107,7 @@ run_log_commit () {
   # The actual CI
   SECONDS=0
 
-  if true || $build_command \
+  if $build_command \
     2> >( \
       while read -r line; do
         echo "$line" >> $CI_LOGS/$log_err;
