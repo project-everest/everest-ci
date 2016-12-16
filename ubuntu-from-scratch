@@ -27,7 +27,7 @@ git clone https://github.com/project-everest/everest
 
 # Build everything
 yes | everest/everest check reset
-./everest make
+everest/everest make
 
 # The "final" test... disabled because mitls.exe doesn't quite work yet
 # everest/everest test
