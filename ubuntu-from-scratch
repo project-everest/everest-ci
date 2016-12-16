@@ -2,7 +2,8 @@
 
 set -e
 set -o pipefail
-set -x
+# set -x
+set -u
 
 # This script contains a series of commands that, when run within a fresh Docker
 # Ubuntu container, setup the environment and build project everest, all the way
@@ -27,11 +28,7 @@ export OPAMYES=true
 git clone https://github.com/project-everest/everest
 
 # Build everything
-yes | everest/everest check reset
-echo "Projects checked out, environment set up"
-eval $(opam config env)
-source ~/.bashrc
-everest/everest make
+everest/everest --yes check reset make
 
 # The "final" test... disabled because mitls.exe doesn't quite work yet
 # everest/everest test

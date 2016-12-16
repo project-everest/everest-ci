@@ -107,7 +107,7 @@ run_log_commit () {
   # The actual CI
   SECONDS=0
 
-  if $build_command \
+  if true || $build_command \
     2> >( \
       while read -r line; do
         echo "$line" >> $CI_LOGS/$log_err;
@@ -225,8 +225,7 @@ refresh_fstar_hints () {
 
 everest_rebuild () {
   git clean -ffdx
-  yes | ./everest check reset
-  ./everest make
+  ./everest --yes check reset make
 }
 
 everest_move () {
@@ -234,7 +233,7 @@ everest_move () {
   # do it ourselves
   git clean -ffdx
   # Sanity check that will fail if something is off the rails
-  yes | ./everest check reset
+  ./everest --yes check reset
   # Update every project to its know good version and branch, then for each
   # project run git pull
   source hashes.sh
@@ -253,7 +252,7 @@ everest_move () {
   if ! $fresh; then
     # Bail out early if there's nothing to do
     post_to_slack "everest-build" "*Nightly Everest Upgrade:* nothing to upgrade"
-  elif ! ./everest make; then
+  elif ! ./everest --yes make; then
     # Provide a meaningful summary of what we tried
     msg=":no_entry: *Nightly Everest Upgrade:* upgrading each project to its latest version breaks the build\n$versions"
     post_to_slack "everest-build" "$msg"
@@ -263,7 +262,7 @@ everest_move () {
     # "everest test"... this is a TODO.
     msg=":white_check_mark: *Nightly Everest Upgrade:* upgrading each project to its latest version works!\n$versions"
     post_to_slack "everest-build" "$msg"
-    ./everest snapshot
+    ./everest --yes snapshot
     git commit -am "[CI] automatic upgrade"
     rev=$(git rev-parse HEAD)
     git checkout $CI_BRANCH
@@ -338,11 +337,10 @@ case "$1" in
       echo "Not in the right directory"
       exit 1
     fi
-    export EVEREST_CI=1
     run_log_commit "everest_rebuild" "everest-build" "#everest-build" "project-everest/everest"
     # This second command is only run if the first one succeeds (the script
     # aborts otherwise).
-    run_log_commit "./everest test" "everest-interop" "#everest-build" "project-everest/everest"
+    run_log_commit "./everest --yes test" "everest-interop" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
@@ -357,7 +355,6 @@ case "$1" in
       echo "Not in the right directory"
       exit 1
     fi
-    export EVEREST_CI=1
     run_log_commit "everest_move" "everest-move-to-latest" "#everest-build" "project-everest/everest"
     ;;
 
