@@ -308,6 +308,9 @@ case "$1" in
       exit 1
     fi
 
+    # Oh, VSTS!
+    git clean -fdx
+
     # Clone F* from the specified revision, set FSTAR_HOME
     if [ ! -d fstar ]; then
       mkdir -p fstar
