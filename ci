@@ -75,6 +75,7 @@ fi
 
 # Some environment variables we want
 export OCAMLRUNPARAM=b
+export OTHERFLAGS=--trace_error
 
 # $1: channel
 # $2: message
