@@ -244,24 +244,26 @@ everest_move () {
     git pull
     if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
       fresh=true
+      versions="$versions\n    *$r* moves to $(git rev-parse HEAD | cut -c 1-8) on branch $(git rev-parse --abbrev-ref HEAD)"
+    else
+      versions="$versions\n    *$r* stays at $(git rev-parse HEAD | cut -c 1-8) on branch $(git rev-parse --abbrev-ref HEAD)"
     fi
-    versions="$versions\n    *$r* at $(git rev-parse HEAD | cut -c 1-8) on branch $(git rev-parse --abbrev-ref HEAD)"
     cd ..
   done
   versions="$versions\n"
   if ! $fresh; then
     # Bail out early if there's nothing to do
-    post_to_slack "everest-build" "*Nightly Everest Upgrade:* nothing to upgrade"
+    post_to_slack "#everest-build" "*Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
   elif ! ./everest --yes make; then
     # Provide a meaningful summary of what we tried
-    msg=":no_entry: *Nightly Everest Upgrade:* upgrading each project to its latest version breaks the build\n$versions"
-    post_to_slack "everest-build" "$msg"
+    msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
+    post_to_slack "#everest-build" "$msg"
     return 255
   else
     # Life is good, record new revisions and commit. NOTE: this does not include
     # "everest test"... this is a TODO.
-    msg=":white_check_mark: *Nightly Everest Upgrade:* upgrading each project to its latest version works!\n$versions"
-    post_to_slack "everest-build" "$msg"
+    msg=":white_check_mark: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version works!\n$versions"
+    post_to_slack "#everest-build" "$msg"
     ./everest --yes snapshot
     git commit -am "[CI] automatic upgrade"
     rev=$(git rev-parse HEAD)
@@ -275,7 +277,7 @@ everest_move () {
 }
 
 docker_from_scratch () {
-  docker run ubuntu bash -c "$(cat ubuntu-from-scratch)" 2>&1 | tee docker-log
+  docker run --rm ubuntu bash -c "$(cat ubuntu-from-scratch)" 2>&1 | tee docker-log
   echo "PIPESTATUS=${PIPESTATUS[@]}"
   cat docker-log | grep EVEREST-SUCCESS
 }
@@ -346,6 +348,10 @@ case "$1" in
   everest-nightly-check)
     # Start a fresh docker container that sets up everything, checks that
     # everything builds and runs on a fresh Ubuntu setup
+    if ! [ -x everest ]; then
+      echo "Not in the right directory"
+      exit 1
+    fi
     run_log_commit "docker_from_scratch" "everest-from-scratch-ubuntu" "#everest-build" "project-everest/everest-ci"
     ;;
 
