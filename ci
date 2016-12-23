@@ -75,6 +75,7 @@ fi
 
 # Some environment variables we want
 export OCAMLRUNPARAM=b
+export OTHERFLAGS=--trace_error
 
 # $1: channel
 # $2: message
@@ -290,7 +291,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest -j 24" "fstar" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src utest -j 24 -k" "fstar" "#fstar-build" "FStarLang/FStar"
     ;;
 
   fstar-nightly)
@@ -299,8 +300,8 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    export OTHERFLAGS="--record_hints"
-    run_log_commit "make -C src ulong -j 24" "fstar" "#fstar-build" "FStarLang/FStar"
+    export OTHERFLAGS="--record_hints --hint_info"
+    run_log_commit "make -C src ulong -j 24 -k" "fstar" "#fstar-build" "FStarLang/FStar"
     refresh_fstar_hints
     ;;
 
@@ -309,6 +310,10 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
+
+    # Oh, VSTS! Also: remove this once every mitls branch has switched to the
+    # ocamlbuild version of F*
+    git clean -ffdx
 
     # Clone F* from the specified revision, set FSTAR_HOME
     if [ ! -d fstar ]; then
@@ -330,7 +335,7 @@ case "$1" in
       export FSTAR_HOME=$(pwd)/fstar
     fi
 
-    run_log_commit "make -C src/tls -j 24 all-ver tls-ffi" "miTLS" "#mitls-build" "mitls/mitls-fstar"
+    run_log_commit "make -C src/tls -j 24 all-ver tls-ffi -k" "miTLS" "#mitls-build" "mitls/mitls-fstar"
     ;;
 
   everest-ci)
