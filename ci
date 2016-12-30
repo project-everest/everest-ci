@@ -256,7 +256,7 @@ everest_move () {
   versions="$versions\n"
   if ! $fresh; then
     # Bail out early if there's nothing to do
-    post_to_slack "#everest-build" "*Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
+    post_to_slack "#everest-build" ":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
   elif ! ./everest --yes make; then
     # Provide a meaningful summary of what we tried
     msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
