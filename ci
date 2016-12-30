@@ -59,21 +59,16 @@ fi
 EVEREST_CI_HOME=$(pwd)
 popd
 
-# $1: channel
-# $2: message
+# Once we have setup the environment, made errors fatal, and self-upgraded (all
+# of which should never fail), we try to report any unexpected failure.
+#  $1: channel
+#  $2: message
 post_to_slack () {
   curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
     \"username\": \"dzomo\", \"text\": \"$2\", \
     \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
 }
-
-# Trap any error and show error code
-slack_emoji=":no_entry:"
-slack_type="😿"
-slack_channel="#everest-build" 
-slack_message="$slack_emoji *CI Script FAILED! $slack_type*\n\
-    *Message:* The ci script exited abnormally."
-trap 'post_to_slack "$slack_channel" "$slack_message Error Code: $?"' ERR
+trap 'post_to_slack "#everest-build" ":heavy_exclamation_mark: CI script **failed** with error code: $?"' ERR
 
 # Figure out the branch
 if [[ $BUILD_SOURCEBRANCHNAME != "" ]]; then
