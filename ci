@@ -355,7 +355,7 @@ case "$1" in
   everest-nightly-check)
     # Start a fresh docker container that sets up everything, checks that
     # everything builds and runs on a fresh Ubuntu setup
-    if ! [ -x everest ]; then
+    if ! [ -f ci ]; then
       echo "Not in the right directory"
       exit 1
     fi
