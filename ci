@@ -232,11 +232,14 @@ everest_rebuild () {
 }
 
 everest_move () {
+  # This function is called from a test... so it needs to fast-fail because "set
+  # -e" does not apply within subshells.
+
   # VSTS does not clean things properly... no point in fighting that, let's just
   # do it ourselves
   git clean -ffdx
   # Sanity check that will fail if something is off the rails
-  ./everest --yes check reset
+  ./everest --yes check reset || return 1
   # Update every project to its know good version and branch, then for each
   # project run git pull
   source hashes.sh
@@ -280,7 +283,7 @@ everest_move () {
 }
 
 docker_from_scratch () {
-  docker run --rm ubuntu bash -c "$(cat ubuntu-from-scratch)" 2>&1 | tee docker-log
+  docker run --rm ubuntu bash -c "$(cat ubuntu-from-scratch)" 2>&1 || return 1
   echo "PIPESTATUS=${PIPESTATUS[@]}"
   cat docker-log | grep EVEREST-SUCCESS
 }
