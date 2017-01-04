@@ -283,7 +283,8 @@ everest_move () {
 }
 
 docker_from_scratch () {
-  docker run --rm ubuntu bash -c "$(cat ubuntu-from-scratch)" 2>&1 || return 1
+  (docker run --rm ubuntu bash -c "$(cat ubuntu-from-scratch)" 2>&1 | tee docker-log ) \
+    || return 1
   echo "PIPESTATUS=${PIPESTATUS[@]}"
   cat docker-log | grep EVEREST-SUCCESS
 }
