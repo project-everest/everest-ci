@@ -341,7 +341,7 @@ case "$1" in
       export FSTAR_HOME=$(pwd)/fstar
     fi
 
-    run_log_commit "make -C src/tls -j 24 all-ver tls-ffi -k" "miTLS" "#mitls-build" "mitls/mitls-fstar"
+    run_log_commit "make -C src/tls -j 24 all-ver -k" "miTLS" "#mitls-build" "mitls/mitls-fstar"
     ;;
 
   everest-ci)
