@@ -68,7 +68,7 @@ post_to_slack () {
     \"username\": \"dzomo\", \"text\": \"$2\", \
     \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
 }
-trap 'post_to_slack "#everest-build" ":heavy_exclamation_mark: CI script **failed** with error code: $?"' ERR
+trap 'post_to_slack "#everest-build" ":heavy_exclamation_mark: $0 $@ **failed** with error code: $?"' ERR
 
 # Figure out the branch
 if [[ $BUILD_SOURCEBRANCHNAME != "" ]]; then
