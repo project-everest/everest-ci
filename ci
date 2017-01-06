@@ -61,11 +61,33 @@ popd
 
 # Once we have setup the environment, made errors fatal, and self-upgraded (all
 # of which should never fail), we try to report any unexpected failure.
+# Scrub < > and & out of message as Slack documentation says those are only 3 characters that need to be encoded as HTML entities
+# only doing the "message" part as things like author or channel won't have those
 #  $1: channel
 #  $2: message
 post_to_slack () {
+  SLACK_MESSAGE=$2
+
+  SlackMessageLength=${#SLACK_MESSAGE}
+  tempSlackString=${SLACK_MESSAGE%%Message:*}
+  StartOfSlackCommitMessage=${#tempSlackString}
+  StartOfSlackCommitMessageAfterLabel=$((StartOfSlackCommitMessage)) # Finds the start of the commit message in the message parameter
+  tempAuthorString=${SLACK_MESSAGE%%Author:*}
+  StartOfAuthor=${#tempAuthorString}  # Finds the end of the commit message in message arg
+  CommitMessageStringLength=$((StartOfAuthor-StartOfSlackCommitMessageAfterLabel-1))  
+  LastStringLength=$((SlackMessageLength-StartOfAuthor+2))
+  FirstString=${SLACK_MESSAGE:0:$((StartOfSlackCommitMessage-1))}  
+  CommitMessageString=${SLACK_MESSAGE:$((StartOfSlackCommitMessage-1)):CommitMessageStringLength}
+
+  NewCommitMessageString=${CommitMessageString//</&lt;}
+  NewCommitMessageString=${NewCommitMessageString//>/&gt;} 
+  NewCommitMessageString=${NewCommitMessageString//&/&amp;} 
+
+  LastString=${SLACK_MESSAGE:$((StartOfAuthor-2)):LastStringLength}
+  SCRUBBED_SLACK_MESSAGE=$FirstString$NewCommitMessageString$LastString
+
   curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
-    \"username\": \"dzomo\", \"text\": \"$2\", \
+    \"username\": \"dzomo\", \"text\": \"$SCRUBBED_SLACK_MESSAGE\", \
     \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
 }
 trap 'post_to_slack "#everest-build" ":heavy_exclamation_mark: CI script **failed** with error code: $?"' ERR
