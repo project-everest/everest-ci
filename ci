@@ -272,9 +272,9 @@ everest_move () {
     git pull
     if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
       fresh=true
-      versions="$versions\n    *$r* moves to $(git rev-parse HEAD | cut -c 1-8) on branch $(git rev-parse --abbrev-ref HEAD)"
+      versions="$versions\n    *$r* moves to $(git rev-parse HEAD | cut -c 1-8) on branch ${branches[$r]}"
     else
-      versions="$versions\n    *$r* stays at $(git rev-parse HEAD | cut -c 1-8) on branch $(git rev-parse --abbrev-ref HEAD)"
+      versions="$versions\n    *$r* stays at $(git rev-parse HEAD | cut -c 1-8) on branch ${branches[$r]}"
     fi
     cd ..
   done
@@ -302,6 +302,19 @@ everest_move () {
       exit 1
     fi
     git push git@github.com:project-everest/everest.git $CI_BRANCH
+
+    cd FStar
+    if ! git diff --exit-code; then
+      echo "New assemblies from Spartan, committing"
+      git commit -am "[CI] New assemblies coming from Spartan"
+      local commit=$(git rev-parse HEAD)
+      local branch=${branches[FStar]}
+      git fetch
+      git reset --hard origin/$branch
+      git merge -Xours $commit
+      git push
+    fi
+    cd ..
   fi
 }
 
