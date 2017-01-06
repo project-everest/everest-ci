@@ -211,7 +211,8 @@ refresh_fstar_hints () {
   fi
   # Add all the hints, even those not under version control
   find . -iname '*.hints' | xargs git add
-  git commit -am "[CI] regenerate hints"
+  git add src/ocaml-output/*.ml
+  git commit -am "[CI] regenerate hints + ocaml snapshot"
   # Memorize that commit
   commit=$(git rev-parse HEAD)
   # Move to whatever is the most recent master (that most likely changed in the
