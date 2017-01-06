@@ -296,6 +296,7 @@ everest_move () {
     git commit -am "[CI] automatic upgrade"
     rev=$(git rev-parse HEAD)
     git checkout $CI_BRANCH
+    git reset --hard origin/$CI_BRANCH
     if ! git merge --ff $rev; then
       echo "Someone else pushed to the everest project in the meanwhile...  aborting."
       exit 1
