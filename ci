@@ -66,16 +66,13 @@ popd
 #  $1: channel
 #  $2: message
 post_to_slack () {
-
-SLACK_MESSAGE=$2
-
-temp1=$(echo $SLACK_MESSAGE | sed -e :1 -e "s@\(Message.*\)\&\(.*Author\)@\1xxxxx\2@;t1")
-temp2=$(echo $temp1| sed -e :1 -e "s@\(Message.*\)xxxxx\(.*Author\)@\1\&amp;\2@;t1") # work around for a known sed bug where second & causes problems
-temp3=$(echo $temp2 | sed -e :1 -e 's@\(Message.*\)<\(.*Author\)@\1\&lt;\2@;t1') 
-SCRUBBED_SLACK_MESSAGE=$(echo $temp3 | sed -e :1 -e 's@\(Message.*\)>\(.*Author\)@\1\&gt;\2@;t1')
-
-curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
-    \"username\": \"dzomo\", \"text\": \"$SCRUBBED_SLACK_MESSAGE\", \
+  local slack_message="$2"
+  local temp1=$(echo $slack_message | sed -e :1 -e "s@\(Message.*\)\&\(.*Author\)@\1xxxxx\2@;t1")
+  local temp2=$(echo $temp1| sed -e :1 -e "s@\(Message.*\)xxxxx\(.*Author\)@\1\&amp;\2@;t1") # work around for a known sed bug where second & causes problems
+  local temp3=$(echo $temp2 | sed -e :1 -e 's@\(Message.*\)<\(.*Author\)@\1\&lt;\2@;t1') 
+  local scrubbed_slack_message=$(echo $temp3 | sed -e :1 -e 's@\(Message.*\)>\(.*Author\)@\1\&gt;\2@;t1')
+  curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
+    \"username\": \"dzomo\", \"text\": \"$scrubbed_slack_message\", \
     \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
 }
 trap 'post_to_slack "#everest-build" ":heavy_exclamation_mark: \`$0 $@\` *failed* with error code: $?"' ERR
