@@ -66,27 +66,15 @@ popd
 #  $1: channel
 #  $2: message
 post_to_slack () {
-  SLACK_MESSAGE=$2
 
-  SlackMessageLength=${#SLACK_MESSAGE}
-  tempSlackString=${SLACK_MESSAGE%%Message:*}
-  StartOfSlackCommitMessage=${#tempSlackString}
-  StartOfSlackCommitMessageAfterLabel=$((StartOfSlackCommitMessage)) # Finds the start of the commit message in the message parameter
-  tempAuthorString=${SLACK_MESSAGE%%Author:*}
-  StartOfAuthor=${#tempAuthorString}  # Finds the end of the commit message in message arg
-  CommitMessageStringLength=$((StartOfAuthor-StartOfSlackCommitMessageAfterLabel-1))  
-  LastStringLength=$((SlackMessageLength-StartOfAuthor+2))
-  FirstString=${SLACK_MESSAGE:0:$((StartOfSlackCommitMessage-1))}  
-  CommitMessageString=${SLACK_MESSAGE:$((StartOfSlackCommitMessage-1)):CommitMessageStringLength}
+SLACK_MESSAGE=$2
 
-  NewCommitMessageString=${CommitMessageString//</&lt;}
-  NewCommitMessageString=${NewCommitMessageString//>/&gt;} 
-  NewCommitMessageString=${NewCommitMessageString//&/&amp;} 
+temp1=$(echo $SLACK_MESSAGE | sed -e :1 -e "s@\(Message.*\)\&\(.*Author\)@\1xxxxx\2@;t1")
+temp2=$(echo $temp1| sed -e :1 -e "s@\(Message.*\)xxxxx\(.*Author\)@\1\&amp;\2@;t1") # work around for a known sed bug where second & causes problems
+temp3=$(echo $temp2 | sed -e :1 -e 's@\(Message.*\)<\(.*Author\)@\1\&lt;\2@;t1') 
+SCRUBBED_SLACK_MESSAGE=$(echo $temp3 | sed -e :1 -e 's@\(Message.*\)>\(.*Author\)@\1\&gt;\2@;t1')
 
-  LastString=${SLACK_MESSAGE:$((StartOfAuthor-2)):LastStringLength}
-  SCRUBBED_SLACK_MESSAGE=$FirstString$NewCommitMessageString$LastString
-
-  curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
+curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
     \"username\": \"dzomo\", \"text\": \"$SCRUBBED_SLACK_MESSAGE\", \
     \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
 }
