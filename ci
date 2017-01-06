@@ -288,7 +288,7 @@ everest_move () {
       local commit=$(git rev-parse HEAD)
       local branch=${branches[FStar]}
       git fetch
-      git reset --hard HEAD origin/$branch
+      git reset --hard origin/$branch
       git merge -Xours $commit
       git push
     fi
