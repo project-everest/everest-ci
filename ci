@@ -59,20 +59,24 @@ fi
 EVEREST_CI_HOME=$(pwd)
 popd
 
+# Encode < > and & in given string 
+# Did not scrub " as it will mess up slack messages - slack only wants 3 done
+function quote() 
+{
+  local msg="$1"
+  msg=${msg//&/&amp;}
+  msg=${msg//</&lt;}
+  msg=${msg//>/&gt;}
+  echo $msg
+}
+
 # Once we have setup the environment, made errors fatal, and self-upgraded (all
 # of which should never fail), we try to report any unexpected failure.
-# Scrub < > and & out of message as Slack documentation says those are only 3 characters that need to be encoded as HTML entities
-# only doing the "message" part as things like author or channel won't have those
 #  $1: channel
 #  $2: message
 post_to_slack () {
-  local slack_message="$2"
-  local temp1=$(echo $slack_message | sed -e :1 -e "s@\(Message.*\)\&\(.*Author\)@\1xxxxx\2@;t1")
-  local temp2=$(echo $temp1| sed -e :1 -e "s@\(Message.*\)xxxxx\(.*Author\)@\1\&amp;\2@;t1") # work around for a known sed bug where second & causes problems
-  local temp3=$(echo $temp2 | sed -e :1 -e 's@\(Message.*\)<\(.*Author\)@\1\&lt;\2@;t1') 
-  local scrubbed_slack_message=$(echo $temp3 | sed -e :1 -e 's@\(Message.*\)>\(.*Author\)@\1\&gt;\2@;t1')
   curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
-    \"username\": \"dzomo\", \"text\": \"$scrubbed_slack_message\", \
+    \"username\": \"dzomo\", \"text\": \"$2\", \
     \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
 }
 trap 'post_to_slack "#everest-build" ":heavy_exclamation_mark: \`$0 $@\` *failed* with error code: $?"' ERR
@@ -192,7 +196,7 @@ run_log_commit () {
     # Set up payload. If branch is not c_ or a valid slack name_ then just leave payload as default
     payload="$slack_emoji \`$build_command\` on <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
       *Project:* $slack_name\n\
-      *Message:* $slack_log\n\
+      *Message:* $(quote "$slack_log")\n\
       *Author:* $slack_author\n\
       *Duration:* $slack_time\n\
       *OS:* $slack_os\n\
