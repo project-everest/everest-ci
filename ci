@@ -326,6 +326,16 @@ case "$1" in
     refresh_fstar_hints
     ;;
 
+  fstar-docs)
+    # Create docs for FStar
+    if [ ! -d ulib ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
+    # run_log_commit "make -C src/ocaml-output -j 15" "fstar" "#fstar-build" "FStarLang/FStar"  # from build definition
+     run_log_commit "/usr/bin/make -C src/ocaml-output -j 15" "fstar" "#fstar-build" "FStarLang/FStar"  # from build definition
+    ;;
+
   mitls-ci)
     if [ ! -f miTLS_icla.txt ]; then
       echo "I don't seem to be in the right directory, bailing"
