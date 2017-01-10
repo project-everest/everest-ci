@@ -59,14 +59,15 @@ fi
 EVEREST_CI_HOME=$(pwd)
 popd
 
-# Encode < > and & in given string 
-# Did not scrub " as it will mess up slack messages - slack only wants 3 done
+# Encode < > & and "in given string 
+# Slack did not need scrub " but JSON to form the payload for slack did so fix that too
 function quote() 
 {
   local msg="$1"
   msg=${msg//&/&amp;}
   msg=${msg//</&lt;}
   msg=${msg//>/&gt;}
+  msg=${msg//\"/\\\"}
   echo $msg
 }
 
