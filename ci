@@ -59,9 +59,9 @@ fi
 EVEREST_CI_HOME=$(pwd)
 popd
 
-# Encode < > & and "in given string 
+# Encode < > & and "in given string
 # Slack did not need scrub " but JSON to form the payload for slack did so fix that too
-function quote() 
+function quote()
 {
   local msg="$1"
   msg=${msg//&/&amp;}
@@ -118,6 +118,13 @@ run_log_commit () {
   # Determine where the logs are going
   log_all=$stem-$($DATE +%Y%m%d%H%M%S).all
   log_err=$stem-$($DATE +%Y%m%d%H%M%S).err
+
+  # Some basic information
+  echo "This is $0 $@" >> $CI_LOGS/$log_err
+  echo "Working directory: $(pwd)" >> $CI_LOGS/$log_err
+  echo "About to run: $build_command" >> $CI_LOGS/$log_err
+  echo "BUILD_SOURCEBRANCHNAME: $BUILD_SOURCEBRANCHNAME" >> $CI_LOGS/$log_err
+  echo "BUILD_DEFINITIONNAME: $BUILD_DEFINITIONNAME" >> $CI_LOGS/$log_err
 
   # The actual CI
   SECONDS=0
