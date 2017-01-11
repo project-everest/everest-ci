@@ -99,6 +99,15 @@ fi
 export OCAMLRUNPARAM=b
 export OTHERFLAGS=--trace_error
 
+log_prelude () {
+  # Some basic information
+  echo "This is $0 $@" >> $CI_LOGS/$log_err
+  echo "Working directory: $(pwd)" >> $CI_LOGS/$log_err
+  echo "About to run: $build_command" >> $CI_LOGS/$log_err
+  echo "BUILD_SOURCEBRANCHNAME: $BUILD_SOURCEBRANCHNAME" >> $CI_LOGS/$log_err
+  echo "BUILD_DEFINITIONNAME: $BUILD_DEFINITIONNAME" >> $CI_LOGS/$log_err
+}
+
 # $1: the command to run
 # $2: job description without space (e.g. everest-interop or fstar)
 # $3: slack channel
@@ -119,17 +128,10 @@ run_log_commit () {
   log_all=$stem-$($DATE +%Y%m%d%H%M%S).all
   log_err=$stem-$($DATE +%Y%m%d%H%M%S).err
 
-  # Some basic information
-  echo "This is $0 $@" >> $CI_LOGS/$log_err
-  echo "Working directory: $(pwd)" >> $CI_LOGS/$log_err
-  echo "About to run: $build_command" >> $CI_LOGS/$log_err
-  echo "BUILD_SOURCEBRANCHNAME: $BUILD_SOURCEBRANCHNAME" >> $CI_LOGS/$log_err
-  echo "BUILD_DEFINITIONNAME: $BUILD_DEFINITIONNAME" >> $CI_LOGS/$log_err
-
   # The actual CI
   SECONDS=0
 
-  if $build_command \
+  if ( log_prelude && $build_command ) \
     2> >( \
       while read -r line; do
         echo "$line" >> $CI_LOGS/$log_err;
