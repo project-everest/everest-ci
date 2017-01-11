@@ -101,11 +101,11 @@ export OTHERFLAGS=--trace_error
 
 log_prelude () {
   # Some basic information
-  echo "This is $0 $@" >> $CI_LOGS/$log_err
-  echo "Working directory: $(pwd)" >> $CI_LOGS/$log_err
-  echo "About to run: $build_command" >> $CI_LOGS/$log_err
-  echo "BUILD_SOURCEBRANCHNAME: $BUILD_SOURCEBRANCHNAME" >> $CI_LOGS/$log_err
-  echo "BUILD_DEFINITIONNAME: $BUILD_DEFINITIONNAME" >> $CI_LOGS/$log_err
+  echo "This is $0 $@"
+  echo "Working directory: $(pwd)"
+  echo "About to run: $build_command"
+  echo "BUILD_SOURCEBRANCHNAME: $BUILD_SOURCEBRANCHNAME"
+  echo "BUILD_DEFINITIONNAME: $BUILD_DEFINITIONNAME"
 }
 
 # $1: the command to run
