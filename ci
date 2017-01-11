@@ -59,9 +59,9 @@ fi
 EVEREST_CI_HOME=$(pwd)
 popd
 
-# Encode < > & and "in given string 
+# Encode < > & and "in given string
 # Slack did not need scrub " but JSON to form the payload for slack did so fix that too
-function quote() 
+function quote()
 {
   local msg="$1"
   msg=${msg//&/&amp;}
@@ -99,6 +99,15 @@ fi
 export OCAMLRUNPARAM=b
 export OTHERFLAGS=--trace_error
 
+log_prelude () {
+  # Some basic information
+  echo "This is $0 $@"
+  echo "Working directory: $(pwd)"
+  echo "About to run: $build_command"
+  echo "BUILD_SOURCEBRANCHNAME: $BUILD_SOURCEBRANCHNAME"
+  echo "BUILD_DEFINITIONNAME: $BUILD_DEFINITIONNAME"
+}
+
 # $1: the command to run
 # $2: job description without space (e.g. everest-interop or fstar)
 # $3: slack channel
@@ -122,7 +131,7 @@ run_log_commit () {
   # The actual CI
   SECONDS=0
 
-  if $build_command \
+  if ( log_prelude && $build_command ) \
     2> >( \
       while read -r line; do
         echo "$line" >> $CI_LOGS/$log_err;
