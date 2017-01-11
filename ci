@@ -59,6 +59,18 @@ fi
 EVEREST_CI_HOME=$(pwd)
 popd
 
+# Encode < > & and "in given string 
+# Slack did not need scrub " but JSON to form the payload for slack did so fix that too
+function quote() 
+{
+  local msg="$1"
+  msg=${msg//&/&amp;}
+  msg=${msg//</&lt;}
+  msg=${msg//>/&gt;}
+  msg=${msg//\"/\\\"}
+  echo $msg
+}
+
 # Once we have setup the environment, made errors fatal, and self-upgraded (all
 # of which should never fail), we try to report any unexpected failure.
 #  $1: channel
@@ -185,11 +197,12 @@ run_log_commit () {
     # Set up payload. If branch is not c_ or a valid slack name_ then just leave payload as default
     payload="$slack_emoji \`$build_command\` on <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
       *Project:* $slack_name\n\
-      *Message:* $slack_log\n\
+      *Message:* $(quote "$slack_log")\n\
       *Author:* $slack_author\n\
       *Duration:* $slack_time\n\
       *OS:* $slack_os\n\
-      *Logs:* $slack_msg"
+      *Logs:* $slack_msg\n\
+      *VSTS Build definition:* $BUILD_DEFINITIONNAME"
 
     post_to_slack "$slack_channel" "$payload"
   fi
