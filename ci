@@ -251,7 +251,7 @@ refresh_fstar_hints () {
 
 everest_rebuild () {
   git clean -ffdx
-  ./everest --yes check reset make
+  ./everest --yes check reset make test
 }
 
 everest_move () {
