@@ -344,7 +344,7 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints --hint_info"
-    run_log_commit "make -C src ulong -j 24 -k" "fstar" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src ulong -j 6 -k" "fstar" "#fstar-build" "FStarLang/FStar"
     refresh_fstar_hints
     ;;
 
