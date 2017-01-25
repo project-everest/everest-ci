@@ -453,6 +453,7 @@ case "$1" in
   *)
     cat <<USAGE
 USAGE: $0 ACTION
+
 ACTIONS:
   fstar-ci
   fstar-nightly
@@ -460,6 +461,7 @@ ACTIONS:
   everest-ci
   everest-nightly-check
   everest-nightly-move
+
 REMARKS:
   Read this script's source code for more explanations. It has comments.
 USAGE
