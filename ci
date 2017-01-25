@@ -274,6 +274,7 @@ everest_move () {
   # Update every project to its know good version and branch, then for each
   # project run git pull
   source hashes.sh
+  source repositories.sh
   fresh=false
   versions=""
   for r in ${!hashes[@]}; do
@@ -281,7 +282,9 @@ everest_move () {
     git pull
     if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
       fresh=true
-      versions="$versions\n    *$r* moves to $(git rev-parse HEAD | cut -c 1-8) on branch ${branches[$r]}"
+      web=https://www.github.com/${repositories[$r]#git@github.com:}
+      url="$web/compare/${hashes[$r]}...$(git rev-parse HEAD)"
+      versions="$versions\n    *$r* <moves to $(git rev-parse HEAD | cut -c 1-8)|$url> on branch ${branches[$r]}"
     else
       versions="$versions\n    *$r* stays at $(git rev-parse HEAD | cut -c 1-8) on branch ${branches[$r]}"
     fi
