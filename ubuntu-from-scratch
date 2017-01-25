@@ -15,7 +15,7 @@ export EVEREST_CI=1
 export DEBIAN_FRONTEND=noninteractive
 apt-get --yes update
 # Getting lots of hash sum mismatch on CI
-PACKAGES="wget build-essential opam libsqlite3-dev libgmp-dev libssl-dev m4 automake git fsharp vim"
+PACKAGES="wget build-essential opam libsqlite3-dev libgmp-dev libssl-dev m4 automake git fsharp vim scons"
 apt-get --yes install $PACKAGES || apt-get --yes install $PACKAGES || apt-get --yes install $PACKAGES
 
 # Z3
