@@ -60,7 +60,7 @@ EVEREST_CI_HOME=$(pwd)
 popd
 
 # Encode < > & and "in given string
-# Slack did not need scrub " but JSON to form the payload for slack did so fix that too
+# Slack did not need scrub " or \ but JSON does to form  payload for slack did so fix that too
 function quote()
 {
   local msg="$1"
@@ -68,6 +68,7 @@ function quote()
   msg=${msg//</&lt;}
   msg=${msg//>/&gt;}
   msg=${msg//\"/\\\"}
+  msg=${msg//\\/\\\\}
   echo $msg
 }
 
@@ -395,41 +396,6 @@ case "$1" in
     refresh_fstar_hints
     ;;
 
-  fstar-docs)
-    # Create docs for FStar
-    if [ ! -d ulib ]; then
-      echo "I don't seem to be in the right directory, bailing"
-      exit 1
-    fi
-    
-    # Same as mitls-ci - build FStar first???
-    # Clone F* from the specified revision, set FSTAR_HOME
-    if [ ! -d fstar ]; then
-      mkdir -p fstar
-      cd fstar
-      git init
-      git remote add origin https://github.com/FStarLang/FStar/
-      cd ..
-    fi
-    
-    cd fstar
-    # Remove when we stop juggling with the two build systems for F* (old/new)
-    git clean -ffdx
-    git fetch origin
-    git reset --hard $(cat ../.fstar_version)
-    make -C src/ocaml-output clean
-    make -C src/ocaml-output -j 15
-    cd ..
-    if command -v cygpath >/dev/null 2>&1; then
-      export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
-    else
-      export FSTAR_HOME=$(pwd)/fstar
-    fi
-    
-    # how to get this to run in docker window?
-    run_log_commit ".ci/fsdoc.sh" "fstar" "#fstar-build" "FStarLang/FStar"  
-    ;;
-
   mitls-ci)
     if [ ! -f miTLS_icla.txt ]; then
       echo "I don't seem to be in the right directory, bailing"
@@ -487,7 +453,6 @@ case "$1" in
   *)
     cat <<USAGE
 USAGE: $0 ACTION
-
 ACTIONS:
   fstar-ci
   fstar-nightly
@@ -495,10 +460,8 @@ ACTIONS:
   everest-ci
   everest-nightly-check
   everest-nightly-move
-
 REMARKS:
   Read this script's source code for more explanations. It has comments.
 USAGE
     ;;
 esac
-
