@@ -234,15 +234,15 @@ run_log_commit () {
 # merged to $CI_BRANCH in the meanwhile, which would invalidate some hints. So, we
 # reset to origin/$CI_BRANCH, take in our hints, and push. This is short enough that
 # the chances of someone merging in-between fetch and push are low.
-refresh_fstar_hints () {
-  if ! git remote get-url origin | grep FStar.git; then
-    echo "Inconsistency: wrong remote URL"
-    exit 1
-  fi
+refresh_hints () {
+  local remote=$1
+  local extra="$2"
+  local msg="$3"
+
   # Add all the hints, even those not under version control
   find . -iname '*.hints' | xargs git add
-  git add src/ocaml-output/*.ml
-  git commit -am "[CI] regenerate hints + ocaml snapshot"
+  $extra
+  git commit -am "[CI] $3"
   # Memorize that commit
   commit=$(git rev-parse HEAD)
   # Move to whatever is the most recent master (that most likely changed in the
@@ -254,7 +254,15 @@ refresh_fstar_hints () {
   export GIT_MERGE_AUTOEDIT=no
   git merge $commit -Xtheirs
   # Push.
-  git push git@github.com:FStarLang/FStar.git $CI_BRANCH
+  git push $remote $CI_BRANCH
+}
+
+refresh_fstar_hints () {
+  refresh_hints "git@github.com:FStarLang/FStar.git" "git add src/ocaml-output/*.ml" "regenerate hints + ocaml snapshot"
+}
+
+refresh_mitls_hints () {
+  refresh_hints "git@github.com:mitls/mitls-fstar.git" "true" "regenerate hints"
 }
 
 everest_rebuild () {
@@ -337,6 +345,34 @@ docker_from_scratch () {
   cat docker-log | grep EVEREST-SUCCESS
 }
 
+fetch_fstar_for_mitls () {
+  # Oh, VSTS! Also: remove this once every mitls branch has switched to the
+  # ocamlbuild version of F*
+  git clean -ffdx
+
+  # Clone F* from the specified revision, set FSTAR_HOME
+  if [ ! -d fstar ]; then
+    mkdir -p fstar
+    cd fstar
+    git init
+    git remote add origin https://github.com/FStarLang/FStar/
+    cd ..
+  fi
+  cd fstar
+  # Remove when we stop juggling with the two build systems for F* (old/new)
+  git clean -ffdx
+  git fetch origin
+  git reset --hard $(cat ../.fstar_version)
+  make -C src/ocaml-output clean
+  make -C src/ocaml-output -j 15
+  cd ..
+  if command -v cygpath >/dev/null 2>&1; then
+    export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
+  else
+    export FSTAR_HOME=$(pwd)/fstar
+  fi
+}
+
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -365,34 +401,22 @@ case "$1" in
       exit 1
     fi
 
-    # Oh, VSTS! Also: remove this once every mitls branch has switched to the
-    # ocamlbuild version of F*
-    git clean -ffdx
-
-    # Clone F* from the specified revision, set FSTAR_HOME
-    if [ ! -d fstar ]; then
-      mkdir -p fstar
-      cd fstar
-      git init
-      git remote add origin https://github.com/FStarLang/FStar/
-      cd ..
-    fi
-    cd fstar
-    # Remove when we stop juggling with the two build systems for F* (old/new)
-    git clean -ffdx
-    git fetch origin
-    git reset --hard $(cat ../.fstar_version)
-    make -C src/ocaml-output clean
-    make -C src/ocaml-output -j 15
-    cd ..
-    if command -v cygpath >/dev/null 2>&1; then
-      export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
-    else
-      export FSTAR_HOME=$(pwd)/fstar
-    fi
-
+    fetch_fstar_for_mitls
     run_log_commit "make -C src/tls -j 24 all-ver -k" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
     ;;
+
+  mitls-nightly)
+    if [ ! -f miTLS_icla.txt ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
+
+    fetch_fstar_for_mitls
+    export OTHERFLAGS="--record_hints --hint_info"
+    run_log_commit "make -C src/tls -j 24 all-ver -k" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    refresh_mitls_hints
+    ;;
+
 
   everest-ci)
     # Clone all projects together and make sure they test and build together
