@@ -59,8 +59,9 @@ fi
 EVEREST_CI_HOME=$(pwd)
 popd
 
-# Encode < > & and "in given string
-# Slack did not need scrub " or \ but JSON does to form  payload for slack did so fix that too
+# Encode < > & and " in the given string
+# The Slack syntax does not require escaping " or \ but JSON does in order to
+# form a valid payload.
 function quote()
 {
   local msg="$1"
@@ -291,8 +292,8 @@ everest_move () {
     git pull
     if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
       fresh=true
-      web=https://www.github.com/${repositories[$r]#git@github.com:}
-      url="$web/compare/${hashes[$r]}...$(git rev-parse HEAD)"
+      url=${repositories[$r]#git@github.com:}
+      url="https://www.github.com/${url%.git}/${hashes[$r]}...$(git rev-parse HEAD)"
       versions="$versions\n    *$r* <$url|moves to $(git rev-parse HEAD | cut -c 1-8)> on branch ${branches[$r]}"
     else
       versions="$versions\n    *$r* stays at $(git rev-parse HEAD | cut -c 1-8) on branch ${branches[$r]}"
