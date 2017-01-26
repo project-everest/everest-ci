@@ -392,7 +392,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    export OTHERFLAGS="--record_hints --hint_info"
+    export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
     run_log_commit "make -C src ulong -j 6 -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar"
     refresh_fstar_hints
     ;;
@@ -414,7 +414,7 @@ case "$1" in
     fi
 
     fetch_fstar_for_mitls
-    export OTHERFLAGS="--record_hints --hint_info"
+    export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
     run_log_commit "make -C src/tls -j 24 all-ver -k" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
     refresh_mitls_hints
     ;;
