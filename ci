@@ -292,7 +292,7 @@ everest_move () {
       fresh=true
       web=https://www.github.com/${repositories[$r]#git@github.com:}
       url="$web/compare/${hashes[$r]}...$(git rev-parse HEAD)"
-      versions="$versions\n    *$r* <moves to $(git rev-parse HEAD | cut -c 1-8)|$url> on branch ${branches[$r]}"
+      versions="$versions\n    *$r* <$url|moves to $(git rev-parse HEAD | cut -c 1-8)> on branch ${branches[$r]}"
     else
       versions="$versions\n    *$r* stays at $(git rev-parse HEAD | cut -c 1-8) on branch ${branches[$r]}"
     fi
