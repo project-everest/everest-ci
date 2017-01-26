@@ -67,8 +67,8 @@ function quote()
   msg=${msg//&/&amp;}
   msg=${msg//</&lt;}
   msg=${msg//>/&gt;}
-  msg=${msg//\"/\\\"}
   msg=${msg//\\/\\\\}
+  msg=${msg//\"/\\\"}
   echo $msg
 }
 
