@@ -260,7 +260,7 @@ refresh_hints () {
 }
 
 refresh_fstar_hints () {
-  refresh_hints "git@github.com:FStarLang/FStar.git" "git add src/ocaml-output/*.ml" "regenerate hints + ocaml snapshot"
+  refresh_hints "git@github.com:FStarLang/FStar.git" "git ls-files src/ocaml-output/ | xargs git add" "regenerate hints + ocaml snapshot"
 }
 
 refresh_mitls_hints () {
