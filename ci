@@ -244,6 +244,11 @@ refresh_hints () {
   # Add all the hints, even those not under version control
   find . -iname '*.hints' | xargs git add
   $extra
+  # Abort early if there's nothing to commit
+  if git diff --exit-code; then
+    return 0
+  fi
+
   git commit -m "[CI] $3"
   # Memorize that commit
   commit=$(git rev-parse HEAD)
