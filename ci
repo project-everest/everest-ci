@@ -402,6 +402,25 @@ case "$1" in
     refresh_fstar_hints
     ;;
 
+  fstar-docs-nightly)
+    # Create the docs associated with FStar
+    if [ ! -d ulib ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
+
+    # First - get fstar built
+    git clean -ffdx
+    git reset --hard HEAD
+    git pull origin master
+    make -C src/ocaml-output clean
+    make -C src/ocaml-output -j 6
+
+    # Second - run fstar with the --doc flag
+    chmod +x .ci/fsdoc.sh
+    run_log_commit ".ci/fsdoc.sh" "fstar-docs-ci" "#fstar-build" "FStarLang/FStar"
+    ;;
+    
   mitls-ci)
     if [ ! -f miTLS_icla.txt ]; then
       echo "I don't seem to be in the right directory, bailing"
@@ -423,7 +442,6 @@ case "$1" in
     run_log_commit "make -C src/tls -j 24 all-ver -k" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
     refresh_mitls_hints
     ;;
-
 
   everest-ci)
     # Clone all projects together and make sure they test and build together
@@ -463,6 +481,7 @@ USAGE: $0 ACTION
 ACTIONS:
   fstar-ci
   fstar-nightly
+  fstar-docs-nightly
   mitls-ci
   everest-ci
   everest-nightly-check
