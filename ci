@@ -412,7 +412,7 @@ case "$1" in
     # First - get fstar built
     git clean -ffdx
     git reset --hard HEAD
-    git pull origin master
+    git pull
     make -C src/ocaml-output clean
     make -C src/ocaml-output -j 6
 
