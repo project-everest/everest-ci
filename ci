@@ -355,11 +355,7 @@ docker_from_scratch () {
 fetch_fstar_for_mitls () {
   # Clone F* from the specified revision, set FSTAR_HOME
   if [ ! -d fstar ]; then
-    mkdir -p fstar
-    cd fstar
-    git init
-    git remote add origin https://github.com/FStarLang/FStar/
-    cd ..
+    git clone https://github.com/FStarLang/FStar/ fstar
   fi
   cd fstar
   git fetch origin
