@@ -353,10 +353,6 @@ docker_from_scratch () {
 }
 
 fetch_fstar_for_mitls () {
-  # Oh, VSTS! Also: remove this once every mitls branch has switched to the
-  # ocamlbuild version of F*
-  git clean -ffdx
-
   # Clone F* from the specified revision, set FSTAR_HOME
   if [ ! -d fstar ]; then
     mkdir -p fstar
@@ -366,8 +362,6 @@ fetch_fstar_for_mitls () {
     cd ..
   fi
   cd fstar
-  # Remove when we stop juggling with the two build systems for F* (old/new)
-  git clean -ffdx
   git fetch origin
   git reset --hard $(cat ../.fstar_version)
   make -C src/ocaml-output clean
@@ -378,6 +372,10 @@ fetch_fstar_for_mitls () {
   else
     export FSTAR_HOME=$(pwd)/fstar
   fi
+}
+
+mitls_verify () {
+  fetch_fstar_for_mitls && make -C src/tls -j 24 all-ver -k
 }
 
 # Main commands.
@@ -408,8 +406,7 @@ case "$1" in
       exit 1
     fi
 
-    fetch_fstar_for_mitls
-    run_log_commit "make -C src/tls -j 24 all-ver -k" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    run_log_commit "mitls_verify" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
     ;;
 
   mitls-nightly)
@@ -418,9 +415,9 @@ case "$1" in
       exit 1
     fi
 
-    fetch_fstar_for_mitls
+    
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
-    run_log_commit "make -C src/tls -j 24 all-ver -k" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    run_log_commit "mitls_verify" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
     refresh_mitls_hints
     ;;
 
