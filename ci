@@ -78,9 +78,15 @@ function quote()
 #  $1: channel
 #  $2: message
 post_to_slack () {
-  curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
-    \"username\": \"dzomo\", \"text\": \"$2\", \
-    \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
+  #DFG curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
+#DFG    \"username\": \"dzomo\", \"text\": \"$2\", \
+ #DFG   \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
+ 
+ echo "**** POST TO SLACK ****"
+ echo "** Channel =" $1
+ echo "** Message =" $2
+ echo "**** POST TO SLACK ****"
+ 
 }
 trap 'post_to_slack "#everest-build" ":heavy_exclamation_mark: \`$0 $@\` *failed* with error code: $?"' ERR
 
@@ -412,7 +418,7 @@ case "$1" in
     # First - get fstar built
     git clean -ffdx
     git reset --hard HEAD
-    git pull
+    git pull origin master
     make -C src/ocaml-output clean
     make -C src/ocaml-output -j 6
 
