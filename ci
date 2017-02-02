@@ -315,14 +315,13 @@ everest_move () {
   if ! $fresh; then
     # Bail out early if there's nothing to do
     post_to_slack "#everest-build" ":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
-  elif ! ./everest --yes make; then
+  elif ! ./everest --yes make test verify; then
     # Provide a meaningful summary of what we tried
     msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
     post_to_slack "#everest-build" "$msg"
     return 255
   else
-    # Life is good, record new revisions and commit. NOTE: this does not include
-    # "everest test"... this is a TODO.
+    # Life is good, record new revisions and commit.
     msg=":white_check_mark: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version works!\n$versions"
     post_to_slack "#everest-build" "$msg"
     ./everest --yes snapshot
@@ -338,8 +337,8 @@ everest_move () {
 
     cd FStar
     if ! git diff --exit-code; then
-      echo "New assemblies from Spartan, committing"
-      git commit -am "[CI] New assemblies coming from Spartan"
+      echo "New assemblies from Vale, committing"
+      git commit -am "[CI] New assemblies coming from Vale"
       local commit=$(git rev-parse HEAD)
       local branch=${branches[FStar]}
       git fetch
@@ -359,21 +358,11 @@ docker_from_scratch () {
 }
 
 fetch_fstar_for_mitls () {
-  # Oh, VSTS! Also: remove this once every mitls branch has switched to the
-  # ocamlbuild version of F*
-  git clean -ffdx
-
   # Clone F* from the specified revision, set FSTAR_HOME
   if [ ! -d fstar ]; then
-    mkdir -p fstar
-    cd fstar
-    git init
-    git remote add origin https://github.com/FStarLang/FStar/
-    cd ..
+    git clone https://github.com/FStarLang/FStar/ fstar
   fi
   cd fstar
-  # Remove when we stop juggling with the two build systems for F* (old/new)
-  git clean -ffdx
   git fetch origin
   git reset --hard $(cat ../.fstar_version)
   make -C src/ocaml-output clean
@@ -384,6 +373,10 @@ fetch_fstar_for_mitls () {
   else
     export FSTAR_HOME=$(pwd)/fstar
   fi
+}
+
+mitls_verify () {
+  fetch_fstar_for_mitls && make -C src/tls -j 24 all-ver -k
 }
 
 # Main commands.
@@ -433,8 +426,7 @@ case "$1" in
       exit 1
     fi
 
-    fetch_fstar_for_mitls
-    run_log_commit "make -C src/tls -j 24 all-ver -k" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    run_log_commit "mitls_verify" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
     ;;
 
   mitls-nightly)
@@ -443,9 +435,9 @@ case "$1" in
       exit 1
     fi
 
-    fetch_fstar_for_mitls
+    
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
-    run_log_commit "make -C src/tls -j 24 all-ver -k" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    run_log_commit "mitls_verify" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
     refresh_mitls_hints
     ;;
 
