@@ -78,15 +78,9 @@ function quote()
 #  $1: channel
 #  $2: message
 post_to_slack () {
-  #DFG curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
-#DFG    \"username\": \"dzomo\", \"text\": \"$2\", \
- #DFG   \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
- 
- echo "**** POST TO SLACK ****"
- echo "** Channel =" $1
- echo "** Message =" $2
- echo "**** POST TO SLACK ****"
- 
+  curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
+    \"username\": \"dzomo\", \"text\": \"$2\", \
+    \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
 }
 trap 'post_to_slack "#everest-build" ":heavy_exclamation_mark: \`$0 $@\` *failed* with error code: $?"' ERR
 
