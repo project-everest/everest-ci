@@ -410,12 +410,20 @@ case "$1" in
       exit 1
     fi
 
-    
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
     run_log_commit "mitls_verify" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
     refresh_mitls_hints
     ;;
 
+
+  hacl-ci)
+    if [ ! -c "crypto_proofs" ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
+
+    run_log_commit "make -C crypto_proofs/ all-ver -j 24" "hacl-ci" "#hacl-build" "mitls/hacl-star"
+    ;;
 
   everest-ci)
     # Clone all projects together and make sure they test and build together
