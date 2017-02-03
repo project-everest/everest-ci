@@ -309,14 +309,13 @@ everest_move () {
   if ! $fresh; then
     # Bail out early if there's nothing to do
     post_to_slack "#everest-build" ":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
-  elif ! ./everest --yes make; then
+  elif ! ./everest --yes make test verify; then
     # Provide a meaningful summary of what we tried
     msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
     post_to_slack "#everest-build" "$msg"
     return 255
   else
-    # Life is good, record new revisions and commit. NOTE: this does not include
-    # "everest test"... this is a TODO.
+    # Life is good, record new revisions and commit.
     msg=":white_check_mark: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version works!\n$versions"
     post_to_slack "#everest-build" "$msg"
     ./everest --yes snapshot
@@ -332,8 +331,8 @@ everest_move () {
 
     cd FStar
     if ! git diff --exit-code; then
-      echo "New assemblies from Spartan, committing"
-      git commit -am "[CI] New assemblies coming from Spartan"
+      echo "New assemblies from Vale, committing"
+      git commit -am "[CI] New assemblies coming from Vale"
       local commit=$(git rev-parse HEAD)
       local branch=${branches[FStar]}
       git fetch
