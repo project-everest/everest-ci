@@ -374,7 +374,13 @@ mitls_verify () {
 }
 
 hacl_verify () {
-  unset FSTAR_HOME
+  if which cygpath 2>&1 >/dev/null; then
+    export FSTAR_HOME=$(cygpath -m $(pwd)/dependencies/FStar)
+    export KREMLIN_HOME=$(cygpath -m $(pwd)/dependencies/kremlin)
+  else
+    export FSTAR_HOME=$(pwd)/dependencies/FStar
+    export KREMLIN_HOME=$(pwd)/dependencies/kremlin
+  fi
   make -C dependencies/FStar/src/ocaml-output && \
     make -C dependencies/kremlin && \
     make -j 24 -C crypto_proofs all-ver
