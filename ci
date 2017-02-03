@@ -373,6 +373,12 @@ mitls_verify () {
   fetch_fstar_for_mitls && make -C src/tls -j 24 all-ver -k
 }
 
+hacl_verify () {
+  make -C dependencies/FStar/src/ocaml-output && \
+    make -C dependencies/kremlin && \
+    make -j 24 -C crypto_proofs all-ver
+}
+
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -422,7 +428,7 @@ case "$1" in
       exit 1
     fi
 
-    run_log_commit "make -C crypto_proofs/ all-ver -j 24" "hacl-ci" "#hacl-build" "mitls/hacl-star"
+    run_log_commit "hacl_verify" "hacl-ci" "#hacl-build" "mitls/hacl-star"
     ;;
 
   everest-ci)
