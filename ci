@@ -417,7 +417,7 @@ case "$1" in
 
 
   hacl-ci)
-    if [ ! -c "crypto_proofs" ]; then
+    if [ ! -d "crypto_proofs" ]; then
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
