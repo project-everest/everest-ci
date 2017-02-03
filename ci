@@ -252,6 +252,9 @@ refresh_hints () {
   git commit -m "[CI] $3"
   # Memorize that commit
   commit=$(git rev-parse HEAD)
+  # Drop any other files that were modified as part of the build (e.g.
+  # parse.fsi)
+  git reset --hard HEAD
   # Move to whatever is the most recent master (that most likely changed in the
   # meantime)
   git fetch
