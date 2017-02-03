@@ -240,9 +240,10 @@ refresh_hints () {
   local remote=$1
   local extra="$2"
   local msg="$3"
+  local hints_dir="$4"
 
   # Add all the hints, even those not under version control
-  find . -iname '*.hints' | xargs git add
+  find $hints_dir -iname '*.hints' -and -not -path '*/.*' | xargs git add
   $extra
   # Abort early if there's nothing to commit
   if git diff --exit-code; then
@@ -268,11 +269,11 @@ refresh_hints () {
 }
 
 refresh_fstar_hints () {
-  refresh_hints "git@github.com:FStarLang/FStar.git" "git ls-files src/ocaml-output/ | xargs git add" "regenerate hints + ocaml snapshot"
+  refresh_hints "git@github.com:FStarLang/FStar.git" "git ls-files src/ocaml-output/ | xargs git add" "regenerate hints + ocaml snapshot" "."
 }
 
 refresh_mitls_hints () {
-  refresh_hints "git@github.com:mitls/mitls-fstar.git" "true" "regenerate hints"
+  refresh_hints "git@github.com:mitls/mitls-fstar.git" "true" "regenerate hints" "src"
 }
 
 everest_rebuild () {
@@ -376,6 +377,10 @@ mitls_verify () {
   fetch_fstar_for_mitls && make -C src/tls -j 24 all-ver -k
 }
 
+mitls_verify_and_hints () {
+  mitls_verify && refresh_mitls_hints
+}
+
 hacl_verify () {
   if which cygpath 2>&1 >/dev/null; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/dependencies/FStar)
@@ -427,8 +432,7 @@ case "$1" in
     fi
 
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
-    run_log_commit "mitls_verify" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
-    refresh_mitls_hints
+    run_log_commit "mitls_verify_and_hints" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
     ;;
 
 
