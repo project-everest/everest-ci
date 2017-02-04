@@ -59,14 +59,16 @@ fi
 EVEREST_CI_HOME=$(pwd)
 popd
 
-# Encode < > & and "in given string
-# Slack did not need scrub " but JSON to form the payload for slack did so fix that too
+# Encode < > & and " in the given string
+# The Slack syntax does not require escaping " or \ but JSON does in order to
+# form a valid payload.
 function quote()
 {
   local msg="$1"
   msg=${msg//&/&amp;}
   msg=${msg//</&lt;}
   msg=${msg//>/&gt;}
+  msg=${msg//\\/\\\\}
   msg=${msg//\"/\\\"}
   echo $msg
 }
@@ -108,6 +110,7 @@ log_prelude () {
   echo "BUILD_DEFINITIONNAME: $BUILD_DEFINITIONNAME"
 }
 
+# Run a given command and commit & push the logs the the CI_LOGS repository.
 # $1: the command to run
 # $2: job description without space (e.g. everest-interop or fstar)
 # $3: slack channel
@@ -121,12 +124,20 @@ run_log_commit () {
   build_command="$1"
   stem=$2
   slack_channel=$3
-  github_project=$4
+  slack_commit=$(git rev-parse HEAD | cut -c 1-8)
   slack_branch=$CI_BRANCH
+  github_project=$4
 
   # Determine where the logs are going
-  log_all=$stem-$($DATE +%Y%m%d%H%M%S).all
-  log_err=$stem-$($DATE +%Y%m%d%H%M%S).err
+  local unique_id
+  if [[ $BUILD_BUILDNUMBER == "" ]]; then
+    echo "... probably running locally, generating a random build number"
+    unique_id=$RANDOM
+  else
+    unique_id=$BUILD_BUILDNUMBER
+  fi
+  log_all=$stem-$slack_commit-$unique_id.all
+  log_err=$stem-$slack_commit-$unique_id.err
 
   # The actual CI
   SECONDS=0
@@ -177,7 +188,6 @@ run_log_commit () {
     slack_author=$(git log --pretty=format:"%cn" -1)
     slack_time=$(if (( $SECONDS >= 3600 )); then $DATE -d@$SECONDS -u +%Hh%Mm%Ss; else $DATE -d@$SECONDS -u +%Mm%Ss; fi)
     slack_msg="<$raw_url/$log_err|stderr> <$raw_url/$log_all|stdout+stderr>"
-    slack_commit=$(git rev-parse HEAD | cut -c 1-8)
     slack_name=$(git remote get-url origin)
     slack_name=${slack_name##*/}
     slack_name=${slack_name%.git}
@@ -226,17 +236,26 @@ run_log_commit () {
 # merged to $CI_BRANCH in the meanwhile, which would invalidate some hints. So, we
 # reset to origin/$CI_BRANCH, take in our hints, and push. This is short enough that
 # the chances of someone merging in-between fetch and push are low.
-refresh_fstar_hints () {
-  if ! git remote get-url origin | grep FStar.git; then
-    echo "Inconsistency: wrong remote URL"
-    exit 1
-  fi
+refresh_hints () {
+  local remote=$1
+  local extra="$2"
+  local msg="$3"
+  local hints_dir="$4"
+
   # Add all the hints, even those not under version control
-  find . -iname '*.hints' | xargs git add
-  git add src/ocaml-output/*.ml
-  git commit -am "[CI] regenerate hints + ocaml snapshot"
+  find $hints_dir -iname '*.hints' -and -not -path '*/.*' | xargs git add
+  $extra
+  # Abort early if there's nothing to commit
+  if git diff --exit-code; then
+    return 0
+  fi
+
+  git commit -m "[CI] $3"
   # Memorize that commit
   commit=$(git rev-parse HEAD)
+  # Drop any other files that were modified as part of the build (e.g.
+  # parse.fsi)
+  git reset --hard HEAD
   # Move to whatever is the most recent master (that most likely changed in the
   # meantime)
   git fetch
@@ -246,7 +265,15 @@ refresh_fstar_hints () {
   export GIT_MERGE_AUTOEDIT=no
   git merge $commit -Xtheirs
   # Push.
-  git push git@github.com:FStarLang/FStar.git $CI_BRANCH
+  git push $remote $CI_BRANCH
+}
+
+refresh_fstar_hints () {
+  refresh_hints "git@github.com:FStarLang/FStar.git" "git ls-files src/ocaml-output/ | xargs git add" "regenerate hints + ocaml snapshot" "."
+}
+
+refresh_mitls_hints () {
+  refresh_hints "git@github.com:mitls/mitls-fstar.git" "true" "regenerate hints" "src"
 }
 
 everest_rebuild () {
@@ -266,6 +293,7 @@ everest_move () {
   # Update every project to its know good version and branch, then for each
   # project run git pull
   source hashes.sh
+  source repositories.sh
   fresh=false
   versions=""
   for r in ${!hashes[@]}; do
@@ -273,7 +301,9 @@ everest_move () {
     git pull
     if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
       fresh=true
-      versions="$versions\n    *$r* moves to $(git rev-parse HEAD | cut -c 1-8) on branch ${branches[$r]}"
+      url=${repositories[$r]#git@github.com:}
+      url="https://www.github.com/${url%.git}/compare/${hashes[$r]}...$(git rev-parse HEAD)"
+      versions="$versions\n    *$r* <$url|moves to $(git rev-parse HEAD | cut -c 1-8)> on branch ${branches[$r]}"
     else
       versions="$versions\n    *$r* stays at $(git rev-parse HEAD | cut -c 1-8) on branch ${branches[$r]}"
     fi
@@ -283,14 +313,13 @@ everest_move () {
   if ! $fresh; then
     # Bail out early if there's nothing to do
     post_to_slack "#everest-build" ":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
-  elif ! ./everest --yes make; then
+  elif ! ./everest --yes make test verify; then
     # Provide a meaningful summary of what we tried
     msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
     post_to_slack "#everest-build" "$msg"
     return 255
   else
-    # Life is good, record new revisions and commit. NOTE: this does not include
-    # "everest test"... this is a TODO.
+    # Life is good, record new revisions and commit.
     msg=":white_check_mark: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version works!\n$versions"
     post_to_slack "#everest-build" "$msg"
     ./everest --yes snapshot
@@ -306,8 +335,8 @@ everest_move () {
 
     cd FStar
     if ! git diff --exit-code; then
-      echo "New assemblies from Spartan, committing"
-      git commit -am "[CI] New assemblies coming from Spartan"
+      echo "New assemblies from Vale, committing"
+      git commit -am "[CI] New assemblies coming from Vale"
       local commit=$(git rev-parse HEAD)
       local branch=${branches[FStar]}
       git fetch
@@ -326,6 +355,45 @@ docker_from_scratch () {
   cat docker-log | grep EVEREST-SUCCESS
 }
 
+fetch_fstar_for_mitls () {
+  # Clone F* from the specified revision, set FSTAR_HOME
+  if [ ! -d fstar ]; then
+    git clone https://github.com/FStarLang/FStar/ fstar
+  fi
+  cd fstar
+  git fetch origin
+  git reset --hard $(cat ../.fstar_version)
+  make -C src/ocaml-output clean
+  make -C src/ocaml-output -j 15
+  cd ..
+  if command -v cygpath >/dev/null 2>&1; then
+    export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
+  else
+    export FSTAR_HOME=$(pwd)/fstar
+  fi
+}
+
+mitls_verify () {
+  fetch_fstar_for_mitls && make -C src/tls -j 24 all-ver -k
+}
+
+mitls_verify_and_hints () {
+  mitls_verify && refresh_mitls_hints
+}
+
+hacl_verify () {
+  if which cygpath 2>&1 >/dev/null; then
+    export FSTAR_HOME=$(cygpath -m $(pwd)/dependencies/FStar)
+    export KREMLIN_HOME=$(cygpath -m $(pwd)/dependencies/kremlin)
+  else
+    export FSTAR_HOME=$(pwd)/dependencies/FStar
+    export KREMLIN_HOME=$(pwd)/dependencies/kremlin
+  fi
+  make -C dependencies/FStar/src/ocaml-output && \
+    make -C dependencies/kremlin && \
+    make -j 24 -C crypto_proofs all-ver
+}
+
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -334,7 +402,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest -j 24 -k" "fstar" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src utest -j 24 -k" "fstar-ci" "#fstar-build" "FStarLang/FStar"
     ;;
 
   fstar-nightly)
@@ -343,8 +411,8 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    export OTHERFLAGS="--record_hints --hint_info"
-    run_log_commit "make -C src ulong -j 24 -k" "fstar" "#fstar-build" "FStarLang/FStar"
+    export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
+    run_log_commit "make -C src ulong -j 6 -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar"
     refresh_fstar_hints
     ;;
 
@@ -354,33 +422,27 @@ case "$1" in
       exit 1
     fi
 
-    # Oh, VSTS! Also: remove this once every mitls branch has switched to the
-    # ocamlbuild version of F*
-    git clean -ffdx
+    run_log_commit "mitls_verify" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    ;;
 
-    # Clone F* from the specified revision, set FSTAR_HOME
-    if [ ! -d fstar ]; then
-      mkdir -p fstar
-      cd fstar
-      git init
-      git remote add origin https://github.com/FStarLang/FStar/
-      cd ..
-    fi
-    cd fstar
-    # Remove when we stop juggling with the two build systems for F* (old/new)
-    git clean -ffdx
-    git fetch origin
-    git reset --hard $(cat ../.fstar_version)
-    make -C src/ocaml-output clean
-    make -C src/ocaml-output -j 15
-    cd ..
-    if command -v cygpath >/dev/null 2>&1; then
-      export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
-    else
-      export FSTAR_HOME=$(pwd)/fstar
+  mitls-nightly)
+    if [ ! -f miTLS_icla.txt ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
     fi
 
-    run_log_commit "make -C src/tls -j 24 all-ver -k" "miTLS" "#mitls-build" "mitls/mitls-fstar"
+    export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
+    run_log_commit "mitls_verify_and_hints" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    ;;
+
+
+  hacl-ci)
+    if [ ! -d "crypto_proofs" ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
+
+    run_log_commit "hacl_verify" "hacl-ci" "#hacl-build" "mitls/hacl-star"
     ;;
 
   everest-ci)
@@ -392,7 +454,7 @@ case "$1" in
     run_log_commit "everest_rebuild" "everest-build" "#everest-build" "project-everest/everest"
     # This second command is only run if the first one succeeds (the script
     # aborts otherwise).
-    run_log_commit "./everest --yes test" "everest-interop" "#everest-build" "project-everest/everest"
+    run_log_commit "./everest --yes test" "everest-test" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
@@ -402,7 +464,7 @@ case "$1" in
       echo "Not in the right directory"
       exit 1
     fi
-    run_log_commit "docker_from_scratch" "everest-from-scratch-ubuntu" "#everest-build" "project-everest/everest-ci"
+    run_log_commit "docker_from_scratch" "everest-ubuntu" "#everest-build" "project-everest/everest-ci"
     ;;
 
   everest-nightly-move)
@@ -411,7 +473,7 @@ case "$1" in
       echo "Not in the right directory"
       exit 1
     fi
-    run_log_commit "everest_move" "everest-move-to-latest" "#everest-build" "project-everest/everest"
+    run_log_commit "everest_move" "everest-upgrade" "#everest-build" "project-everest/everest"
     ;;
 
   *)
@@ -431,4 +493,3 @@ REMARKS:
 USAGE
     ;;
 esac
-
