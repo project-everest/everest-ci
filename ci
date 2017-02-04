@@ -247,6 +247,7 @@ refresh_hints () {
   $extra
   # Abort early if there's nothing to commit
   if git diff --exit-code; then
+    echo "Empty git diff -- nothing new to regenerate"
     return 0
   fi
 
