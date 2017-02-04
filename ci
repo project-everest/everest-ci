@@ -82,7 +82,7 @@ post_to_slack () {
     \"username\": \"dzomo\", \"text\": \"$2\", \
     \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
 }
-# DFG COMMMENTED THIS OUT ###  trap 'post_to_slack "#everest-build" ":heavy_exclamation_mark: \`$0 $@\` *failed* with error code: $?"' ERR
+trap 'post_to_slack "#everest-build" ":heavy_exclamation_mark: \`$0 $@\` *failed* with error code: $?"' ERR
 
 # Figure out the branch
 if [[ $BUILD_SOURCEBRANCHNAME != "" ]]; then
@@ -240,10 +240,9 @@ refresh_hints () {
   local remote=$1
   local extra="$2"
   local msg="$3"
-  local hints_dir="$4"
 
   # Add all the hints, even those not under version control
-  find $hints_dir -iname '*.hints' -and -not -path '*/.*' | xargs git add
+  find . -iname '*.hints' | xargs git add
   $extra
   # Abort early if there's nothing to commit
   if git diff --exit-code; then
@@ -253,9 +252,6 @@ refresh_hints () {
   git commit -m "[CI] $3"
   # Memorize that commit
   commit=$(git rev-parse HEAD)
-  # Drop any other files that were modified as part of the build (e.g.
-  # parse.fsi)
-  git reset --hard HEAD
   # Move to whatever is the most recent master (that most likely changed in the
   # meantime)
   git fetch
@@ -269,11 +265,11 @@ refresh_hints () {
 }
 
 refresh_fstar_hints () {
-  refresh_hints "git@github.com:FStarLang/FStar.git" "git ls-files src/ocaml-output/ | xargs git add" "regenerate hints + ocaml snapshot" "."
+  refresh_hints "git@github.com:FStarLang/FStar.git" "git ls-files src/ocaml-output/ | xargs git add" "regenerate hints + ocaml snapshot"
 }
 
 refresh_mitls_hints () {
-  refresh_hints "git@github.com:mitls/mitls-fstar.git" "true" "regenerate hints" "src"
+  refresh_hints "git@github.com:mitls/mitls-fstar.git" "true" "regenerate hints"
 }
 
 everest_rebuild () {
@@ -377,23 +373,6 @@ mitls_verify () {
   fetch_fstar_for_mitls && make -C src/tls -j 24 all-ver -k
 }
 
-mitls_verify_and_hints () {
-  mitls_verify && refresh_mitls_hints
-}
-
-hacl_verify () {
-  if which cygpath 2>&1 >/dev/null; then
-    export FSTAR_HOME=$(cygpath -m $(pwd)/dependencies/FStar)
-    export KREMLIN_HOME=$(cygpath -m $(pwd)/dependencies/kremlin)
-  else
-    export FSTAR_HOME=$(pwd)/dependencies/FStar
-    export KREMLIN_HOME=$(pwd)/dependencies/kremlin
-  fi
-  make -C dependencies/FStar/src/ocaml-output && \
-    make -C dependencies/kremlin && \
-    make -j 24 -C crypto_proofs all-ver
-}
-
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -431,19 +410,12 @@ case "$1" in
       exit 1
     fi
 
+    
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
-    run_log_commit "mitls_verify_and_hints" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    run_log_commit "mitls_verify" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    refresh_mitls_hints
     ;;
 
-
-  hacl-ci)
-    if [ ! -d "crypto_proofs" ]; then
-      echo "I don't seem to be in the right directory, bailing"
-      exit 1
-    fi
-
-    run_log_commit "hacl_verify" "hacl-ci" "#hacl-build" "mitls/hacl-star"
-    ;;
 
   everest-ci)
     # Clone all projects together and make sure they test and build together
