@@ -391,8 +391,8 @@ hacl_verify () {
     export KREMLIN_HOME=$(pwd)/dependencies/kremlin
   fi
   make -C dependencies/FStar/src/ocaml-output && \
-      make -C dependencies/kremlin && \
-      make -j 24 -C code extract-c ct verify && \
+    make -C dependencies/kremlin && \
+    make -j 24 -C code extract-c ct verify && \
     make -j 24 -C crypto_proofs all-ver
 }
 
