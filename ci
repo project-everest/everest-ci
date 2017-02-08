@@ -124,9 +124,12 @@ run_log_commit () {
   build_command="$1"
   stem=$2
   slack_channel=$3
+  github_project=$4
+
   slack_commit=$(git rev-parse HEAD | cut -c 1-8)
   slack_branch=$CI_BRANCH
-  github_project=$4
+  slack_log=$(git log --pretty=format:"%s" -1)
+  slack_author=$(git log --pretty=format:"%cn" -1)
 
   # Determine where the logs are going
   local unique_id
@@ -184,8 +187,6 @@ run_log_commit () {
 
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
     raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
-    slack_log=$(git log --pretty=format:"%s" -1)
-    slack_author=$(git log --pretty=format:"%cn" -1)
     slack_time=$(if (( $SECONDS >= 3600 )); then $DATE -d@$SECONDS -u +%Hh%Mm%Ss; else $DATE -d@$SECONDS -u +%Mm%Ss; fi)
     slack_msg="<$raw_url/$log_err|stderr> <$raw_url/$log_all|stdout+stderr>"
     slack_name=$(git remote get-url origin)
@@ -245,13 +246,8 @@ refresh_hints () {
   # Add all the hints, even those not under version control
   find $hints_dir -iname '*.hints' -and -not -path '*/.*' | xargs git add
   $extra
-  # Abort early if there's nothing to commit
-  if git diff --exit-code; then
-    echo "Empty git diff -- nothing new to regenerate"
-    return 0
-  fi
 
-  git commit -m "[CI] $3"
+  git commit --allow-empty -m "[CI] $msg"
   # Memorize that commit
   commit=$(git rev-parse HEAD)
   # Drop any other files that were modified as part of the build (e.g.
