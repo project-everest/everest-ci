@@ -273,6 +273,39 @@ refresh_mitls_hints () {
   refresh_hints "git@github.com:mitls/mitls-fstar.git" "true" "regenerate hints" "src"
 }
 
+refresh_hacl_hints () {
+  local remote="git@github.com:mitls/hacl-star.git"
+  local extra="true"
+  local msg="regenerate hints"
+  local hints_dir="."
+
+  # Add all the hints, even those not under version control
+  find $hints_dir -iname '*.hints' -and -not -path '*/.*' -and -not -path '*/dependencies/.*' | xargs git add
+  $extra
+  # Abort early if there's nothing to commit
+  if git diff --exit-code; then
+    echo "Empty git diff -- nothing new to regenerate"
+    return 0
+  fi
+
+  git commit -m "[CI] $3"
+  # Memorize that commit
+  commit=$(git rev-parse HEAD)
+  # Drop any other files that were modified as part of the build (e.g.
+  # parse.fsi)
+  git reset --hard HEAD
+  # Move to whatever is the most recent master (that most likely changed in the
+  # meantime)
+  git fetch
+  git checkout $CI_BRANCH
+  git reset --hard origin/$CI_BRANCH
+  # Silent, always-successful merge
+  export GIT_MERGE_AUTOEDIT=no
+  git merge $commit -Xtheirs
+  # Push.
+  git push $remote $CI_BRANCH
+}
+
 everest_rebuild () {
   git clean -ffdx
   ./everest --yes check reset make
@@ -388,7 +421,8 @@ hacl_verify () {
   fi
   make -C dependencies/FStar/src/ocaml-output && \
     make -C dependencies/kremlin && \
-    make -j 24 -C test
+    make -j 24 -C test && \
+    refresh_hacl_hints
 }
 
 # Main commands.
