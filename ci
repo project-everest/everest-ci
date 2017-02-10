@@ -421,8 +421,7 @@ hacl_verify () {
   fi
   make -C dependencies/FStar/src/ocaml-output && \
     make -C dependencies/kremlin && \
-    make -j 24 -C test && \
-    refresh_hacl_hints
+    make -j 24 -C test
 }
 
 # Main commands.
