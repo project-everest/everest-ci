@@ -506,6 +506,19 @@ case "$1" in
     run_log_commit "everest_move" "everest-upgrade" "#everest-build" "project-everest/everest"
     ;;
 
+  vale-ci)
+    # Run vale ci - start in everest
+    if ! [ -x vale ]; then
+      echo "Not in the right directory"
+      exit 1
+    fi
+
+    # Set up build environment
+    nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc 
+
+    run_log_commit "scons.bat -C vale -j 4" "vale-build" "#vale-build" "project-everest/vale"
+    ;;
+
   *)
     cat <<USAGE
 USAGE: $0 ACTION
@@ -517,6 +530,7 @@ ACTIONS:
   everest-ci
   everest-nightly-check
   everest-nightly-move
+  vale-ci
 
 REMARKS:
   Read this script's source code for more explanations. It has comments.
