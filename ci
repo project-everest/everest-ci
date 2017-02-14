@@ -508,15 +508,15 @@ case "$1" in
 
   vale-ci)
     # Run vale ci - start in everest
-    if ! [ -x vale ]; then
+    if ! [ -d tools/Vale ]; then
       echo "Not in the right directory"
       exit 1
     fi
 
     # Set up build environment
-    nuget restore vale/tools/Vale/src/packages.config -PackagesDirectory vale/tools/FsLexYacc 
+    nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc 
 
-    run_log_commit "scons.bat -C vale -j 4" "vale-build" "#vale-build" "project-everest/vale"
+    run_log_commit "scons.bat -j 4" "vale-build" "#vale-build" "project-everest/vale"
     ;;
 
   *)
