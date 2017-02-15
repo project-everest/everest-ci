@@ -124,9 +124,12 @@ run_log_commit () {
   build_command="$1"
   stem=$2
   slack_channel=$3
+  github_project=$4
+
   slack_commit=$(git rev-parse HEAD | cut -c 1-8)
   slack_branch=$CI_BRANCH
-  github_project=$4
+  slack_log=$(git log --pretty=format:"%s" -1)
+  slack_author=$(git log --pretty=format:"%cn" -1)
 
   # Determine where the logs are going
   local unique_id
@@ -184,8 +187,6 @@ run_log_commit () {
 
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
     raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
-    slack_log=$(git log --pretty=format:"%s" -1)
-    slack_author=$(git log --pretty=format:"%cn" -1)
     slack_time=$(if (( $SECONDS >= 3600 )); then $DATE -d@$SECONDS -u +%Hh%Mm%Ss; else $DATE -d@$SECONDS -u +%Mm%Ss; fi)
     slack_msg="<$raw_url/$log_err|stderr> <$raw_url/$log_all|stdout+stderr>"
     slack_name=$(git remote get-url origin)
@@ -240,18 +241,18 @@ refresh_hints () {
   local remote=$1
   local extra="$2"
   local msg="$3"
+  local hints_dir="$4"
 
   # Add all the hints, even those not under version control
-  find . -iname '*.hints' | xargs git add
+  find $hints_dir -iname '*.hints' -and -not -path '*/.*' | xargs git add
   $extra
-  # Abort early if there's nothing to commit
-  if git diff --exit-code; then
-    return 0
-  fi
 
-  git commit -m "[CI] $3"
+  git commit --allow-empty -m "[CI] $msg"
   # Memorize that commit
   commit=$(git rev-parse HEAD)
+  # Drop any other files that were modified as part of the build (e.g.
+  # parse.fsi)
+  git reset --hard HEAD
   # Move to whatever is the most recent master (that most likely changed in the
   # meantime)
   git fetch
@@ -265,11 +266,44 @@ refresh_hints () {
 }
 
 refresh_fstar_hints () {
-  refresh_hints "git@github.com:FStarLang/FStar.git" "git ls-files src/ocaml-output/ | xargs git add" "regenerate hints + ocaml snapshot"
+  refresh_hints "git@github.com:FStarLang/FStar.git" "git ls-files src/ocaml-output/ | xargs git add" "regenerate hints + ocaml snapshot" "."
 }
 
 refresh_mitls_hints () {
-  refresh_hints "git@github.com:mitls/mitls-fstar.git" "true" "regenerate hints"
+  refresh_hints "git@github.com:mitls/mitls-fstar.git" "true" "regenerate hints" "src"
+}
+
+refresh_hacl_hints () {
+  local remote="git@github.com:mitls/hacl-star.git"
+  local extra="true"
+  local msg="regenerate hints"
+  local hints_dir="."
+
+  # Add all the hints, even those not under version control
+  find $hints_dir -iname '*.hints' -and -not -path '*/.*' -and -not -path '*/dependencies/.*' | xargs git add
+  $extra
+  # Abort early if there's nothing to commit
+  if git diff --exit-code; then
+    echo "Empty git diff -- nothing new to regenerate"
+    return 0
+  fi
+
+  git commit -m "[CI] $3"
+  # Memorize that commit
+  commit=$(git rev-parse HEAD)
+  # Drop any other files that were modified as part of the build (e.g.
+  # parse.fsi)
+  git reset --hard HEAD
+  # Move to whatever is the most recent master (that most likely changed in the
+  # meantime)
+  git fetch
+  git checkout $CI_BRANCH
+  git reset --hard origin/$CI_BRANCH
+  # Silent, always-successful merge
+  export GIT_MERGE_AUTOEDIT=no
+  git merge $commit -Xtheirs
+  # Push.
+  git push $remote $CI_BRANCH
 }
 
 everest_rebuild () {
@@ -373,6 +407,23 @@ mitls_verify () {
   fetch_fstar_for_mitls && make -C src/tls -j 24 all-ver -k
 }
 
+mitls_verify_and_hints () {
+  mitls_verify && refresh_mitls_hints
+}
+
+hacl_verify () {
+  if which cygpath 2>&1 >/dev/null; then
+    export FSTAR_HOME=$(cygpath -m $(pwd)/dependencies/FStar)
+    export KREMLIN_HOME=$(cygpath -m $(pwd)/dependencies/kremlin)
+  else
+    export FSTAR_HOME=$(pwd)/dependencies/FStar
+    export KREMLIN_HOME=$(pwd)/dependencies/kremlin
+  fi
+  make -C dependencies/FStar/src/ocaml-output && \
+    make -C dependencies/kremlin && \
+    make -j 24 -C test
+}
+
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -429,10 +480,18 @@ case "$1" in
       exit 1
     fi
 
-    
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
-    run_log_commit "mitls_verify" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
-    refresh_mitls_hints
+    run_log_commit "mitls_verify_and_hints" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    ;;
+
+
+  hacl-ci)
+    if [ ! -d "crypto_proofs" ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
+
+    run_log_commit "hacl_verify" "hacl-ci" "#hacl-build" "mitls/hacl-star"
     ;;
 
   everest-ci)
@@ -466,6 +525,19 @@ case "$1" in
     run_log_commit "everest_move" "everest-upgrade" "#everest-build" "project-everest/everest"
     ;;
 
+  vale-ci)
+    # Run vale ci - start in everest
+    if ! [ -d tools/Vale ]; then
+      echo "Not in the right directory"
+      exit 1
+    fi
+
+    # Set up build environment
+    nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc 
+
+    run_log_commit "scons.bat -j 4" "vale-build" "#vale-build" "project-everest/vale"
+    ;;
+
   *)
     cat <<USAGE
 USAGE: $0 ACTION
@@ -478,6 +550,7 @@ ACTIONS:
   everest-ci
   everest-nightly-check
   everest-nightly-move
+  vale-ci
 
 REMARKS:
   Read this script's source code for more explanations. It has comments.
