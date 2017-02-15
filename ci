@@ -415,9 +415,11 @@ hacl_verify () {
   if which cygpath 2>&1 >/dev/null; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/dependencies/FStar)
     export KREMLIN_HOME=$(cygpath -m $(pwd)/dependencies/kremlin)
+    export HACL_HOME=$(cygpath -m $(pwd))
   else
     export FSTAR_HOME=$(pwd)/dependencies/FStar
     export KREMLIN_HOME=$(pwd)/dependencies/kremlin
+    export HACL_HOME=$(pwd)
   fi
   make -C dependencies/FStar/src/ocaml-output && \
     make -C dependencies/kremlin && \
