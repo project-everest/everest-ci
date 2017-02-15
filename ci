@@ -518,7 +518,11 @@ case "$1" in
     # Set up build environment
     nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc 
 
-    run_log_commit "scons.bat -j 4" "vale-build" "#vale-build" "project-everest/vale"
+    ifeq ($(OS),Windows_NT)
+      run_log_commit "scons.bat -j 4" "vale-build" "#vale-build" "project-everest/vale"
+    else
+      run_log_commit "scons -j 4" "vale-build" "#vale-build" "project-everest/vale"
+    endif
     ;;
 
   *)
