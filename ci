@@ -515,14 +515,14 @@ case "$1" in
       exit 1
     fi
 
-    # Set up build environment
-    nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc 
-
-    ifeq ($(OS),Windows_NT)
-      run_log_commit "scons.bat -j 4" "vale-build" "#vale-build" "project-everest/vale"
+    # Set up build environment based on OS
+    if [[ "$OSTYPE" == "linux-gnu" ]]; then
+      #** How install tools/FsLexYacc here??? -- probably separate package in container
+      run_log_commit "scons -j 4 --NOVERIFY" "vale-build" "#vale-build" "project-everest/vale"
     else
-      run_log_commit "scons -j 4" "vale-build" "#vale-build" "project-everest/vale"
-    endif
+      nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc 
+      run_log_commit "scons.bat -j 4" "vale-build" "#vale-build" "project-everest/vale"
+    fi
     ;;
 
   *)
