@@ -448,6 +448,21 @@ case "$1" in
     refresh_fstar_hints
     ;;
 
+  fstar-docs-nightly)
+    # Create the docs associated with FStar
+    if [ ! -d ulib ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
+
+    # First - get fstar built
+    make -C src/ocaml-output clean
+    make -C src/ocaml-output -j 6
+
+    # Second - run fstar with the --doc flag
+    run_log_commit ".ci/fsdoc.sh" "fstar-docs-nightly" "#fstar-build" "FStarLang/FStar"
+    ;;
+    
   mitls-ci)
     if [ ! -f miTLS_icla.txt ]; then
       echo "I don't seem to be in the right directory, bailing"
@@ -528,6 +543,7 @@ USAGE: $0 ACTION
 ACTIONS:
   fstar-ci
   fstar-nightly
+  fstar-docs-nightly
   mitls-ci
   everest-ci
   everest-nightly-check
