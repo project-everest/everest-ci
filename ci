@@ -26,7 +26,7 @@ cd "$BUILD_DIR"
 # Any error is fatal.
 set -e
 set -o pipefail
-# set -x # uncomment for debugging.
+# set -x # uncomment for debugging. This also will expose any github access tokens which will invalidate them so use wisely
 
 # Some commands...
 if [[ $(uname) = "Darwin" ]]; then
@@ -533,7 +533,16 @@ case "$1" in
     # Set up build environment
     nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc 
 
-    run_log_commit "scons.bat -j 4" "vale-build" "#vale-build" "project-everest/vale"
+    #since each build verifies x86, x64 and ARM, only verify on one build as takes quite a bit longer to verify
+    if [[ "$OS" == "Windows_NT" ]]; then
+      if [[ "$Platform" == "X64" ]]; then
+        run_log_commit "scons.bat -j 4 --NOVERIFY" "vale-build" "#vale-build" "project-everest/vale"
+      else
+        run_log_commit "scons.bat -j 4" "vale-build" "#vale-build" "project-everest/vale"
+      fi
+    else
+      run_log_commit "scons -j 4 --NOVERIFY" "vale-build" "#vale-build" "project-everest/vale"
+    fi
     ;;
 
   *)
