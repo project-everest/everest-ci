@@ -534,8 +534,13 @@ case "$1" in
     rm hashes.sh || true
     wget https://raw.githubusercontent.com/project-everest/everest/master/hashes.sh
     source hashes.sh
-    git clone https://github.com/FStarLang/kremlin && (cd kremlin && git reset --hard ${hashes[kremlin]})
+    if ! [ -d kremlin ]; then
+      git clone https://github.com/FStarLang/kremlin
+    fi
+    (cd kremlin && git fetch && git reset --hard ${hashes[kremlin]})
+    make -C kremlin
     export PATH=$(pwd)/kremlin:$PATH
+    export KREMLIN_HOME=$(pwd)/kremlin
 
     # Set up build environment
     nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc 
