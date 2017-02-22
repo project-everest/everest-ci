@@ -538,9 +538,14 @@ case "$1" in
       git clone https://github.com/FStarLang/kremlin
     fi
     (cd kremlin && git fetch && git reset --hard ${hashes[kremlin]})
+    if which cygpath 2>&1 >/dev/null; then
+      export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
+      export PATH=$(cygpath -m $(pwd))/kremlin:$PATH
+    else
+      export KREMLIN_HOME=$(pwd)/kremlin
+      export PATH=$(pwd)/kremlin:$PATH
+    fi 
     make -C kremlin
-    export PATH=$(pwd)/kremlin:$PATH
-    export KREMLIN_HOME=$(pwd)/kremlin
 
     # Set up build environment
     nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc 
