@@ -8,9 +8,7 @@ One can log onto the machine if connected to the Microsoft Corporate Network,
 via rdesktop (user: everbld, password: ask Jonathan or Sreekanth), or using Mark
 Russinovitch's excellent psexec.
 
-The machine shares the folder `C:\Users\everbld\Agents\Linux2` with the Docker
-Ubuntu instance (mounted as `/LinuxAgent`). One can skip CI by putting
-`***NO_CI***` in the commit message.
+One can skip CI by putting `***NO_CI***` in the commit message.
 
 ## Build summary:
 -  **Everest-CI-Windows** - Check that the designated revisions of all projects (in hashes.sh) lead to a successful build & run of mitls.exe 
@@ -46,7 +44,7 @@ things.
 ## Contributing
 
 We welcome pull requests to this script, using the usual fork project + pull
-request GitHub model. For members of Everest, Sreekanth Kannepali has the keys
+request GitHub model. For members of Everest, Jonathan Protzenko has the keys
 to the everest project on GitHub and can grant write permissions on this
 repository so that you can develop your feature in a branch directly. Jonathan
 watches pull requests and will provide timely feedback unless he's on vacations
