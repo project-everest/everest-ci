@@ -1,11 +1,11 @@
 #!/bin/bash
 #Prepare everest-ci and everest-logs repositories; adding environment variable
-#PAT and agent values should be provided in the docker run command
+#VSTS PAT token, slack token and agent name variables should be provided in the docker run command
 
 cd $MYHOME
 #Add environment variable for slack notifications
 export SLACK_FSTAR_WEBHOOK=https://hooks.slack.com/services/${PAT_SLACK}
-echo 'export SLACK_FSTAR_WEBHOOK="'"$SLACK_FSTAR_WEBHOOK"'"' >> ${MYHOME}/.profile
+echo "export SLACK_FSTAR_WEBHOOK=$SLACK_FSTAR_WEBHOOK" >> ${MYHOME}/.profile
 cd $MYHOME/vsts-agent
 
 #variables for configuring vsts agent
