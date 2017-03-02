@@ -1,12 +1,18 @@
 FROM projecteverest/everest-chomolungma-d8
 LABEL maintainer "Irina Spiridonova <irinasp@microsoft.com>; Darren Gehring <darrenge@microsoft.com>; Tahina Ramananandro <taramana@microsoft.com>"
 
+#Following variables should be provided while creating new Linux container: 
+#PAT=<VSTS token>
+#PAT_SLACK=<slack token>
+#agent=<name of one of the existing agents>; Example: agent=Everest-CI-2
+#Here is the example of the docker run command: docker run -it --name <container name> -e PAT=<VSTS token> -e PAT_SLACK=<slack token> -e agent=<agent name> --restart unless-stopped
+
+#id_rsa and id_rsa.pub files are expected to be in the same directory as dockerfile
+
 USER everest
 WORKDIR ${MYHOME}
 
-ENV CI_LOGS ${MYHOME}"/ci-logs/"
-
-#PAT token and agent name should be provided in the docker run command when docker container is started 
+ENV CI_LOGS ${MYHOME}/ci-logs/
 
 #software-properties-common package is needed for add-apt-repository
 #installing latest version of git and other packages
@@ -18,7 +24,7 @@ RUN sudo apt-get install --yes \
   nuget \
   openssh-client
 
-#copying the keys, elevating permissions and changing the key's owner for the key
+#copying the keys, elevating permissions and changing the owner for the keys
 WORKDIR ${MYHOME}
 USER everest
 RUN mkdir -p ${MYHOME}/.ssh
@@ -32,9 +38,12 @@ RUN sudo chown everest ${MYHOME}/.ssh/id_rsa; sudo chown everest ${MYHOME}/.ssh/
 #Workaround for cloning a repo in a non-interactive way
 RUN echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ${MYHOME}/.ssh/config
 
-#Prepare everest-ci and ci-logs repositories, calling add-repo.sh script
-ADD add-repo.sh ${MYHOME}/add-repo.sh
-RUN ./add-repo.sh
+#Prepare everest-ci and ci-logs repositories
+WORKDIR ${MYHOME}
+RUN git clone git@github.com:project-everest/everest-ci
+RUN git clone git@github.com:project-everest/ci-logs
+RUN git config --global user.email "everbld@microsoft.com"
+RUN git config --global user.name "Dzomo the everest Yak"
 
 #Prepare vsts agent
 ENV agentv v2.111.1
