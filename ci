@@ -118,6 +118,7 @@ log_prelude () {
 run_log_commit () {
   if [[ $CI_LOGS == "" ]]; then
     echo "Don't know where to checkout the logs"
+    echo "Please specify the location via the CI_LOGS environment variable"
     exit 1
   fi
 
@@ -378,11 +379,24 @@ everest_move () {
   fi
 }
 
+# Build a Docker image where everything will be built and verified,
+# then push it to the Docker Hub as projecteverest/everest
+# Requires credentials to access the Docker Hub servers:
+# - user name in the DOCKER_HUB_USERNAME environment variable
+# - password in the DOCKER_HUB_PASSWORD environment variable
 docker_from_scratch () {
-  (docker run --rm ubuntu bash -c "$(cat ubuntu-from-scratch)" 2>&1 | tee docker-log ) \
-    || return 1
-  echo "PIPESTATUS=${PIPESTATUS[@]}"
-  cat docker-log | grep EVEREST-SUCCESS
+  if [ -z ${DOCKER_HUB_USERNAME+x} ] || [ -z ${DOCKER_HUB_PASSWORD+x} ]
+  then
+      echo Please specify Docker Hub username and password
+      echo using the DOCKER_HUB_USERNAME and DOCKER_HUB_PASSWORD environment variables
+      exit 1
+  fi
+  docker login --username="$DOCKER_HUB_USERNAME" --password="$DOCKER_HUB_PASSWORD" &&
+  docker build --tag=projecteverest/everest .docker/everest/ &&
+  echo "PIPESTATUS=${PIPESTATUS[@]}" &&
+  echo Pushing projecteverest/everest to Docker Hub &&
+  docker push projecteverest/everest &&
+  docker logout
 }
 
 fetch_fstar_for_mitls () {
@@ -507,7 +521,7 @@ case "$1" in
   everest-nightly-check)
     # Start a fresh docker container that sets up everything, checks that
     # everything builds and runs on a fresh Ubuntu setup
-    if ! [ -f ci ]; then
+    if ! [ -x everest ]; then
       echo "Not in the right directory"
       exit 1
     fi
