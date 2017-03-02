@@ -59,6 +59,13 @@ fi
 EVEREST_CI_HOME=$(pwd)
 popd
 
+# The parallel option, either empty (by default), or -j n,
+# as specified on the command line.
+# WARNING: in the latter case, it MUST be interpreted as two words, so
+# NEVER quote it as "$parallel_opt"
+# Use $parallel_opt instead
+unset parallel_opt
+
 # Encode < > & and " in the given string
 # The Slack syntax does not require escaping " or \ but JSON does in order to
 # form a valid payload.
@@ -309,7 +316,7 @@ refresh_hacl_hints () {
 
 everest_rebuild () {
   git clean -ffdx
-  ./everest --yes check reset make
+  ./everest --yes $parallel_opt check reset make
 }
 
 everest_move () {
@@ -320,7 +327,7 @@ everest_move () {
   # do it ourselves
   git clean -ffdx
   # Sanity check that will fail if something is off the rails
-  ./everest --yes check reset || return 1
+  ./everest --yes $parallel_opt check reset || return 1
   # Update every project to its know good version and branch, then for each
   # project run git pull
   source hashes.sh
@@ -344,7 +351,7 @@ everest_move () {
   if ! $fresh; then
     # Bail out early if there's nothing to do
     post_to_slack "#everest-build" ":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
-  elif ! ./everest --yes make test verify; then
+  elif ! ./everest --yes $parallel_opt make test verify; then
     # Provide a meaningful summary of what we tried
     msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
     post_to_slack "#everest-build" "$msg"
@@ -392,7 +399,7 @@ docker_from_scratch () {
       exit 1
   fi
   docker login --username="$DOCKER_HUB_USERNAME" --password="$DOCKER_HUB_PASSWORD" &&
-  docker build --tag=projecteverest/everest .docker/everest/ &&
+  docker build --tag=projecteverest/everest --build-arg "parallel_opt=$parallel_opt" .docker/everest/ &&
   echo "PIPESTATUS=${PIPESTATUS[@]}" &&
   echo Pushing projecteverest/everest to Docker Hub &&
   docker push projecteverest/everest &&
@@ -408,7 +415,7 @@ fetch_fstar_for_mitls () {
   git fetch origin
   git reset --hard $(cat ../.fstar_version)
   make -C src/ocaml-output clean
-  make -C src/ocaml-output -j 15
+  make -C src/ocaml-output $parallel_opt
   cd ..
   if command -v cygpath >/dev/null 2>&1; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
@@ -418,7 +425,7 @@ fetch_fstar_for_mitls () {
 }
 
 mitls_verify () {
-  fetch_fstar_for_mitls && make -C src/tls -j 24 all-ver -k
+  fetch_fstar_for_mitls && make -C src/tls $parallel_opt all-ver -k
 }
 
 mitls_verify_and_hints () {
@@ -435,10 +442,28 @@ hacl_verify () {
     export KREMLIN_HOME=$(pwd)/dependencies/kremlin
     export HACL_HOME=$(pwd)
   fi
-  make -C dependencies/FStar/src/ocaml-output && \
-    make -C dependencies/kremlin && \
-    make -j 24 -C test
+  make -C dependencies/FStar/src/ocaml-output $parallel_opt && \
+    make -C dependencies/kremlin $parallel_opt && \
+    make $parallel_opt -C test
 }
+
+# Parse options. All options should come first, before the operation.
+# Currently, only "-j n" is supported.
+while true
+do
+  case "$1" in
+    -j)
+      # The -j option is in two parts: -j n, where n is the parallel factor
+      # (max number of parallel jobs)
+      shift
+      parallel_opt="-j $1"
+      ;;
+    *)
+      break
+      ;;
+  esac
+  shift
+done
 
 # Main commands.
 case "$1" in
@@ -448,7 +473,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest -j 24 -k" "fstar-ci" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src utest $parallel_opt -k" "fstar-ci" "#fstar-build" "FStarLang/FStar"
     ;;
 
   fstar-nightly)
@@ -458,7 +483,7 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
-    run_log_commit "make -C src ulong -j 6 -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src ulong $parallel_opt -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar"
     refresh_fstar_hints
     ;;
 
@@ -471,7 +496,7 @@ case "$1" in
 
     # First - get fstar built
     make -C src/ocaml-output clean
-    make -C src/ocaml-output -j 6
+    make -C src/ocaml-output $parallel_opt
 
     # Second - run fstar with the --doc flag
     run_log_commit ".ci/fsdoc.sh" "fstar-docs-nightly" "#fstar-build" "FStarLang/FStar"
@@ -515,7 +540,7 @@ case "$1" in
     run_log_commit "everest_rebuild" "everest-build" "#everest-build" "project-everest/everest"
     # This second command is only run if the first one succeeds (the script
     # aborts otherwise).
-    run_log_commit "./everest --yes test" "everest-test" "#everest-build" "project-everest/everest"
+    run_log_commit "./everest --yes $parallel_opt test" "everest-test" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
@@ -559,7 +584,7 @@ case "$1" in
       export KREMLIN_HOME=$(pwd)/kremlin
       export PATH=$(pwd)/kremlin:$PATH
     fi 
-    make -C kremlin
+    make -C kremlin $parallel_opt
 
     # Set up build environment
     nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc 
@@ -578,7 +603,10 @@ case "$1" in
 
   *)
     cat <<USAGE
-USAGE: $0 ACTION
+USAGE: $0 [OPTIONS] ACTION
+
+OPTIONS:
+  -j n    Set the max number of parallel jobs to n (default 1)
 
 ACTIONS:
   fstar-ci
