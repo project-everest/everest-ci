@@ -12,32 +12,25 @@ The machine shares the folder `C:\Users\everbld\Agents\Linux2` with the Docker
 Ubuntu instance (mounted as `/LinuxAgent`). One can skip CI by putting
 `***NO_CI***` in the commit message.
 
-[GO TO BUILD LOGS](https://github.com/project-everest/ci-logs)
+## Build summary:
+-  **Everest-CI-Windows** - Check that the designated revisions of all projects (in hashes.sh) lead to a successful build & run of mitls.exe 
+- **Everest-Nightly Upgrade-Windows** - Check that the latest revisions of all projects lead to a successful build & run of mitls.exe; record it as a new set of revisions 
+- **Everest-Nightly-Windows** - Generate a docker image in which we build, verify and extract all the projects, then upload it to the Docker Hub if successful. 
+- **Hacl*-CI-Windows** – Extract the hacl-star code to C using KreMLin, and check that it compiles and runs; lax-check the hacl-star code against the constant-time restricted integer modules; verify the hacl-star code. 
+- **FStar-CI-Windows** - Run on every push, doesn't include expensive verification like crypto. Note – this runs on every branch, not just changes to master. 
+- **FStar-Nightly-Linux** - Verify all the things, including crypto and everything in examples/ -- also regenerate the hints, the ocaml snapshot, and push to repo 
+- **FStar-Docs Nightly-Linux** –  Parse the special documentation comments and generate a series of markdown files that document the modules in fstar/ulib; then, translate them to HTML and upload them to fstarlang.github.io 
+- **miTLS-CI-Windows** - Run on every commit, run verification and build the FFI 
+- **miTLS-Nightly-Windows** - Run verification, build the FFI and regenerate the hints. 
+- **VALE-CI-Linux** - Build on every push, but only builds Vale. It does NOT do verification. 
+- **VALE-x64 CI-Windows** - Build on every push, but only builds Vale. It does NOT do verification. 
+- **VALE-x86 CI-Windows** - Build and verify every check in for VALE. Build is x86 but verification is x86, x64 and ARM. This is the main verification run as X64 and Linux just build VALE and NOT do any verification
 
-The logs are pushed to a public repository to make them easily accessible to
-everyone. The CI machine uses GitHub SSH-key authentication to push build logs
-as the user "dzomo". A dzomo is a hybrid betweek a yak and domestic cattle, and
-is used to carry workloads for Everest expeditions.
+Read [ci](ci) for more information on how the CI was implemented.
 
-Here's a quick overview of the current implemented CI jobs:
-- **miTLS / CI** (Windows)
-  ![mitls-ci build status](https://msresearch-ext.visualstudio.com/_apis/public/build/definitions/83f09286-c288-4766-89cd-d267b6d93772/12/badge)
-  run on every commit, run verification
-- **F\* / CI** (Windows)
-  ![fstar-ci build status](https://msresearch-ext.visualstudio.com/_apis/public/build/definitions/83f09286-c288-4766-89cd-d267b6d93772/27/badge)
-  run on every commit, doesn't include expensive verification like crypto.
-- **F\* / nightly** (Ubuntu / Docker)
-  ![fstar-nightly build status](https://msresearch-ext.visualstudio.com/_apis/public/build/definitions/83f09286-c288-4766-89cd-d267b6d93772/22/badge)
-  verify all the things, including crypto and everything in
-  examples/ -- also regenerate the hints + OCaml snapshot and push!
-- **everest / CI**: check that the designated revisions of all projects (in
-  `hashes.sh`) lead to a successful build & run of mitls.exe
-- **everest / upgrade**: check that the latest revisions of all projects lead to a
-  successful build & run of mitls.exe; record it as a new set of revisions
-- **everest / nightly**: check that the install script, when run from an empty
-  Ubuntu Docker container, leads to a successful build & run of mitls.exe
+For up to date build results, details, logs and history, go to the [Project Everest Dashboard](http://everestdashboard.azurewebsites.net/). 
 
-Read [ci](ci) for more information.
+The logs are also pushed to a public [repository](https://github.com/project-everest/ci-logs). The CI machine uses GitHub SSH-key authentication to push build logs as the user "dzomo". A dzomo is a hybrid betweek a yak and domestic cattle, and is used to carry workloads for Everest expeditions.
 
 ## Usage
 
