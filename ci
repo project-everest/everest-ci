@@ -402,7 +402,16 @@ docker_from_scratch () {
   docker build --no-cache --rm --tag=projecteverest/everest --build-arg "parallel_opt=$parallel_opt" .docker/everest/ &&
   echo "PIPESTATUS=${PIPESTATUS[@]}" &&
   echo Pushing projecteverest/everest to Docker Hub &&
-  docker push projecteverest/everest &&
+  {
+      # Retrying $retry times
+      retry=5
+      until [ $retry -eq 0 ] || docker push projecteverest/everest
+      do
+	  retry=$(($retry - 1))
+	  echo "Push failed. Number of remaining attempts: $retry"
+      done
+      [ $retry -ne 0 ]
+  } &&
   docker logout
 }
 
