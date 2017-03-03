@@ -399,7 +399,7 @@ docker_from_scratch () {
       exit 1
   fi
   docker login --username="$DOCKER_HUB_USERNAME" --password="$DOCKER_HUB_PASSWORD" &&
-  docker build --no-cache --rm --tag=projecteverest/everest --build-arg "parallel_opt=$parallel_opt" .docker/everest/ &&
+  docker build --pull --no-cache --rm --tag=projecteverest/everest --build-arg "parallel_opt=$parallel_opt" .docker/everest/ &&
   echo "PIPESTATUS=${PIPESTATUS[@]}" &&
   echo Pushing projecteverest/everest to Docker Hub &&
   {
