@@ -42,12 +42,12 @@ if [[ ${0##*/} == $0 ]]; then
 else
   pushd $(dirname $0)
 fi
-old_revision=$(git rev-parse HEAD)
+OLD_REVISION=$(git rev-parse HEAD)
 git fetch
 if ! git merge --ff origin/master; then
   echo "WARNING: script cannot self-update"
 else
-  if [[ $(git rev-parse HEAD) != $old_revision ]]; then
+  if [[ $(git rev-parse HEAD) != $OLD_REVISION ]]; then
     echo "... new version of CI script available, updated"
     popd
     $0 "$@"
@@ -62,15 +62,14 @@ popd
 # The parallel option, either empty (by default), or -j n,
 # as specified on the command line.
 # WARNING: in the latter case, it MUST be interpreted as two words, so
-# NEVER quote it as "$parallel_opt"
-# Use $parallel_opt instead
-unset parallel_opt
+# NEVER quote it as "$PARALLEL_OPT"
+# Use $PARALLEL_OPT instead
+unset PARALLEL_OPT
 
 # Encode < > & and " in the given string
 # The Slack syntax does not require escaping " or \ but JSON does in order to
 # form a valid payload.
-function quote()
-{
+function quote() {
   local msg="$1"
   msg=${msg//&/&amp;}
   msg=${msg//</&lt;}
@@ -84,7 +83,7 @@ function quote()
 # of which should never fail), we try to report any unexpected failure.
 #  $1: channel
 #  $2: message
-post_to_slack () {
+function post_to_slack() {
   curl -X POST --data-urlencode "payload={\"channel\": \"$1\", \
     \"username\": \"dzomo\", \"text\": \"$2\", \
     \"icon_emoji\": \":water_buffalo:\"}" "$SLACK_FSTAR_WEBHOOK"
@@ -108,7 +107,7 @@ fi
 export OCAMLRUNPARAM=b
 export OTHERFLAGS=--trace_error
 
-log_prelude () {
+function log_prelude() {
   # Some basic information
   echo "This is $0 $@"
   echo "Working directory: $(pwd)"
@@ -122,22 +121,22 @@ log_prelude () {
 # $2: job description without space (e.g. everest-interop or fstar)
 # $3: slack channel
 # $4: github org/project
-run_log_commit () {
+function run_log_commit() {
   if [[ $CI_LOGS == "" ]]; then
     echo "Don't know where to checkout the logs"
     echo "Please specify the location via the CI_LOGS environment variable"
     exit 1
   fi
 
-  build_command="$1"
-  stem=$2
-  slack_channel=$3
-  github_project=$4
+  local build_command="$1"
+  local stem=$2
+  local slack_channel=$3
+  local github_project=$4
 
-  slack_commit=$(git rev-parse HEAD | cut -c 1-8)
-  slack_branch=$CI_BRANCH
-  slack_log=$(git log --pretty=format:"%s" -1)
-  slack_author=$(git log --pretty=format:"%cn" -1)
+  local slack_commit=$(git rev-parse HEAD | cut -c 1-8)
+  local slack_branch=$CI_BRANCH
+  local slack_log=$(git log --pretty=format:"%s" -1)
+  local slack_author=$(git log --pretty=format:"%cn" -1)
 
   # Determine where the logs are going
   local unique_id
@@ -147,12 +146,13 @@ run_log_commit () {
   else
     unique_id=$BUILD_BUILDNUMBER
   fi
-  log_all=$stem-$slack_commit-$unique_id.all
-  log_err=$stem-$slack_commit-$unique_id.err
+  local log_all=$stem-$slack_commit-$unique_id.all
+  local log_err=$stem-$slack_commit-$unique_id.err
 
   # The actual CI
   SECONDS=0
 
+  local success
   if ( log_prelude && $build_command ) \
     2> >( \
       while read -r line; do
@@ -194,13 +194,15 @@ run_log_commit () {
   popd
 
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
-    raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
-    slack_time=$(if (( $SECONDS >= 3600 )); then $DATE -d@$SECONDS -u +%Hh%Mm%Ss; else $DATE -d@$SECONDS -u +%Mm%Ss; fi)
-    slack_msg="<$raw_url/$log_err|stderr> <$raw_url/$log_all|stdout+stderr>"
-    slack_name=$(git remote get-url origin)
+    local raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
+    local slack_time=$(if (( $SECONDS >= 3600 )); then $DATE -d@$SECONDS -u +%Hh%Mm%Ss; else $DATE -d@$SECONDS -u +%Mm%Ss; fi)
+    local slack_msg="<$raw_url/$log_err|stderr> <$raw_url/$log_all|stdout+stderr>"
+    local slack_name=$(git remote get-url origin)
     slack_name=${slack_name##*/}
     slack_name=${slack_name%.git}
-    slack_os=$(uname)
+    local slack_os=$(uname)
+    local slack_emoji=""
+    local slack_type=""
 
     if $success; then
       slack_emoji=":white_check_mark:"
@@ -211,7 +213,7 @@ run_log_commit () {
     fi
 
     # The branch *may* be of the form user_foobar
-    maybe_slack_user="${slack_branch%%_*}"
+    local maybe_slack_user="${slack_branch%%_*}"
 
     # Check if the branch has c_ to send to the appropriate channel - otherwise
     # check if the tentative user name is a match using slack-users file
@@ -223,7 +225,7 @@ run_log_commit () {
     fi
 
     # Set up payload. If branch is not c_ or a valid slack name_ then just leave payload as default
-    payload="$slack_emoji \`$build_command\` on <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
+    local payload="$slack_emoji \`$build_command\` on <https://github.com/$github_project/commit/$slack_commit|$slack_commit> ($slack_branch) is a *$slack_type*\n\
       *Project:* $slack_name\n\
       *Message:* $(quote "$slack_log")\n\
       *Author:* $slack_author\n\
@@ -245,7 +247,7 @@ run_log_commit () {
 # merged to $CI_BRANCH in the meanwhile, which would invalidate some hints. So, we
 # reset to origin/$CI_BRANCH, take in our hints, and push. This is short enough that
 # the chances of someone merging in-between fetch and push are low.
-refresh_hints () {
+function refresh_hints() {
   local remote=$1
   local extra="$2"
   local msg="$3"
@@ -273,15 +275,15 @@ refresh_hints () {
   git push $remote $CI_BRANCH
 }
 
-refresh_fstar_hints () {
+function refresh_fstar_hints() {
   refresh_hints "git@github.com:FStarLang/FStar.git" "git ls-files src/ocaml-output/ | xargs git add" "regenerate hints + ocaml snapshot" "."
 }
 
-refresh_mitls_hints () {
+function refresh_mitls_hints() {
   refresh_hints "git@github.com:mitls/mitls-fstar.git" "true" "regenerate hints" "src"
 }
 
-refresh_hacl_hints () {
+function refresh_hacl_hints() {
   local remote="git@github.com:mitls/hacl-star.git"
   local extra="true"
   local msg="regenerate hints"
@@ -314,12 +316,12 @@ refresh_hacl_hints () {
   git push $remote $CI_BRANCH
 }
 
-everest_rebuild () {
+function everest_rebuild() {
   git clean -ffdx
-  ./everest --yes $parallel_opt check reset make
+  ./everest --yes $PARALLEL_OPT check reset make
 }
 
-everest_move () {
+function everest_move() {
   # This function is called from a test... so it needs to fast-fail because "set
   # -e" does not apply within subshells.
 
@@ -327,19 +329,19 @@ everest_move () {
   # do it ourselves
   git clean -ffdx
   # Sanity check that will fail if something is off the rails
-  ./everest --yes $parallel_opt check reset || return 1
+  ./everest --yes $PARALLEL_OPT check reset || return 1
   # Update every project to its know good version and branch, then for each
   # project run git pull
   source hashes.sh
   source repositories.sh
-  fresh=false
-  versions=""
+  local fresh=false
+  local versions=""
   for r in ${!hashes[@]}; do
     cd $r
     git pull
     if [[ $(git rev-parse HEAD) != ${hashes[$r]} ]]; then
       fresh=true
-      url=${repositories[$r]#git@github.com:}
+      local url=${repositories[$r]#git@github.com:}
       url="https://www.github.com/${url%.git}/compare/${hashes[$r]}...$(git rev-parse HEAD)"
       versions="$versions\n    *$r* <$url|moves to $(git rev-parse HEAD | cut -c 1-8)> on branch ${branches[$r]}"
     else
@@ -348,10 +350,11 @@ everest_move () {
     cd ..
   done
   versions="$versions\n"
+  local msg=""
   if ! $fresh; then
     # Bail out early if there's nothing to do
     post_to_slack "#everest-build" ":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
-  elif ! ./everest --yes $parallel_opt make test verify; then
+  elif ! ./everest --yes $PARALLEL_OPT make test verify; then
     # Provide a meaningful summary of what we tried
     msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
     post_to_slack "#everest-build" "$msg"
@@ -362,7 +365,7 @@ everest_move () {
     post_to_slack "#everest-build" "$msg"
     ./everest --yes snapshot
     git commit -am "[CI] automatic upgrade"
-    rev=$(git rev-parse HEAD)
+    local rev=$(git rev-parse HEAD)
     git checkout $CI_BRANCH
     git reset --hard origin/$CI_BRANCH
     if ! git merge --ff $rev; then
@@ -391,7 +394,7 @@ everest_move () {
 # Requires credentials to access the Docker Hub servers:
 # - user name in the DOCKER_HUB_USERNAME environment variable
 # - password in the DOCKER_HUB_PASSWORD environment variable
-docker_from_scratch () {
+function docker_from_scratch() {
   if [ -z ${DOCKER_HUB_USERNAME+x} ] || [ -z ${DOCKER_HUB_PASSWORD+x} ]
   then
       echo Please specify Docker Hub username and password
@@ -399,12 +402,12 @@ docker_from_scratch () {
       exit 1
   fi
   docker login --username="$DOCKER_HUB_USERNAME" --password="$DOCKER_HUB_PASSWORD" &&
-  docker build --pull --no-cache --rm --tag=projecteverest/everest --build-arg "parallel_opt=$parallel_opt" .docker/everest/ &&
+  docker build --pull --no-cache --rm --tag=projecteverest/everest --build-arg "PARALLEL_OPT=$PARALLEL_OPT" .docker/everest/ &&
   echo "PIPESTATUS=${PIPESTATUS[@]}" &&
   echo Pushing projecteverest/everest to Docker Hub &&
   {
       # Retrying $retry times
-      retry=5
+      local retry=5
       until [ $retry -eq 0 ] || docker push projecteverest/everest
       do
 	  retry=$(($retry - 1))
@@ -415,7 +418,7 @@ docker_from_scratch () {
   docker logout
 }
 
-fetch_fstar_for_mitls () {
+function fetch_fstar_for_mitls() {
   # Clone F* from the specified revision, set FSTAR_HOME
   if [ ! -d fstar ]; then
     git clone https://github.com/FStarLang/FStar/ fstar
@@ -424,7 +427,7 @@ fetch_fstar_for_mitls () {
   git fetch origin
   git reset --hard $(cat ../.fstar_version)
   make -C src/ocaml-output clean
-  make -C src/ocaml-output $parallel_opt
+  make -C src/ocaml-output $PARALLEL_OPT
   cd ..
   if command -v cygpath >/dev/null 2>&1; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
@@ -433,15 +436,15 @@ fetch_fstar_for_mitls () {
   fi
 }
 
-mitls_verify () {
-  fetch_fstar_for_mitls && make -C src/tls $parallel_opt all-ver -k
+function mitls_verify() {
+  fetch_fstar_for_mitls && make -C src/tls $PARALLEL_OPT all-ver -k
 }
 
-mitls_verify_and_hints () {
+function mitls_verify_and_hints() {
   mitls_verify && refresh_mitls_hints
 }
 
-hacl_verify () {
+function hacl_verify() {
   if which cygpath 2>&1 >/dev/null; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/dependencies/FStar)
     export KREMLIN_HOME=$(cygpath -m $(pwd)/dependencies/kremlin)
@@ -451,9 +454,9 @@ hacl_verify () {
     export KREMLIN_HOME=$(pwd)/dependencies/kremlin
     export HACL_HOME=$(pwd)
   fi
-  make -C dependencies/FStar/src/ocaml-output $parallel_opt && \
-    make -C dependencies/kremlin $parallel_opt && \
-    make $parallel_opt -C test
+  make -C dependencies/FStar/src/ocaml-output $PARALLEL_OPT && \
+    make -C dependencies/kremlin $PARALLEL_OPT && \
+    make $PARALLEL_OPT -C test
 }
 
 # Parse options. All options should come first, before the operation.
@@ -465,7 +468,7 @@ do
       # The -j option is in two parts: -j n, where n is the parallel factor
       # (max number of parallel jobs)
       shift
-      parallel_opt="-j $1"
+      PARALLEL_OPT="-j $1"
       ;;
     *)
       break
@@ -482,7 +485,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest $parallel_opt -k" "fstar-ci" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src utest $PARALLEL_OPT -k" "fstar-ci" "#fstar-build" "FStarLang/FStar"
     ;;
 
   fstar-nightly)
@@ -492,7 +495,7 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
-    run_log_commit "make -C src ulong $parallel_opt -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src ulong $PARALLEL_OPT -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar"
     refresh_fstar_hints
     ;;
 
@@ -505,7 +508,7 @@ case "$1" in
 
     # First - get fstar built
     make -C src/ocaml-output clean
-    make -C src/ocaml-output $parallel_opt
+    make -C src/ocaml-output $PARALLEL_OPT
 
     # Second - run fstar with the --doc flag
     run_log_commit ".ci/fsdoc.sh" "fstar-docs-nightly" "#fstar-build" "FStarLang/FStar"
@@ -549,7 +552,7 @@ case "$1" in
     run_log_commit "everest_rebuild" "everest-build" "#everest-build" "project-everest/everest"
     # This second command is only run if the first one succeeds (the script
     # aborts otherwise).
-    run_log_commit "./everest --yes $parallel_opt test" "everest-test" "#everest-build" "project-everest/everest"
+    run_log_commit "./everest --yes $PARALLEL_OPT test" "everest-test" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
@@ -593,7 +596,7 @@ case "$1" in
       export KREMLIN_HOME=$(pwd)/kremlin
       export PATH=$(pwd)/kremlin:$PATH
     fi 
-    make -C kremlin $parallel_opt
+    make -C kremlin $PARALLEL_OPT
 
     # Set up build environment
     nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc 
@@ -601,12 +604,12 @@ case "$1" in
     #since each build verifies x86, x64 and ARM, only verify on one build as takes quite a bit longer to verify
     if [[ "$OS" == "Windows_NT" ]]; then
       if [[ "$Platform" == "X64" ]]; then
-        run_log_commit "scons.bat $parallel_opt --NOVERIFY" "vale-build" "#vale-build" "project-everest/vale"
+        run_log_commit "scons.bat $PARALLEL_OPT --NOVERIFY" "vale-build" "#vale-build" "project-everest/vale"
       else
-        run_log_commit "scons.bat $parallel_opt" "vale-build" "#vale-build" "project-everest/vale"
+        run_log_commit "scons.bat $PARALLEL_OPT" "vale-build" "#vale-build" "project-everest/vale"
       fi
     else
-      run_log_commit "scons $parallel_opt --NOVERIFY" "vale-build" "#vale-build" "project-everest/vale"
+      run_log_commit "scons $PARALLEL_OPT --NOVERIFY" "vale-build" "#vale-build" "project-everest/vale"
     fi
     ;;
 
