@@ -254,7 +254,7 @@ function refresh_hints() {
   local hints_dir="$4"
 
   # Add all the hints, even those not under version control
-  find $hints_dir -iname '*.hints' -and -not -path '*/.*' | xargs git add
+  find $hints_dir -iname '*.hints' -and -not -path '*/.*' -and -not -path '*/dependencies/.*' | xargs git add
   $extra
 
   git commit --allow-empty -m "[CI] $msg"
@@ -287,36 +287,7 @@ function refresh_mitls_hints() {
 }
 
 function refresh_hacl_hints() {
-  local remote="git@github.com:mitls/hacl-star.git"
-  local extra="true"
-  local msg="regenerate hints"
-  local hints_dir="."
-
-  # Add all the hints, even those not under version control
-  find $hints_dir -iname '*.hints' -and -not -path '*/.*' -and -not -path '*/dependencies/.*' | xargs git add
-  $extra
-  # Abort early if there's nothing to commit
-  if git diff --exit-code; then
-    echo "Empty git diff -- nothing new to regenerate"
-    return 0
-  fi
-
-  git commit -m "[CI] $3"
-  # Memorize that commit
-  commit=$(git rev-parse HEAD)
-  # Drop any other files that were modified as part of the build (e.g.
-  # parse.fsi)
-  git reset --hard HEAD
-  # Move to whatever is the most recent master (that most likely changed in the
-  # meantime)
-  git fetch
-  git checkout $CI_BRANCH
-  git reset --hard origin/$CI_BRANCH
-  # Silent, always-successful merge
-  export GIT_MERGE_AUTOEDIT=no
-  git merge $commit -Xtheirs
-  # Push.
-  git push $remote $CI_BRANCH
+  refresh_hints "git@github.com:mitls/hacl-star.git" "true" "regenerate hints" "."
 }
 
 function everest_rebuild() {
@@ -461,6 +432,7 @@ function hacl_verify() {
   make -C dependencies/FStar/src/ocaml-output $PARALLEL_OPT && \
     make -C dependencies/kremlin $PARALLEL_OPT && \
     make $PARALLEL_OPT -C test
+  refresh_hacl_hints
 }
 
 # Parse options. All options should come first, before the operation.
