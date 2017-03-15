@@ -254,7 +254,7 @@ function refresh_hints() {
   local hints_dir="$4"
 
   # Add all the hints, even those not under version control
-  find $hints_dir -iname '*.hints' -and -not -path '*/.*' -and -not -path '*/dependencies/.*' | xargs git add
+  find $hints_dir -iname '*.hints' -and -not -path '*/.*' -and -not -path '*/dependencies/*' | xargs git add
   $extra
 
   git commit --allow-empty -m "[CI] $msg"
