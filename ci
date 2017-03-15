@@ -524,7 +524,7 @@ case "$1" in
 
 
   hacl-ci)
-    if [ ! -d "crypto_proofs" ]; then
+    if [ ! -d "secure_api" ]; then
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
@@ -533,7 +533,7 @@ case "$1" in
     ;;
 
   hacl-nightly)
-    if [ ! -d "crypto_proofs" ]; then
+    if [ ! -d "secure_api" ]; then
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
