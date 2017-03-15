@@ -10,6 +10,8 @@ Russinovitch's excellent psexec.
 
 One can skip CI by putting `***NO_CI***` in the commit message.
 
+One can connect to the VSTS web interface via https://msresearch-ext.visualstudio.com/Everest -- if you don't have access, that's an issue, ask us to get access.
+
 ## Build summary:
 -  **Everest-CI-Windows** - Check that the designated revisions of all projects (in hashes.sh) lead to a successful build & run of mitls.exe 
 - **Everest-Nightly Upgrade-Windows** - Check that the latest revisions of all projects lead to a successful build & run of mitls.exe; record it as a new set of revisions 
