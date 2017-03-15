@@ -432,7 +432,10 @@ function hacl_verify() {
   make -C dependencies/FStar/src/ocaml-output $PARALLEL_OPT && \
     make -C dependencies/kremlin $PARALLEL_OPT && \
     make $PARALLEL_OPT -C test
-  refresh_hacl_hints
+}
+
+function hacl_verify_and_hints() {
+  hacl_verify && refresh_hacl_hints
 }
 
 # Parse options. All options should come first, before the operation.
@@ -517,6 +520,15 @@ case "$1" in
     fi
 
     run_log_commit "hacl_verify" "hacl-ci" "#hacl-build" "mitls/hacl-star"
+    ;;
+
+  hacl-nightly)
+    if [ ! -d "crypto_proofs" ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
+
+    run_log_commit "hacl_verify_and_hints" "hacl-ci" "#hacl-build" "mitls/hacl-star"
     ;;
 
   everest-ci)
