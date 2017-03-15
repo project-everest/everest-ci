@@ -364,6 +364,15 @@ function everest_move() {
   fi
 }
 
+# Remove unused images left over after the build
+# TODO: replace with 'docker image prune' once we upgrade to Docker 1.13
+function docker_image_prune () {
+  while docker images --quiet --filter dangling=true | xargs docker rmi
+  do
+    true
+  done
+}
+
 # Build a Docker image where everything will be built and verified,
 # then push it to the Docker Hub as projecteverest/everest
 # Requires credentials to access the Docker Hub servers:
@@ -390,7 +399,8 @@ function docker_from_scratch() {
       done
       [ $retry -ne 0 ]
   } &&
-  docker logout
+  docker logout &&
+  docker_image_prune
 }
 
 function fetch_fstar_for_mitls() {
