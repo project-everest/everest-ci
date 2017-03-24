@@ -432,14 +432,17 @@ function mitls_verify_and_hints() {
 function hacl_verify() {
   if which cygpath 2>&1 >/dev/null; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/dependencies/FStar)
+    export OPENSSL_HOME=$(cygpath -m $FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl)
     export KREMLIN_HOME=$(cygpath -m $(pwd)/dependencies/kremlin)
     export HACL_HOME=$(cygpath -m $(pwd))
   else
     export FSTAR_HOME=$(pwd)/dependencies/FStar
+    export OPENSSL_HOME=$FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl
     export KREMLIN_HOME=$(pwd)/dependencies/kremlin
     export HACL_HOME=$(pwd)
   fi
   make -C dependencies/FStar/src/ocaml-output $PARALLEL_OPT && \
+    make -C dependencies/FStar/ucontrib/CoreCrypto/ml $PARALLEL_OPT && \
     make -C dependencies/kremlin $PARALLEL_OPT && \
     make $PARALLEL_OPT -C test
 }
