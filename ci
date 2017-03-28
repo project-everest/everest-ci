@@ -442,8 +442,8 @@ function hacl_verify() {
     export HACL_HOME=$(pwd)
   fi
   # VSTS doesn't update submodules recursively, so we do this explicitly
-  (cd $FSTAR_HOME && git submodule update --init -f --recursive)
-  make -C dependencies/FStar/src/ocaml-output $PARALLEL_OPT && \
+  git submodule update --init -f --recursive &&
+    make -C dependencies/FStar/src/ocaml-output $PARALLEL_OPT && \
     make -C dependencies/FStar/ucontrib/CoreCrypto/ml $PARALLEL_OPT && \
     make -C dependencies/kremlin $PARALLEL_OPT && \
     make $PARALLEL_OPT -C test
