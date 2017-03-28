@@ -24,9 +24,10 @@ ENV compcertv 3.0.1
 RUN wget -O compcert.tgz http://compcert.inria.fr/release/compcert-${compcertv}.tgz
 RUN tar xf compcert.tgz
 WORKDIR CompCert-${compcertv}
-RUN ./configure x86_64-linux
+RUN ./configure x86_64-linux -prefix ${MYHOME}/compcert
 RUN make -j 8
-ENV PATH ${MYHOME}/CompCert-${compcertv}:$PATH
+RUN make install
+ENV PATH ${MYHOME}/compcert/bin:$PATH
 
 WORKDIR ${MYHOME}
 
