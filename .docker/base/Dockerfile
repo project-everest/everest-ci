@@ -14,6 +14,23 @@ WORKDIR ${MYHOME}
 
 ENV CI_LOGS ${MYHOME}/ci-logs/
 
+# Install Coq
+ENV coqv 8.6
+RUN opam repo add coq-released http://coq.inria.fr/opam/released
+RUN opam install -j 8 coq.${coqv} && opam pin add coq ${coqv}
+
+# Install CompCert
+ENV compcertv 3.0.1
+RUN wget -O compcert.tgz http://compcert.inria.fr/release/compcert-${compcertv}.tgz
+RUN tar xf compcert.tgz
+WORKDIR CompCert-${compcertv}
+RUN ./configure x86_64-linux -prefix ${MYHOME}/compcert
+RUN make -j 8
+RUN make install
+ENV PATH ${MYHOME}/compcert/bin:$PATH
+
+WORKDIR ${MYHOME}
+
 #software-properties-common package is needed for add-apt-repository
 #installing latest version of git and other packages
 RUN sudo apt-get install --yes software-properties-common
