@@ -16,7 +16,7 @@ One can connect to the VSTS web interface via https://msresearch-ext.visualstudi
 -  **Everest-CI-Windows** - Check that the designated revisions of all projects (in hashes.sh) lead to a successful build & run of mitls.exe 
 - **Everest-Nightly Upgrade-Windows** - Check that the latest revisions of all projects lead to a successful build & run of mitls.exe; record it as a new set of revisions 
 - **Everest-Nightly-Windows** - Generate a docker image in which we build, verify and extract all the projects, then upload it to the Docker Hub if successful. 
-- **Hacl*-CI-Windows** – Extract the hacl-star code to C using KreMLin, and check that it compiles and runs; lax-check the hacl-star code against the constant-time restricted integer modules; verify the hacl-star code. 
+- **Hacl\*-CI-Windows** – Extract the hacl-star code to C using KreMLin, and check that it compiles and runs; lax-check the hacl-star code against the constant-time restricted integer modules; verify the hacl-star code. 
 - **FStar-CI-Windows** - Run on every push, doesn't include expensive verification like crypto. Note – this runs on every branch, not just changes to master. 
 - **FStar-Nightly-Linux** - Verify all the things, including crypto and everything in examples/ -- also regenerate the hints, the ocaml snapshot, and push to repo 
 - **FStar-Docs Nightly-Linux** –  Parse the special documentation comments and generate a series of markdown files that document the modules in fstar/ulib; then, translate them to HTML and upload them to fstarlang.github.io 
