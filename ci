@@ -412,7 +412,9 @@ function fetch_fstar_for_mitls() {
   git fetch origin
   git reset --hard $(cat ../.fstar_version)
   make -C src/ocaml-output clean
-  make -C src/ocaml-output $PARALLEL_OPT
+  make -C src/ocaml-output $PARALLEL_OPT || \
+    (sh src/ocaml-output/_build/sanitize.sh && make -C src/ocaml-output $PARALLEL_OPT) || \
+    exit 255
   cd ..
   if command -v cygpath >/dev/null 2>&1; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
@@ -507,7 +509,7 @@ case "$1" in
     # Second - run fstar with the --doc flag
     run_log_commit ".ci/fsdoc.sh" "fstar-docs-nightly" "#fstar-build" "FStarLang/FStar"
     ;;
-    
+
   mitls-ci)
     if [ ! -f miTLS_icla.txt ]; then
       echo "I don't seem to be in the right directory, bailing"
@@ -598,7 +600,7 @@ case "$1" in
     else
       export KREMLIN_HOME=$(pwd)/kremlin
       export PATH=$(pwd)/kremlin:$PATH
-    fi 
+    fi
     make -C kremlin $PARALLEL_OPT
 
     # Set up build environment
