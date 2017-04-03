@@ -489,7 +489,7 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
-    run_log_commit "make -C src ulong $PARALLEL_OPT -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src utest $PARALLEL_OPT -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar"
     refresh_fstar_hints
     ;;
 
