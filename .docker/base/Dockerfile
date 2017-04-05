@@ -39,7 +39,8 @@ RUN sudo apt-get update
 RUN sudo apt-get install --yes \
   git \
   nuget \
-  openssh-client
+  openssh-client \
+  file
 
 #copying the keys, elevating permissions and changing the owner for the keys
 WORKDIR ${MYHOME}
