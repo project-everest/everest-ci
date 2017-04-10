@@ -199,7 +199,7 @@ function run_log_commit() {
     sort | \
     uniq | \
     tr '\r\n' ' ')
-  if [[ $(failed_modules) != "" ]]; then
+  if [[ $failed_modules != "" ]]; then
     failed_modules="      *Verification failed 😡 for: $failed_modules\n"
   fi
 
