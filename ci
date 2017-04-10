@@ -193,6 +193,16 @@ function run_log_commit() {
   git push
   popd
 
+  # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error) something
+  local failed_modules=$(egrep '\.fst.*: ?\(Error\)' $log_all | \
+    sed 's/.*[\\/]\(.*\.fst\).*/\1/' | \
+    sort | \
+    uniq | \
+    tr '\r\n' ' ')
+  if [[ $(failed_modules) != "" ]]; then
+    failed_modules="*Verification failed 😡 for: $failed_modules\n"
+  fi
+
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
     local raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
     local slack_time=$(if (( $SECONDS >= 3600 )); then $DATE -d@$SECONDS -u +%Hh%Mm%Ss; else $DATE -d@$SECONDS -u +%Mm%Ss; fi)
@@ -232,6 +242,7 @@ function run_log_commit() {
       *Duration:* $slack_time\n\
       *OS:* $slack_os\n\
       *Logs:* $slack_msg\n\
+      $failed_modules\
       *VSTS Build definition:* $BUILD_DEFINITIONNAME"
 
     post_to_slack "$slack_channel" "$payload"
