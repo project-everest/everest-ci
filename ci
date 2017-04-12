@@ -435,7 +435,7 @@ function fetch_fstar_for_mitls() {
 }
 
 function mitls_verify() {
-  fetch_fstar_for_mitls && make -C src/tls $PARALLEL_OPT all-ver -k
+  fetch_fstar_for_mitls && make -C src/tls $PARALLEL_OPT all -k
 }
 
 function mitls_verify_and_hints() {
