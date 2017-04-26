@@ -527,7 +527,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "./process_build.sh" "fstar-binarybuild" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "./.scripts/process_build.sh" "fstar-binarybuild" "#fstar-build" "FStarLang/FStar"
     ;;
 
   mitls-ci)
