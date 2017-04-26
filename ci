@@ -521,6 +521,15 @@ case "$1" in
     run_log_commit ".ci/fsdoc.sh" "fstar-docs-nightly" "#fstar-build" "FStarLang/FStar"
     ;;
 
+  fstar-binary-build)
+    # Builds the binaries for fstar project
+    if [ ! -d ulib ]; then
+      echo "I don't seem to be in the right directory, bailing"
+      exit 1
+    fi
+    run_log_commit "./process_build.sh" "fstar-binarybuild" "#fstar-build" "FStarLang/FStar"
+    ;;
+
   mitls-ci)
     if [ ! -f miTLS_icla.txt ]; then
       echo "I don't seem to be in the right directory, bailing"
@@ -640,6 +649,7 @@ ACTIONS:
   fstar-ci
   fstar-nightly
   fstar-docs-nightly
+  fstar-binary-build
   mitls-ci
   everest-ci
   everest-nightly-check
