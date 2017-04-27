@@ -434,8 +434,24 @@ function fetch_fstar_for_mitls() {
   fi
 }
 
+function fetch_kremlin_for_mitls() {
+  # Clone Kremlin master version, set KREMLIN_HOME, TODO: make it so that we can record the kremlin version somehow?
+  if [ ! -d kremlin ]; then
+    git clone https://github.com/FStarLang/kremlin kremlin
+  fi
+  cd kremlin
+  make clean
+  make $PARALLEL_OPT
+  cd ..
+  if command -v cygpath >/dev/null 2>&1; then
+    export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
+  else
+    export KREMLIN_HOME=$(pwd)/kremlin
+  fi
+}
+
 function mitls_verify() {
-  fetch_fstar_for_mitls && make -C src/tls $PARALLEL_OPT all -k
+  fetch_fstar_for_mitls && fetch_kremlin_for_mitls && make -C src/tls $PARALLEL_OPT all -k
 }
 
 function mitls_verify_and_hints() {
