@@ -315,6 +315,8 @@ function everest_move() {
   git clean -ffdx
   # Sanity check that will fail if something is off the rails
   ./everest --yes $PARALLEL_OPT check reset || return 1
+  # Everest may download new things and modify the PATH
+  source ~/.bashrc
   # Update every project to its know good version and branch, then for each
   # project run git pull
   source hashes.sh
