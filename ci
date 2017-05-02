@@ -317,6 +317,7 @@ function everest_move() {
   ./everest --yes $PARALLEL_OPT check reset || return 1
   # Everest may download new things and modify the PATH
   source ~/.bashrc
+  echo Path is now: $PATH
   # Update every project to its know good version and branch, then for each
   # project run git pull
   source hashes.sh
