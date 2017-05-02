@@ -315,9 +315,6 @@ function everest_move() {
   git clean -ffdx
   # Sanity check that will fail if something is off the rails
   ./everest --yes $PARALLEL_OPT check reset || return 1
-  # Everest may download new things and modify the PATH
-  source ~/.bashrc
-  echo Path is now: $PATH
   # Update every project to its know good version and branch, then for each
   # project run git pull
   source hashes.sh
@@ -343,7 +340,7 @@ function everest_move() {
   if ! $fresh; then
     # Bail out early if there's nothing to do
     post_to_slack "#everest-build" ":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
-  elif ! ./everest --yes $PARALLEL_OPT check make test verify; then
+  elif ! ./everest --yes $PARALLEL_OPT make test verify; then
     # Provide a meaningful summary of what we tried
     msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
     post_to_slack "#everest-build" "$msg"
