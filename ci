@@ -503,7 +503,6 @@ done
 # Main commands.
 case "$1" in
   fstar-ci)
-    # Run the test suite minus the long tests (e.g. crypto)
     if [ ! -d ulib ]; then
       echo "I don't seem to be in the right directory, bailing"
       exit 1
@@ -512,7 +511,7 @@ case "$1" in
     ;;
 
   fstar-nightly)
-    # Run the test suite including the long tests and the examples directory
+    # Same as above, except with a different label and hint regeneration.
     if [ ! -d ulib ]; then
       echo "I don't seem to be in the right directory, bailing"
       exit 1
