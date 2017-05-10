@@ -349,16 +349,12 @@ function everest_move() {
     # Life is good, record new revisions and commit.
     msg=":white_check_mark: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version works!\n$versions"
     post_to_slack "#everest-build" "$msg"
-    ./everest --yes snapshot
-    git commit -am "[CI] automatic upgrade"
-    local rev=$(git rev-parse HEAD)
-    git checkout $CI_BRANCH
-    git reset --hard origin/$CI_BRANCH
-    if ! git merge --ff $rev; then
-      echo "Someone else pushed to the everest project in the meanwhile...  aborting."
-      exit 1
-    fi
-    git push git@github.com:project-everest/everest.git $CI_BRANCH
+    git checkout $CI_BRANCH && \
+    git pull && \
+    ./everest --yes snapshot && \
+    git commit -am "[CI] automatic upgrade" && \
+    git push git@github.com:project-everest/everest.git $CI_BRANCH || \
+    post_to_slack "#everest-build" ":no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
 
     cd FStar
     if ! git diff --exit-code; then
