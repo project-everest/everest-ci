@@ -446,8 +446,25 @@ function fetch_kremlin_for_mitls() {
   fi
 }
 
+function fetch_hacl_for_mitls() {
+  # Clone hacl-star master version, set HACL_HOME, TODO: make it so that we can record the hacl-star version somehow?
+  if [ ! -d hacl-star ]; then
+    git clone https://github.com/mitls/hacl-star hacl-star
+  fi
+  cd hacl-star
+  make -C secure_api clean
+  make -C secure_api/LowCProvider $PARALLEL_OPT
+  cd ..
+  if command -v cygpath >/dev/null 2>&1; then
+    export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
+  else
+    export HACL_HOME=$(pwd)/hacl-star
+  fi
+}
+
+
 function mitls_verify() {
-  fetch_fstar_for_mitls && fetch_kremlin_for_mitls && make -C src/tls $PARALLEL_OPT all -k
+  fetch_fstar_for_mitls && fetch_kremlin_for_mitls && fetch_hacl_for_mitls && make -C src/tls $PARALLEL_OPT all -k
 }
 
 function mitls_verify_and_hints() {
