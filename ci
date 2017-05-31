@@ -7,7 +7,12 @@ This is the Everest CI script.
 ... environment: $(uname -a)
 INFO
 
-echo 'export LIBSODIUM_HOME=$(cygpath -m $HOME/libsodium-win64)' >> ~/.bash_profile
+if [[ $LIBSODIUM_HOME == "" ]]; then
+  echo 'export LIBSODIUM_HOME=$(cygpath -m $HOME/libsodium-win64)' >> ~/.bash_profile
+else
+  echo LIBSODIUM_HOME: $LIBSODIUM_HOME
+  ls $LIBSODIUM_HOME
+fi
 
 # Sorry, everyone
 if (( ${BASH_VERSION%%.*} < 4 )); then
