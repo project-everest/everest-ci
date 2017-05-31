@@ -108,7 +108,7 @@ fi
 
 # Some environment variables we want
 export OCAMLRUNPARAM=b
-export OTHERFLAGS=--trace_error
+export OTHERFLAGS="--trace_error --print_z3_statistics"
 
 function log_prelude() {
   # Some basic information
@@ -352,16 +352,12 @@ function everest_move() {
     # Life is good, record new revisions and commit.
     msg=":white_check_mark: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version works!\n$versions"
     post_to_slack "#everest-build" "$msg"
-    ./everest --yes snapshot
-    git commit -am "[CI] automatic upgrade"
-    local rev=$(git rev-parse HEAD)
-    git checkout $CI_BRANCH
-    git reset --hard origin/$CI_BRANCH
-    if ! git merge --ff $rev; then
-      echo "Someone else pushed to the everest project in the meanwhile...  aborting."
-      exit 1
-    fi
-    git push git@github.com:project-everest/everest.git $CI_BRANCH
+    git checkout $CI_BRANCH && \
+    git pull && \
+    ./everest --yes snapshot && \
+    git commit -am "[CI] automatic upgrade" && \
+    git push git@github.com:project-everest/everest.git $CI_BRANCH || \
+    post_to_slack "#everest-build" ":no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
 
     cd FStar
     if ! git diff --exit-code; then
@@ -453,8 +449,25 @@ function fetch_kremlin_for_mitls() {
   fi
 }
 
+function fetch_hacl_for_mitls() {
+  # Clone hacl-star master version, set HACL_HOME, TODO: make it so that we can record the hacl-star version somehow?
+  if [ ! -d hacl-star ]; then
+    git clone https://github.com/mitls/hacl-star hacl-star
+  fi
+  cd hacl-star
+  make -C secure_api clean
+  make -C secure_api/LowCProvider $PARALLEL_OPT
+  cd ..
+  if command -v cygpath >/dev/null 2>&1; then
+    export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
+  else
+    export HACL_HOME=$(pwd)/hacl-star
+  fi
+}
+
+
 function mitls_verify() {
-  fetch_fstar_for_mitls && fetch_kremlin_for_mitls && make -C src/tls $PARALLEL_OPT all -k
+  fetch_fstar_for_mitls && fetch_kremlin_for_mitls && fetch_hacl_for_mitls && make -C src/tls $PARALLEL_OPT all -k
 }
 
 function mitls_verify_and_hints() {
@@ -506,7 +519,6 @@ done
 # Main commands.
 case "$1" in
   fstar-ci)
-    # Run the test suite minus the long tests (e.g. crypto)
     if [ ! -d ulib ]; then
       echo "I don't seem to be in the right directory, bailing"
       exit 1
@@ -515,7 +527,7 @@ case "$1" in
     ;;
 
   fstar-nightly)
-    # Run the test suite including the long tests and the examples directory
+    # Same as above, except with a different label and hint regeneration.
     if [ ! -d ulib ]; then
       echo "I don't seem to be in the right directory, bailing"
       exit 1
