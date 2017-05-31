@@ -5,7 +5,10 @@ This is the Everest CI script.
 ... called as $0
 ... working directory is $(pwd)
 ... environment: $(uname -a)
+... all environment variables:
 INFO
+
+set
 
 # Sorry, everyone
 if (( ${BASH_VERSION%%.*} < 4 )); then
