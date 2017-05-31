@@ -5,10 +5,7 @@ This is the Everest CI script.
 ... called as $0
 ... working directory is $(pwd)
 ... environment: $(uname -a)
-... all environment variables:
 INFO
-
-set
 
 # Sorry, everyone
 if (( ${BASH_VERSION%%.*} < 4 )); then
@@ -117,6 +114,9 @@ function log_prelude() {
   echo "About to run: $build_command"
   echo "BUILD_SOURCEBRANCHNAME: $BUILD_SOURCEBRANCHNAME"
   echo "BUILD_DEFINITIONNAME: $BUILD_DEFINITIONNAME"
+  echo "All environment variables:"
+  set
+  echo "--------------------------------------------------------------------------------"
 }
 
 # Run a given command and commit & push the logs the the CI_LOGS repository.
