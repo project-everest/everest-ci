@@ -447,7 +447,7 @@ function fetch_kremlin_for_mitls() {
 }
 
 function fetch_hacl_for_mitls() {
-  # Clone hacl-star master version, set HACL_HOME, TODO: make it so that we can record the hacl-star version somehow?
+  # Clone hacl-star master version, set HACL_HOME
   if [ ! -d hacl-star ]; then
     git clone https://github.com/mitls/hacl-star hacl-star
   fi
