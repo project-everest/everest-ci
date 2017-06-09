@@ -452,6 +452,8 @@ function fetch_hacl_for_mitls() {
     git clone https://github.com/mitls/hacl-star hacl-star
   fi
   cd hacl-star
+  git fetch origin
+  git reset --hard $(cat ../.hacl_version)
   make -C secure_api clean
   make -C secure_api/LowCProvider $PARALLEL_OPT
   cd ..
