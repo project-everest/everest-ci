@@ -386,6 +386,20 @@ function docker_image_prune () {
 # - user name in the DOCKER_HUB_USERNAME environment variable
 # - password in the DOCKER_HUB_PASSWORD environment variable
 function docker_from_scratch() {
+  # First check if the image really needs to be rebuilt
+  # Use the commit hash as Docker image metadata
+  # and check whether it has changed,
+  # or if DOCKER_FORCE_BUILD is nonempty
+  current_commit_hash=`git rev-parse HEAD`
+  old_commit_hash=`docker inspect --format '{{index .Config.Labels "commit_hash"}}' projecteverest/everest`
+  if
+      [[ -z ${DOCKER_FORCE_BUILD+x} ]] &&
+      [[ "x$current_commit_hash" = "x$old_commit_hash" ]]
+  then
+      echo Docker image does not need to be rebuilt
+      return 0
+  fi
+  # Then, log into the Docker Hub server
   if [ -z ${DOCKER_HUB_USERNAME+x} ] || [ -z ${DOCKER_HUB_PASSWORD+x} ]
   then
       echo Please specify Docker Hub username and password
@@ -393,7 +407,9 @@ function docker_from_scratch() {
       exit 1
   fi
   docker login --username="$DOCKER_HUB_USERNAME" --password="$DOCKER_HUB_PASSWORD" &&
-  docker build --pull --no-cache --rm --tag=projecteverest/everest --build-arg "PARALLEL_OPT=$PARALLEL_OPT" .docker/everest/ &&
+  # Build the Docker image
+  docker build --pull --no-cache --rm --tag=projecteverest/everest --build-arg "PARALLEL_OPT=$PARALLEL_OPT" --label "commit_hash=$current_commit_hash" .docker/everest/ &&
+  # Push the image onto the Docker Hub
   echo "PIPESTATUS=${PIPESTATUS[@]}" &&
   echo Pushing projecteverest/everest to Docker Hub &&
   {
@@ -406,6 +422,7 @@ function docker_from_scratch() {
       done
       [ $retry -ne 0 ]
   } &&
+  # Cleanup: log out from Docker Hub and remove intermediate images
   docker logout &&
   docker_image_prune
 }
