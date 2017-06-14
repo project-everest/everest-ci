@@ -106,6 +106,7 @@ fi
 # Some environment variables we want
 export OCAMLRUNPARAM=b
 export OTHERFLAGS="--trace_error --print_z3_statistics"
+export USE_Z3_NIGHTLY=yes
 
 function log_prelude() {
   # Some basic information
