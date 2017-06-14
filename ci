@@ -470,7 +470,7 @@ function fetch_hacl_for_mitls() {
   fi
   cd hacl-star
   git fetch origin
-  git reset --hard $(cat ../.hacl_version)
+  git reset --hard origin/master
   make -C secure_api clean
   make -C secure_api/LowCProvider $PARALLEL_OPT
   cd ..
