@@ -448,11 +448,13 @@ function fetch_fstar_for_mitls() {
 }
 
 function fetch_kremlin_for_mitls() {
-  # Clone Kremlin master version, set KREMLIN_HOME, TODO: make it so that we can record the kremlin version somehow?
+  # Clone Kremlin master version, set KREMLIN_HOME
   if [ ! -d kremlin ]; then
     git clone https://github.com/FStarLang/kremlin kremlin
   fi
   cd kremlin
+  git fetch origin
+  git reset --hard origin/master
   make clean
   make $PARALLEL_OPT
   cd ..
