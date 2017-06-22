@@ -513,7 +513,13 @@ function hacl_test() {
 }
 
 function hacl_test_and_hints() {
-  hacl_test && refresh_hacl_hints
+  if hacl_test; then
+    refresh_hacl_hints
+  else
+    refresh_hacl_hints
+    echo "HACL build FAILED, refreshing hints nonetheless"
+    return 1
+  fi
 }
 
 # Parse options. All options should come first, before the operation.
