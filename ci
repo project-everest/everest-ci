@@ -614,7 +614,7 @@ case "$1" in
       exit 1
     fi
 
-    export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
+    export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS --z3rlimit_factor 2"
     run_log_commit "hacl_test_and_hints" "hacl-ci" "#hacl-build" "mitls/hacl-star"
     ;;
 
