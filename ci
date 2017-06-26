@@ -531,7 +531,7 @@ do
       # The -j option is in two parts: -j n, where n is the parallel factor
       # (max number of parallel jobs)
       shift
-      PARALLEL_OPT="-j $1"
+      PARALLEL_OPT="-j $1 -Otarget"
       ;;
     *)
       break
