@@ -510,9 +510,11 @@ function hacl_test() {
     make -C dependencies/FStar/src/ocaml-output $PARALLEL_OPT && \
     SYSTEM= BUILD= RELEASE= VERSION= make -C dependencies/FStar/ucontrib/CoreCrypto/ml $PARALLEL_OPT && \
     make -C dependencies/kremlin $PARALLEL_OPT && \
-    Z3=`python $FSTAR_HOME/.scripts/z3_nightly.py get-tested` && \
-    echo Z3 is at $Z3 && \
-    export PATH=`realpath $Z3 | xargs dirname`:$PATH && \
+    if [ -f dependencies/FStar/.scripts/z3_nightly.py ]; then \
+      Z3=`python $FSTAR_HOME/.scripts/z3_nightly.py get-tested` && \
+      echo Z3 is at $Z3 && \
+      export PATH=`realpath $Z3 | xargs dirname`:$PATH; \
+    fi && \
     make $PARALLEL_OPT -C test
 }
 
