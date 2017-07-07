@@ -196,7 +196,7 @@ function run_log_commit() {
   # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error) something
   local failed_modules=$(egrep '\.fst.*: ?\(Error\)' $CI_LOGS/$log_all | \
     grep -v NegativeTests | \
-    sed 's/.*[\\/]\(.*\.fst\).*/\1/' | \
+    sed 's/^[^:]*[\\\/]\([^:]*\.fst\)[^:]*:.*/\1/' |
     sort | \
     uniq | \
     tr '\r\n' ' ')
@@ -386,6 +386,20 @@ function docker_image_prune () {
 # - user name in the DOCKER_HUB_USERNAME environment variable
 # - password in the DOCKER_HUB_PASSWORD environment variable
 function docker_from_scratch() {
+  # First check if the image really needs to be rebuilt
+  # Use the commit hash as Docker image metadata
+  # and check whether it has changed,
+  # or if DOCKER_FORCE_BUILD is nonempty
+  current_commit_hash=`git rev-parse HEAD`
+  old_commit_hash=`docker inspect --format '{{index .Config.Labels "commit_hash"}}' projecteverest/everest`
+  if
+      [[ -z ${DOCKER_FORCE_BUILD+x} ]] &&
+      [[ "x$current_commit_hash" = "x$old_commit_hash" ]]
+  then
+      echo Docker image does not need to be rebuilt
+      return 0
+  fi
+  # Then, log into the Docker Hub server
   if [ -z ${DOCKER_HUB_USERNAME+x} ] || [ -z ${DOCKER_HUB_PASSWORD+x} ]
   then
       echo Please specify Docker Hub username and password
@@ -393,7 +407,9 @@ function docker_from_scratch() {
       exit 1
   fi
   docker login --username="$DOCKER_HUB_USERNAME" --password="$DOCKER_HUB_PASSWORD" &&
-  docker build --pull --no-cache --rm --tag=projecteverest/everest --build-arg "PARALLEL_OPT=$PARALLEL_OPT" .docker/everest/ &&
+  # Build the Docker image
+  docker build --pull --no-cache --rm --tag=projecteverest/everest --build-arg "PARALLEL_OPT=$PARALLEL_OPT" --label "commit_hash=$current_commit_hash" .docker/everest/ &&
+  # Push the image onto the Docker Hub
   echo "PIPESTATUS=${PIPESTATUS[@]}" &&
   echo Pushing projecteverest/everest to Docker Hub &&
   {
@@ -406,6 +422,7 @@ function docker_from_scratch() {
       done
       [ $retry -ne 0 ]
   } &&
+  # Cleanup: log out from Docker Hub and remove intermediate images
   docker logout &&
   docker_image_prune
 }
@@ -431,11 +448,13 @@ function fetch_fstar_for_mitls() {
 }
 
 function fetch_kremlin_for_mitls() {
-  # Clone Kremlin master version, set KREMLIN_HOME, TODO: make it so that we can record the kremlin version somehow?
+  # Clone Kremlin master version, set KREMLIN_HOME
   if [ ! -d kremlin ]; then
     git clone https://github.com/FStarLang/kremlin kremlin
   fi
   cd kremlin
+  git fetch origin
+  git reset --hard origin/master
   make clean
   make $PARALLEL_OPT
   cd ..
@@ -447,11 +466,13 @@ function fetch_kremlin_for_mitls() {
 }
 
 function fetch_hacl_for_mitls() {
-  # Clone hacl-star master version, set HACL_HOME, TODO: make it so that we can record the hacl-star version somehow?
+  # Clone hacl-star master version, set HACL_HOME
   if [ ! -d hacl-star ]; then
     git clone https://github.com/mitls/hacl-star hacl-star
   fi
   cd hacl-star
+  git fetch origin
+  git reset --hard origin/migrating_sts_bis
   make -C secure_api clean
   make -C secure_api/LowCProvider $PARALLEL_OPT
   cd ..
@@ -484,15 +505,27 @@ function hacl_test() {
     export HACL_HOME=$(pwd)
   fi
   # VSTS doesn't update submodules recursively, so we do this explicitly
-  (cd $FSTAR_HOME && git submodule update --init -f) && \
+  (cd $OPENSSL_HOME && git clean -fdx) && \
+    (cd $FSTAR_HOME && git submodule update --init -f) && \
     make -C dependencies/FStar/src/ocaml-output $PARALLEL_OPT && \
     SYSTEM= BUILD= RELEASE= VERSION= make -C dependencies/FStar/ucontrib/CoreCrypto/ml $PARALLEL_OPT && \
     make -C dependencies/kremlin $PARALLEL_OPT && \
+    if [ -f dependencies/FStar/.scripts/z3_nightly.py ]; then \
+      Z3=`python $FSTAR_HOME/.scripts/z3_nightly.py get-tested` && \
+      echo Z3 is at $Z3 && \
+      export PATH=`realpath $Z3 | xargs dirname`:$PATH; \
+    fi && \
     make $PARALLEL_OPT -C test
 }
 
 function hacl_test_and_hints() {
-  hacl_test && refresh_hacl_hints
+  if hacl_test; then
+    refresh_hacl_hints
+  else
+    refresh_hacl_hints
+    echo "HACL build FAILED, refreshing hints nonetheless"
+    return 1
+  fi
 }
 
 # Parse options. All options should come first, before the operation.
@@ -505,6 +538,7 @@ do
       # (max number of parallel jobs)
       shift
       PARALLEL_OPT="-j $1"
+      export MAKEFLAGS="$MAKEFLAGS -Otarget"
       ;;
     *)
       break
@@ -593,6 +627,7 @@ case "$1" in
       exit 1
     fi
 
+    export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS --z3rlimit_factor 2"
     run_log_commit "hacl_test_and_hints" "hacl-ci" "#hacl-build" "mitls/hacl-star"
     ;;
 
