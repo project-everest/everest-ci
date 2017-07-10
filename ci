@@ -508,7 +508,7 @@ function hacl_test() {
   (cd $OPENSSL_HOME && git clean -fdx) && \
     (cd $FSTAR_HOME && git submodule update --init -f) && \
     make -C dependencies/FStar/src/ocaml-output $PARALLEL_OPT && \
-    make -C dependencies/FStar/src/ulib/ml $PARALLEL_OPT && \
+    make -C dependencies/FStar/ulib/ml $PARALLEL_OPT && \
     SYSTEM= BUILD= RELEASE= VERSION= make -C dependencies/FStar/ucontrib/CoreCrypto/ml $PARALLEL_OPT && \
     make -C dependencies/kremlin $PARALLEL_OPT && \
     if [ -f dependencies/FStar/.scripts/z3_nightly.py ]; then \
