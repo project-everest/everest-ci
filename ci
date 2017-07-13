@@ -516,7 +516,7 @@ function hacl_test() {
       echo Z3 is at $Z3 && \
       export PATH=`realpath $Z3 | xargs dirname`:$PATH; \
     fi && \
-    make $PARALLEL_OPT -C test
+    make $PARALLEL_OPT -C test -k
 }
 
 function hacl_test_and_hints() {
