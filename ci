@@ -637,6 +637,8 @@ case "$1" in
     # This second command is only run if the first one succeeds (the script
     # aborts otherwise).
     run_log_commit "./everest --yes $PARALLEL_OPT test" "everest-test" "#everest-build" "project-everest/everest"
+    # If it builds & tests, verify it.
+    run_log_commit "./everest --yes $PARALLEL_OPT verify" "everest-verify" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
