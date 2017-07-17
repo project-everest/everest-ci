@@ -152,6 +152,7 @@ function run_log_commit() {
   local log_err=$stem-$slack_commit-$unique_id.err
   local log_no_replay=$stem-$slack_commit-$unique_id.no-replay
   local log_worst=$stem-$slack_commit-$unique_id.worst
+  local raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
 
   # The actual CI
   SECONDS=0
@@ -222,7 +223,6 @@ function run_log_commit() {
   fi
 
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
-    local raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
     local slack_time=$(if (( $SECONDS >= 3600 )); then $DATE -d@$SECONDS -u +%Hh%Mm%Ss; else $DATE -d@$SECONDS -u +%Mm%Ss; fi)
     local slack_msg="<$raw_url/$log_err|stderr> <$raw_url/$log_all|stdout+stderr>"
     local slack_name=$(git remote get-url origin)
