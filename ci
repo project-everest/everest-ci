@@ -105,7 +105,7 @@ fi
 
 # Some environment variables we want
 export OCAMLRUNPARAM=b
-export OTHERFLAGS="--trace_error --print_z3_statistics"
+export OTHERFLAGS="--trace_error --print_z3_statistics --use_hints --hint_info"
 
 function log_prelude() {
   # Some basic information
@@ -576,7 +576,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
+    export OTHERFLAGS="--record_hints $OTHERFLAGS"
     run_log_commit "make -C src utest $PARALLEL_OPT -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar" "."
     refresh_fstar_hints
     ;;
