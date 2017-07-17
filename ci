@@ -121,6 +121,7 @@ function log_prelude() {
 # $2: job description without space (e.g. everest-interop or fstar)
 # $3: slack channel
 # $4: github org/project
+# $5: this is a build that uses F*, we can generate query stats for its log
 function run_log_commit() {
   if [[ $CI_LOGS == "" ]]; then
     echo "Don't know where to checkout the logs"
@@ -132,6 +133,7 @@ function run_log_commit() {
   local stem=$2
   local slack_channel=$3
   local github_project=$4
+  local fstar_dir=$5
 
   local slack_commit=$(git rev-parse HEAD | cut -c 1-8)
   local slack_branch=$CI_BRANCH
@@ -148,6 +150,8 @@ function run_log_commit() {
   fi
   local log_all=$stem-$slack_commit-$unique_id.all
   local log_err=$stem-$slack_commit-$unique_id.err
+  local log_no_replay=$stem-$slack_commit-$unique_id.no-replay
+  local log_worst=$stem-$slack_commit-$unique_id.worst
 
   # The actual CI
   SECONDS=0
@@ -174,17 +178,30 @@ function run_log_commit() {
     success=false
   fi
 
+  # Generate query-stats if the version of F* is recent enough.
+  local failed_hints
+  local query_stats_min=704c7a0f
+  if [[ $fstar_dir != "" ]] && (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min HEAD); then
+    # List the hints that fail to replay.
+    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
+      -o $CI_LOGS/$log_no_replay -n all --filter=fstar_usedhints=+ \
+      --filter=fstar_tag=-
+    # Count them
+    local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | wc -l)
+    failed_hints = "      *A total of $n_failed_hints hints failed to replay* (<$raw_url/$log_no_replay|not replayable>, <$raw_url/$log_worst|worst offenders>)"
+    # Worst offenders (longest times)
+    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
+      -o $CI_LOGS/$log_worst -c -g -n 10
+  fi
+
   # Commit & push the logs. This does not prevent interleaving from concurrent
   # build jobs.
   pushd $CI_LOGS
   export GIT_MERGE_AUTOEDIT=no
   git pull
-  if [ -f $log_all ]; then
-    git add $log_all
-  fi
-  if [ -f $log_err ]; then
-    git add $log_err
-  fi
+  for f in "$log_all" "$log_err" "$log_no_replay" "$log_worst"; do
+    [[ -f "$f" ]] && git add "$f"
+  done
   if $success; then
     git commit -am "[CI] $stem logs (success)"
   else
@@ -242,7 +259,7 @@ function run_log_commit() {
       *Author:* $slack_author\n\
       *Duration:* $slack_time\n\
       *OS:* $slack_os\n\
-      *Logs:* $slack_msg\n$failed_modules\
+      *Logs:* $slack_msg\n$failed_modules$failed_hints\
       *VSTS Build definition:* $BUILD_DEFINITIONNAME"
 
     post_to_slack "$slack_channel" "$payload"
@@ -550,7 +567,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest $PARALLEL_OPT -k" "fstar-ci" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src utest $PARALLEL_OPT -k" "fstar-ci" "#fstar-build" "FStarLang/FStar" "."
     ;;
 
   fstar-nightly)
@@ -560,7 +577,7 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
-    run_log_commit "make -C src utest $PARALLEL_OPT -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar"
+    run_log_commit "make -C src utest $PARALLEL_OPT -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar" "."
     refresh_fstar_hints
     ;;
 
@@ -594,7 +611,7 @@ case "$1" in
       exit 1
     fi
 
-    run_log_commit "mitls_verify" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    run_log_commit "mitls_verify" "mitls-ci" "#mitls-build" "mitls/mitls-fstar" "./fstar"
     ;;
 
   mitls-nightly)
@@ -604,7 +621,7 @@ case "$1" in
     fi
 
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
-    run_log_commit "mitls_verify_and_hints" "mitls-ci" "#mitls-build" "mitls/mitls-fstar"
+    run_log_commit "mitls_verify_and_hints" "mitls-ci" "#mitls-build" "mitls/mitls-fstar" "./fstar"
     ;;
 
 
@@ -614,7 +631,7 @@ case "$1" in
       exit 1
     fi
 
-    run_log_commit "hacl_test" "hacl-ci" "#hacl-build" "mitls/hacl-star"
+    run_log_commit "hacl_test" "hacl-ci" "#hacl-build" "mitls/hacl-star" "./dependencies/FStar"
     ;;
 
   hacl-nightly)
@@ -624,7 +641,7 @@ case "$1" in
     fi
 
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS --z3rlimit_factor 2"
-    run_log_commit "hacl_test_and_hints" "hacl-ci" "#hacl-build" "mitls/hacl-star"
+    run_log_commit "hacl_test_and_hints" "hacl-ci" "#hacl-build" "mitls/hacl-star" "./dependencies/FStar"
     ;;
 
   everest-ci)
@@ -638,7 +655,7 @@ case "$1" in
     # aborts otherwise).
     run_log_commit "./everest --yes $PARALLEL_OPT test" "everest-test" "#everest-build" "project-everest/everest"
     # If it builds & tests, verify it.
-    run_log_commit "./everest --yes $PARALLEL_OPT verify" "everest-verify" "#everest-build" "project-everest/everest"
+    run_log_commit "./everest --yes $PARALLEL_OPT verify" "everest-verify" "#everest-build" "project-everest/everest" "./FStar"
     ;;
 
   everest-nightly-check)
@@ -657,7 +674,7 @@ case "$1" in
       echo "Not in the right directory"
       exit 1
     fi
-    run_log_commit "everest_move" "everest-upgrade" "#everest-build" "project-everest/everest"
+    run_log_commit "everest_move" "everest-upgrade" "#everest-build" "project-everest/everest" "./FStar"
     ;;
 
   vale-ci)
