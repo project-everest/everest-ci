@@ -5,6 +5,7 @@ This is the Everest CI script.
 ... called as $0
 ... working directory is $(pwd)
 ... environment: $(uname -a)
+... z3: $(which z3)
 INFO
 
 # Sorry, everyone
