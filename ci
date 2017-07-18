@@ -182,7 +182,7 @@ function run_log_commit() {
   # Generate query-stats if the version of F* is recent enough.
   local failed_hints
   local query_stats_min=704c7a0f
-  if [[ $fstar_dir != "" ]] && (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min HEAD); then
+  if false && [[ $fstar_dir != "" ]] && (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min HEAD); then
     # List the hints that fail to replay.
     $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
       -o $CI_LOGS/$log_no_replay -n all --filter=fstar_usedhints=+ \
