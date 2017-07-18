@@ -5,7 +5,6 @@ This is the Everest CI script.
 ... called as $0
 ... working directory is $(pwd)
 ... environment: $(uname -a)
-... z3: $(which z3)
 INFO
 
 # Sorry, everyone
@@ -23,6 +22,8 @@ if [[ -f ~/.bash_profile ]]; then
 fi
 echo "... PATH is $PATH"
 cd "$BUILD_DIR"
+
+echo "... z3: $(which z3)"
 
 # Any error is fatal.
 set -e
