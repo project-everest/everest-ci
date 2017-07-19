@@ -216,7 +216,7 @@ function run_log_commit() {
 
   # We are not logging things anymore... this is a last resort debugging info
   # that should show up via VSTS
-  set +x
+  set -x
 
   # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error)
   # something. Note: grep -v returns 1 if no lines were selected.
@@ -225,7 +225,7 @@ function run_log_commit() {
     sed 's/^[^:]*[\\\/]\([^:]*\.fst\)[^:]*:.*/\1/' |
     sort | \
     uniq | \
-    tr '\r\n' ' ' || echo "")
+    tr '\r\n' ' ')
   if [[ $failed_modules != "" ]]; then
     failed_modules="      *Verification failed 😡 for:* $failed_modules\n"
   fi
@@ -277,7 +277,7 @@ function run_log_commit() {
     exit 255
   fi
 
-  set -x
+  set +x
 }
 
 # Note: this performs an _approximate_ refresh of the hints, in the sense that
