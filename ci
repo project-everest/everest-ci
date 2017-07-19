@@ -270,7 +270,7 @@ function run_log_commit() {
       *Logs:* $slack_msg\n$failed_modules$failed_hints\
       *VSTS Build definition:* $BUILD_DEFINITIONNAME"
 
-    post_to_slack "$slack_channel" "$payload" || echo "Slack notification NOT send"
+    post_to_slack "$slack_channel" "$payload" || echo "Slack notification NOT sent"
   fi
 
   if ! $success; then
