@@ -227,7 +227,7 @@ function run_log_commit() {
     uniq | \
     tr '\r\n' ' ')
   if [[ $failed_modules != "" ]]; then
-    failed_modules="      *Verification failed 😡 for:* $failed_modules\n"
+    failed_modules="      *Verification failed :rage: for:* $failed_modules\n"
   fi
 
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
@@ -242,10 +242,10 @@ function run_log_commit() {
 
     if $success; then
       slack_emoji=":white_check_mark:"
-      slack_type="success 😺"
+      slack_type="success :smile_cat:"
     else
       slack_emoji=":no_entry:"
-      slack_type="failure 😿"
+      slack_type="failure :crying_cat_face:"
     fi
 
     # The branch *may* be of the form user_foobar
@@ -270,7 +270,7 @@ function run_log_commit() {
       *Logs:* $slack_msg\n$failed_modules$failed_hints\
       *VSTS Build definition:* $BUILD_DEFINITIONNAME"
 
-    post_to_slack "$slack_channel" "$payload"
+    post_to_slack "$slack_channel" "$payload" || echo "Slack notification NOT send"
   fi
 
   if ! $success; then
