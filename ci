@@ -218,13 +218,14 @@ function run_log_commit() {
   # that should show up via VSTS
   set +x
 
-  # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error) something
+  # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error)
+  # something. Note: grep -v returns 1 if no lines were selected.
   local failed_modules=$(egrep '\.fst.*: ?\(Error\)' $CI_LOGS/$log_all | \
     grep -v NegativeTests | \
     sed 's/^[^:]*[\\\/]\([^:]*\.fst\)[^:]*:.*/\1/' |
     sort | \
     uniq | \
-    tr '\r\n' ' ')
+    tr '\r\n' ' ' || echo "")
   if [[ $failed_modules != "" ]]; then
     failed_modules="      *Verification failed 😡 for:* $failed_modules\n"
   fi
