@@ -214,6 +214,10 @@ function run_log_commit() {
   git push
   popd
 
+  # We are not logging things anymore... this is a last resort debugging info
+  # that should show up via VSTS
+  set +x
+
   # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error) something
   local failed_modules=$(egrep '\.fst.*: ?\(Error\)' $CI_LOGS/$log_all | \
     grep -v NegativeTests | \
@@ -271,6 +275,8 @@ function run_log_commit() {
   if ! $success; then
     exit 255
   fi
+
+  set -x
 }
 
 # Note: this performs an _approximate_ refresh of the hints, in the sense that
