@@ -153,8 +153,8 @@ function run_log_commit() {
   fi
   local log_all=$stem-$slack_commit-$unique_id.all
   local log_err=$stem-$slack_commit-$unique_id.err
-  local log_no_replay=$stem-$slack_commit-$unique_id.no-replay
-  local log_worst=$stem-$slack_commit-$unique_id.worst
+  local log_no_replay=$stem-$slack_commit-$unique_id.no-replay.html
+  local log_worst=$stem-$slack_commit-$unique_id.worst.html
   local raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
 
   # The actual CI
@@ -184,17 +184,17 @@ function run_log_commit() {
 
   # Generate query-stats if the version of F* is recent enough.
   local failed_hints
-  local query_stats_min=704c7a0f
+  local query_stats_min=f1552cbb
   if [[ $fstar_dir != "" ]] && (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min HEAD); then
     # List the hints that fail to replay.
-    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
+    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
       -o $CI_LOGS/$log_no_replay -n all --filter=fstar_usedhints=+ \
-      --filter=fstar_tag=-
-    # Count them
-    local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | wc -l)
+      --filter=fstar_tag=- -g
+    # Count them (removing a header row and a trailing newline)
+    local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | grep "# failed (with " | cut -d ">" -f 5 | cut -d "<" -f 1)
     failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$raw_url/$log_no_replay|not replayable>, <$raw_url/$log_worst|worst offenders>)\n"
     # Worst offenders (longest times)
-    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
+    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
       -o $CI_LOGS/$log_worst -c -g -n 10
   fi
 
