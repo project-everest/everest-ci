@@ -190,8 +190,8 @@ function run_log_commit() {
     $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
       -o $CI_LOGS/$log_no_replay -n all --filter=fstar_usedhints=+ \
       --filter=fstar_tag=-
-    # Count them
-    local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | wc -l)
+    # Count them (skipping a trailing newline with tail)
+    local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | tail -n +2 | wc -l)
     failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$raw_url/$log_no_replay|not replayable>, <$raw_url/$log_worst|worst offenders>)\n"
     # Worst offenders (longest times)
     $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
