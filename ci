@@ -203,7 +203,7 @@ function run_log_commit() {
   # build jobs.
   pushd $CI_LOGS
   export GIT_MERGE_AUTOEDIT=no
-  git pull
+  git fetch && git reset --hard origin/master
   for f in "$log_all" "$log_err" "$log_no_replay" "$log_worst"; do
     [[ -f "$f" ]] && git add "$f"
   done
