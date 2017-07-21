@@ -156,6 +156,7 @@ function run_log_commit() {
   local log_no_replay=$stem-$slack_commit-$unique_id.no-replay.html
   local log_worst=$stem-$slack_commit-$unique_id.worst.html
   local raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
+  local rawgit_url=https://rawgit.com/project-everest/ci-logs/master
 
   # The actual CI
   SECONDS=0
@@ -192,7 +193,7 @@ function run_log_commit() {
       --filter=fstar_tag=- -g
     # Count them (removing a header row and a trailing newline)
     local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | grep "# failed (with " | cut -d ">" -f 5 | cut -d "<" -f 1)
-    failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$raw_url/$log_no_replay|not replayable>, <$raw_url/$log_worst|worst offenders>)\n"
+    failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$rawgit_url/$log_no_replay|not replayable>, <$rawgit_url/$log_worst|worst offenders>)\n"
     # Worst offenders (longest times)
     $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
       -o $CI_LOGS/$log_worst -c -g -n 10
@@ -202,7 +203,7 @@ function run_log_commit() {
   # build jobs.
   pushd $CI_LOGS
   export GIT_MERGE_AUTOEDIT=no
-  git fetch && git reset --hard origin/master
+  git pull
   for f in "$log_all" "$log_err" "$log_no_replay" "$log_worst"; do
     [[ -f "$f" ]] && git add "$f"
   done
