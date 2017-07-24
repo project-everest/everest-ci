@@ -185,18 +185,31 @@ function run_log_commit() {
 
   # Generate query-stats if the version of F* is recent enough.
   local failed_hints
-  local query_stats_min=f1552cbb
-  if [[ $fstar_dir != "" ]] && (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min HEAD); then
-    # List the hints that fail to replay.
-    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
-      -o $CI_LOGS/$log_no_replay -n all --filter=fstar_usedhints=+ \
-      --filter=fstar_tag=- -g
-    # Get the number of replay failures.
-    local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | grep "# failed (with " | cut -d ">" -f 5 | cut -d "<" -f 1)
-    failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$rawgit_url/$log_no_replay|not replayable>, <$rawgit_url/$log_worst|worst offenders>)\n"
-    # Worst offenders (longest times)
-    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
-      -o $CI_LOGS/$log_worst -c -g -n 10
+  local query_stats_min_html=f1552cbb
+  local quert_stats_min_csv=704c7a0f
+  if [[ $fstar_dir != "" ]]; then
+    if (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min_html HEAD); then
+        # List the hints that fail to replay.
+        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
+          -o $CI_LOGS/$log_no_replay -n all --filter=fstar_usedhints=+ \
+          --filter=fstar_tag=- -g
+        # Get the number of replay failures.
+        local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | grep "# failed (with " | cut -d ">" -f 5 | cut -d "<" -f 1)
+        failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$rawgit_url/$log_no_replay|not replayable>, <$rawgit_url/$log_worst|worst offenders>)\n"
+        # Worst offenders (longest times)
+        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
+                                           -o $CI_LOGS/$log_worst -c -g -n 10
+    elif (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min_csv HEAD); then
+        # List the hints that fail to replay.
+        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
+          -o $CI_LOGS/$log_no_replay -n all --filter=fstar_usedhints=+ \
+          --filter=fstar_tag=-
+        local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | head -n -1 | tail -n +2 | wc -l)
+        failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$raw_url/$log_no_replay|not replayable>, <$raw_url/$log_worst|worst offenders>)\n"
+        # Worst offenders (longest times)
+        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
+                                           -o $CI_LOGS/$log_worst -c -g -n 10
+    fi
   fi
 
   # Commit & push the logs. This does not prevent interleaving from concurrent
