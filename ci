@@ -243,7 +243,7 @@ function run_log_commit() {
     uniq | \
     tr '\r\n' ' ')
   if [[ $failed_modules != "" ]]; then
-    failed_modules="      *Verification failed :rage: for:* $failed_modules\n"
+    failed_modules="      *Verification failed :rage: for:* $(quote failed_modules)\n"
   fi
 
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
