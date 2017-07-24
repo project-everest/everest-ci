@@ -153,8 +153,8 @@ function run_log_commit() {
   fi
   local log_all=$stem-$slack_commit-$unique_id.all
   local log_err=$stem-$slack_commit-$unique_id.err
-  local log_no_replay=$stem-$slack_commit-$unique_id.no-replay.html
-  local log_worst=$stem-$slack_commit-$unique_id.worst.html
+  local log_no_replay=$stem-$slack_commit-$unique_id.no-replay
+  local log_worst=$stem-$slack_commit-$unique_id.worst
   local raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
   local rawgit_url=https://rawgit.com/project-everest/ci-logs/master
 
@@ -189,6 +189,8 @@ function run_log_commit() {
   local query_stats_min_csv=704c7a0f
   if [[ $fstar_dir != "" ]]; then
     if (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min_html HEAD); then
+        log_no_replay=$log_no_replay.html
+        log_worst=$log_worst.html
         # List the hints that fail to replay.
         $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
           -o $CI_LOGS/$log_no_replay -n all --filter=fstar_usedhints=+ \
