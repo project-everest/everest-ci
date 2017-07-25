@@ -193,8 +193,8 @@ function run_log_commit() {
         log_worst=$log_worst.html
         # List the hints that fail to replay.
         $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
-          -o $CI_LOGS/$log_no_replay -n all --filter=fstar_usedhints=+ \
-          --filter=fstar_tag=- -g
+          -o $CI_LOGS/$log_no_replay -n all '--filter=fstar_usedhints=+' \
+          '--filter=fstar_tag=-' -g
         # Get the number of replay failures.
         local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | grep "# failed (with " | cut -d ">" -f 5 | cut -d "<" -f 1)
         failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$rawgit_url/$log_no_replay|not replayable>, <$rawgit_url/$log_worst|worst offenders>)\n"
@@ -204,8 +204,8 @@ function run_log_commit() {
     elif (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min_csv HEAD); then
         # List the hints that fail to replay.
         $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
-          -o $CI_LOGS/$log_no_replay -n all --filter=fstar_usedhints=+ \
-          --filter=fstar_tag=-
+          -o $CI_LOGS/$log_no_replay -n all '--filter=fstar_usedhints=+' \
+          '--filter=fstar_tag=-'
         local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | head -n -1 | tail -n +2 | wc -l)
         failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$raw_url/$log_no_replay|not replayable>, <$raw_url/$log_worst|worst offenders>)\n"
         # Worst offenders (longest times)
