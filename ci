@@ -586,6 +586,14 @@ do
   shift
 done
 
+run_fstar () {
+  local target=$1
+  if [ -x configure ]; then
+    eval $(./configure)
+  fi
+  make -C src $target $PARALLEL_OPT -k
+}
+
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -593,7 +601,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest $PARALLEL_OPT -k" "fstar-ci" "#fstar-build" "FStarLang/FStar" "."
+    run_log_commit "run_fstar utest" "fstar-ci" "#fstar-build" "FStarLang/FStar" "."
     ;;
 
   fstar-nightly)
@@ -603,7 +611,7 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints $OTHERFLAGS"
-    run_log_commit "make -C src ulong $PARALLEL_OPT -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar" "."
+    run_log_commit "run_fstar ulong" "fstar-nightly" "#fstar-build" "FStarLang/FStar" "."
     refresh_fstar_hints
     ;;
 
