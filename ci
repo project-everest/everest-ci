@@ -470,7 +470,7 @@ function docker_from_scratch() {
   docker_image_prune
 }
 
-function fetch_fstar_for_mitls() {
+function fetch_fstar_version() {
   # Clone F* from the specified revision, set FSTAR_HOME
   if [ ! -d fstar ]; then
     git clone https://github.com/FStarLang/FStar/ fstar
@@ -490,7 +490,7 @@ function fetch_fstar_for_mitls() {
   fi
 }
 
-function fetch_kremlin_for_mitls() {
+function fetch_kremlin_master() {
   # Clone Kremlin master version, set KREMLIN_HOME
   if [ ! -d kremlin ]; then
     git clone https://github.com/FStarLang/kremlin kremlin
@@ -528,7 +528,7 @@ function fetch_hacl_for_mitls() {
 
 
 function mitls_verify() {
-  fetch_fstar_for_mitls && fetch_kremlin_for_mitls && fetch_hacl_for_mitls && make -C src/tls $PARALLEL_OPT all -k
+  fetch_fstar_version && fetch_kremlin_master && fetch_hacl_for_mitls && make -C src/tls $PARALLEL_OPT all -k
 }
 
 function mitls_verify_and_hints() {
@@ -718,22 +718,13 @@ case "$1" in
       exit 1
     fi
 
-    # Use known good build of Kremlin (instead of checked in binary)
-    rm hashes.sh || true
-    wget https://raw.githubusercontent.com/project-everest/everest/master/hashes.sh
-    source hashes.sh
-    if ! [ -d kremlin ]; then
-      git clone https://github.com/FStarLang/kremlin
+    # Get KreMLin
+    fetch_kremlin_master
+
+    # Build F* if needed
+    if [ -d .fstar_version ]; then
+      fetch_fstar_version
     fi
-    (cd kremlin && git fetch && git reset --hard ${hashes[kremlin]})
-    if which cygpath 2>&1 >/dev/null; then
-      export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
-      export PATH=$(cygpath -m $(pwd))/kremlin:$PATH
-    else
-      export KREMLIN_HOME=$(pwd)/kremlin
-      export PATH=$(pwd)/kremlin:$PATH
-    fi
-    make -C kremlin $PARALLEL_OPT
 
     # Set up build environment
     nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc
