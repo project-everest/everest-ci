@@ -107,7 +107,7 @@ fi
 
 # Some environment variables we want
 export OCAMLRUNPARAM=b
-export OTHERFLAGS="--trace_error --print_z3_statistics --use_hints --hint_info"
+export OTHERFLAGS="--print_z3_statistics --use_hints --hint_info"
 
 function log_prelude() {
   # Some basic information
