@@ -554,7 +554,7 @@ function hacl_test() {
     make -C dependencies/FStar/ulib/ml $PARALLEL_OPT && \
     SYSTEM= BUILD= RELEASE= VERSION= make -C dependencies/FStar/ucontrib/CoreCrypto/ml $PARALLEL_OPT && \
     make -C dependencies/kremlin $PARALLEL_OPT && \
-    make $PARALLEL_OPT -C test -k
+    make $PARALLEL_OPT -C ci -k
 }
 
 function hacl_test_and_hints() {
