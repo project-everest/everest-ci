@@ -492,6 +492,10 @@ function fetch_fstar_version() {
 
 function fetch_kremlin_stable() {
   # Clone Kremlin stable version, set KREMLIN_HOME
+  if [[ $KREMLIN_HOME != "" ]]; then
+    echo "KREMLIN_HOME already exported... probably an Everest build job"
+    return
+  fi
   if [ ! -d kremlin ]; then
     git clone https://github.com/FStarLang/kremlin kremlin
   fi
