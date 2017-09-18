@@ -183,6 +183,10 @@ function run_log_commit() {
     success=false
   fi
 
+  # We are not logging things anymore... this is a last resort debugging info
+  # that should show up via VSTS
+  set -x
+
   # Generate query-stats if the version of F* is recent enough.
   local failed_hints
   local query_stats_min_html=f1552cbb
@@ -229,10 +233,6 @@ function run_log_commit() {
   fi
   git push
   popd
-
-  # We are not logging things anymore... this is a last resort debugging info
-  # that should show up via VSTS
-  set -x
 
   # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error)
   # something. Note: grep -v returns 1 if no lines were selected.
