@@ -107,7 +107,7 @@ fi
 
 # Some environment variables we want
 export OCAMLRUNPARAM=b
-export OTHERFLAGS="--trace_error --print_z3_statistics --use_hints --hint_info"
+export OTHERFLAGS="--print_z3_statistics --use_hints --hint_info"
 
 function log_prelude() {
   # Some basic information
@@ -153,9 +153,10 @@ function run_log_commit() {
   fi
   local log_all=$stem-$slack_commit-$unique_id.all
   local log_err=$stem-$slack_commit-$unique_id.err
-  local log_no_replay=$stem-$slack_commit-$unique_id.no-replay.html
-  local log_worst=$stem-$slack_commit-$unique_id.worst.html
+  local log_no_replay=$stem-$slack_commit-$unique_id.no-replay
+  local log_worst=$stem-$slack_commit-$unique_id.worst
   local raw_url=https://raw.githubusercontent.com/project-everest/ci-logs/master
+  local rawgit_url=https://rawgit.com/project-everest/ci-logs/master
 
   # The actual CI
   SECONDS=0
@@ -182,27 +183,46 @@ function run_log_commit() {
     success=false
   fi
 
+  # We are not logging things anymore... this is a last resort debugging info
+  # that should show up via VSTS
+  set -x
+
   # Generate query-stats if the version of F* is recent enough.
   local failed_hints
-  local query_stats_min=f1552cbb
-  if [[ $fstar_dir != "" ]] && (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min HEAD); then
-    # List the hints that fail to replay.
-    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
-      -o $CI_LOGS/$log_no_replay -n all --filter=fstar_usedhints=+ \
-      --filter=fstar_tag=- -g
-    # Count them (removing a header row and a trailing newline)
-    local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | grep "# failed (with " | cut -d ">" -f 5 | cut -d "<" -f 1)
-    failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$raw_url/$log_no_replay|not replayable>, <$raw_url/$log_worst|worst offenders>)\n"
-    # Worst offenders (longest times)
-    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
-      -o $CI_LOGS/$log_worst -c -g -n 10
+  local query_stats_min_html=f1552cbb
+  local query_stats_min_csv=704c7a0f
+  if [[ $fstar_dir != "" ]]; then
+    if (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min_html HEAD); then
+        log_no_replay=$log_no_replay.html
+        log_worst=$log_worst.html
+        # List the hints that fail to replay.
+        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
+          -o $CI_LOGS/$log_no_replay -n all '--filter=fstar_usedhints=+' \
+          '--filter=fstar_tag=-' -g
+        # Get the number of replay failures.
+        local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | grep "# failed (with " | cut -d ">" -f 5 | cut -d "<" -f 1)
+        failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$rawgit_url/$log_no_replay|not replayable>, <$rawgit_url/$log_worst|worst offenders>)\n"
+        # Worst offenders (longest times)
+        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
+                                           -o $CI_LOGS/$log_worst -c -g -n 10
+    elif (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min_csv HEAD); then
+        # List the hints that fail to replay.
+        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
+          -o $CI_LOGS/$log_no_replay -n all '--filter=fstar_usedhints=+' \
+          '--filter=fstar_tag=-'
+        local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | head -n -1 | tail -n +2 | wc -l)
+        failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$raw_url/$log_no_replay|not replayable>, <$raw_url/$log_worst|worst offenders>)\n"
+        # Worst offenders (longest times)
+        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
+                                           -o $CI_LOGS/$log_worst -c -g -n 10
+    fi
   fi
 
   # Commit & push the logs. This does not prevent interleaving from concurrent
   # build jobs.
   pushd $CI_LOGS
   export GIT_MERGE_AUTOEDIT=no
-  git pull
+  git fetch && git reset --hard origin/master
   for f in "$log_all" "$log_err" "$log_no_replay" "$log_worst"; do
     [[ -f "$f" ]] && git add "$f"
   done
@@ -214,20 +234,16 @@ function run_log_commit() {
   git push
   popd
 
-  # We are not logging things anymore... this is a last resort debugging info
-  # that should show up via VSTS
-  set -x
-
   # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error)
   # something. Note: grep -v returns 1 if no lines were selected.
-  local failed_modules=$(egrep '\.fst.*: ?\(Error\)' $CI_LOGS/$log_all | \
+  local failed_modules=$(egrep '\.fst.*: ?\(Error\)' $CI_LOGS/$log_err | \
     grep -v NegativeTests | \
-    sed 's/^[^:]*[\\\/]\([^:]*\.fst\)[^:]*:.*/\1/' |
+    sed 's/^\(C:\)\?[^:]*[\\\/]\([^:]*\.fst\)[^:]*:.*/\2/' |
     sort | \
     uniq | \
     tr '\r\n' ' ')
   if [[ $failed_modules != "" ]]; then
-    failed_modules="      *Verification failed :rage: for:* $failed_modules\n"
+    failed_modules="      *Verification failed :rage: for:* "$(quote "$failed_modules")"\n"
   fi
 
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
@@ -473,7 +489,7 @@ function docker_from_scratch() {
   docker_image_prune
 }
 
-function fetch_fstar_for_mitls() {
+function fetch_fstar_version() {
   # Clone F* from the specified revision, set FSTAR_HOME
   if [ ! -d fstar ]; then
     git clone https://github.com/FStarLang/FStar/ fstar
@@ -493,14 +509,14 @@ function fetch_fstar_for_mitls() {
   fi
 }
 
-function fetch_kremlin_for_mitls() {
-  # Clone Kremlin master version, set KREMLIN_HOME
+function fetch_kremlin_stable() {
+  # Clone Kremlin stable version, set KREMLIN_HOME
   if [ ! -d kremlin ]; then
     git clone https://github.com/FStarLang/kremlin kremlin
   fi
   cd kremlin
   git fetch origin
-  git reset --hard origin/master
+  git reset --hard origin/stable
   make clean
   make $PARALLEL_OPT
   cd ..
@@ -518,7 +534,7 @@ function fetch_hacl_for_mitls() {
   fi
   cd hacl-star
   git fetch origin
-  git reset --hard origin/migrating_sts_bis
+  git reset --hard origin/master
   make -C secure_api clean
   make -C secure_api/LowCProvider $PARALLEL_OPT
   cd ..
@@ -531,7 +547,7 @@ function fetch_hacl_for_mitls() {
 
 
 function mitls_verify() {
-  fetch_fstar_for_mitls && fetch_kremlin_for_mitls && fetch_hacl_for_mitls && make -C src/tls $PARALLEL_OPT all -k
+  fetch_fstar_version && fetch_kremlin_stable && fetch_hacl_for_mitls && make -C src/tls $PARALLEL_OPT all -k
 }
 
 function mitls_verify_and_hints() {
@@ -557,7 +573,7 @@ function hacl_test() {
     make -C dependencies/FStar/ulib/ml $PARALLEL_OPT && \
     SYSTEM= BUILD= RELEASE= VERSION= make -C dependencies/FStar/ucontrib/CoreCrypto/ml $PARALLEL_OPT && \
     make -C dependencies/kremlin $PARALLEL_OPT && \
-    make $PARALLEL_OPT -C test -k
+    make $PARALLEL_OPT ci -k
 }
 
 function hacl_test_and_hints() {
@@ -589,6 +605,14 @@ do
   shift
 done
 
+run_fstar () {
+  local target=$1
+  if [ -x configure ]; then
+    eval $(./configure)
+  fi
+  make -C src $target $PARALLEL_OPT -k
+}
+
 # Main commands.
 case "$1" in
   fstar-ci)
@@ -596,7 +620,8 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    run_log_commit "make -C src utest $PARALLEL_OPT -k" "fstar-ci" "#fstar-build" "FStarLang/FStar" "."
+    fetch_kremlin_stable
+    run_log_commit "run_fstar utest" "fstar-ci" "#fstar-build" "FStarLang/FStar" "."
     ;;
 
   fstar-nightly)
@@ -606,7 +631,8 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints $OTHERFLAGS"
-    run_log_commit "make -C src utest $PARALLEL_OPT -k" "fstar-nightly" "#fstar-build" "FStarLang/FStar" "."
+    fetch_kremlin_stable
+    run_log_commit "run_fstar ulong" "fstar-nightly" "#fstar-build" "FStarLang/FStar" "."
     refresh_fstar_hints
     ;;
 
@@ -713,22 +739,12 @@ case "$1" in
       exit 1
     fi
 
-    # Use known good build of Kremlin (instead of checked in binary)
-    rm hashes.sh || true
-    wget https://raw.githubusercontent.com/project-everest/everest/master/hashes.sh
-    source hashes.sh
-    if ! [ -d kremlin ]; then
-      git clone https://github.com/FStarLang/kremlin
+    fetch_kremlin_stable
+
+    # Build F* if needed
+    if [ -d .fstar_version ]; then
+      fetch_fstar_version
     fi
-    (cd kremlin && git fetch && git reset --hard ${hashes[kremlin]})
-    if which cygpath 2>&1 >/dev/null; then
-      export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
-      export PATH=$(cygpath -m $(pwd))/kremlin:$PATH
-    else
-      export KREMLIN_HOME=$(pwd)/kremlin
-      export PATH=$(pwd)/kremlin:$PATH
-    fi
-    make -C kremlin $PARALLEL_OPT
 
     # Set up build environment
     nuget restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc
