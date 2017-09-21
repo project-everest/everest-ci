@@ -497,7 +497,8 @@ function fetch_kremlin_stable() {
   fi
   cd kremlin
   git fetch origin
-  git reset --hard origin/stable
+  local ref=$( if [ -f kremlin_ref ]; then cat kremlin_ref; else echo origin/stable; fi )
+  git reset --hard $ref
   make clean
   make $PARALLEL_OPT
   cd ..
