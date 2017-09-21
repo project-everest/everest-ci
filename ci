@@ -497,7 +497,7 @@ function fetch_kremlin_stable() {
   fi
   cd kremlin
   git fetch origin
-  local ref=$( if [ -f ../kremlin_ref ]; then cat ../kremlin_ref; else echo origin/stable; fi )
+  local ref=$( if [ -f ../kremlin_ref ]; then cat ../kremlin_ref | tr -d '\r\n'; else echo origin/stable; fi )
   echo Switching to KreMLin $ref
   git reset --hard $ref
   make clean
