@@ -482,6 +482,7 @@ function fetch_fstar_version() {
   make -C src/ocaml-output $PARALLEL_OPT || \
     (sh src/ocaml-output/_build/sanitize.sh && make -C src/ocaml-output $PARALLEL_OPT) || \
     exit 255
+  make -C ulib/ml
   cd ..
   if command -v cygpath >/dev/null 2>&1; then
     export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
