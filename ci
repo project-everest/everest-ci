@@ -400,7 +400,7 @@ function everest_move() {
     post_to_slack "#everest-build" ":no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
 
     cd FStar
-    if ! git diff --exit-code; then
+    if false && ! git diff --exit-code; then
       echo "New assemblies from Vale, committing"
       git commit -am "[CI] New assemblies coming from Vale"
       local commit=$(git rev-parse HEAD)
@@ -582,13 +582,7 @@ function hacl_test() {
 }
 
 function hacl_test_and_hints() {
-  if hacl_test; then
-    refresh_hacl_hints
-  else
-    refresh_hacl_hints
-    echo "HACL build FAILED, refreshing hints nonetheless"
-    return 1
-  fi
+  hacl_test && refresh_hacl_hints
 }
 
 # Parse options. All options should come first, before the operation.
