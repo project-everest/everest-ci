@@ -119,6 +119,10 @@ function log_prelude() {
   echo "Z3 is $(which z3)"
 }
 
+# Global variable; if non-empty, build is orange and the message is displayed
+# along with the notification
+ORANGE=""
+
 # Run a given command and commit & push the logs the the CI_LOGS repository.
 # $1: the command to run
 # $2: job description without space (e.g. everest-interop or fstar)
@@ -192,30 +196,18 @@ function run_log_commit() {
   local query_stats_min_html=f1552cbb
   local query_stats_min_csv=704c7a0f
   if [[ $fstar_dir != "" ]]; then
-    if (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min_html HEAD); then
-        log_no_replay=$log_no_replay.html
-        log_worst=$log_worst.html
-        # List the hints that fail to replay.
-        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
-          -o $CI_LOGS/$log_no_replay -n all '--filter=fstar_usedhints=+' \
-          '--filter=fstar_tag=-' -g
-        # Get the number of replay failures.
-        local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | grep "# failed (with " | cut -d ">" -f 5 | cut -d "<" -f 1)
-        failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$rawgit_url/$log_no_replay|not replayable>, <$rawgit_url/$log_worst|worst offenders>)\n"
-        # Worst offenders (longest times)
-        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
-                                           -o $CI_LOGS/$log_worst -c -g -n 10
-    elif (cd $fstar_dir && git merge-base --is-ancestor $query_stats_min_csv HEAD); then
-        # List the hints that fail to replay.
-        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
-          -o $CI_LOGS/$log_no_replay -n all '--filter=fstar_usedhints=+' \
-          '--filter=fstar_tag=-'
-        local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | head -n -1 | tail -n +2 | wc -l)
-        failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$raw_url/$log_no_replay|not replayable>, <$raw_url/$log_worst|worst offenders>)\n"
-        # Worst offenders (longest times)
-        $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all \
-                                           -o $CI_LOGS/$log_worst -c -g -n 10
-    fi
+    log_no_replay=$log_no_replay.html
+    log_worst=$log_worst.html
+    # List the hints that fail to replay.
+    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
+      -o $CI_LOGS/$log_no_replay -n all '--filter=fstar_usedhints=+' \
+      '--filter=fstar_tag=-' -g
+    # Get the number of replay failures.
+    local n_failed_hints=$(cat $CI_LOGS/$log_no_replay | grep "# failed (with " | cut -d ">" -f 5 | cut -d "<" -f 1)
+    failed_hints="      *A total of $n_failed_hints hints failed to replay* (<$rawgit_url/$log_no_replay|not replayable>, <$rawgit_url/$log_worst|worst offenders>)\n"
+    # Worst offenders (longest times)
+    $fstar_dir/.scripts/query-stats.py -f $CI_LOGS/$log_all -F html \
+                                       -o $CI_LOGS/$log_worst -c -g -n 10
   fi
 
   # Commit & push the logs. This does not prevent interleaving from concurrent
@@ -255,10 +247,18 @@ function run_log_commit() {
     local slack_os=$(uname)
     local slack_emoji=""
     local slack_type=""
+    local slack_orange=""
 
-    if $success; then
+    if [[ $ORANGE != "" ]]; then
+      slack_orange="*Breakage:* $ORANGE\n"
+    fi
+
+    if $success && [[ $ORANGE == "" ]]; then
       slack_emoji=":white_check_mark:"
       slack_type="success :smile_cat:"
+    elif $success; then
+      slack_emoji=":fire:"
+      slack_type="success with breakage :scream_cat:"
     else
       slack_emoji=":no_entry:"
       slack_type="failure :crying_cat_face:"
@@ -283,7 +283,7 @@ function run_log_commit() {
       *Author:* $slack_author\n\
       *Duration:* $slack_time\n\
       *OS:* $slack_os\n\
-      *Logs:* $slack_msg\n$failed_modules$failed_hints\
+      *Logs:* $slack_msg\n$failed_modules$failed_hints$slack_orange\
       *VSTS Build definition:* $BUILD_DEFINITIONNAME"
 
     post_to_slack "$slack_channel" "$payload" || echo "Slack notification NOT sent"
@@ -402,7 +402,7 @@ function everest_move() {
     # Import Vale assemblies into F*
     cd FStar
     # Ignore other changes (e.g. submodules)
-    if ! git diff --exit-code examples/low-level/spartan_aes ; then
+    if false && ! git diff --exit-code examples/low-level/spartan_aes ; then
       echo "New assemblies from Vale, committing"
       git add -u examples/low-level/spartan_aes
       git commit -m "[CI] New assemblies coming from Vale"
@@ -489,65 +489,90 @@ function docker_from_scratch() {
   docker_image_prune
 }
 
-function fetch_fstar_version() {
-  # Clone F* from the specified revision, set FSTAR_HOME
+function export_home() {
+  if command -v cygpath >/dev/null 2>&1; then
+    export $1_HOME=$(cygpath -m "$2")
+  else
+    export $1_HOME="$2"
+  fi
+}
+
+# Since many projects may depend on F*, we provide a function to just clone F*
+# (by default, the stable branch), unless otherwise specified via the
+# .fstar_version file.
+function fetch_fstar() {
   if [ ! -d fstar ]; then
     git clone https://github.com/FStarLang/FStar/ fstar
   fi
   cd fstar
   git fetch origin
-  git reset --hard $(cat ../.fstar_version)
-  make -C src/ocaml-output clean
-  make -C src/ocaml-output $PARALLEL_OPT || \
-    (sh src/ocaml-output/_build/sanitize.sh && make -C src/ocaml-output $PARALLEL_OPT) || \
-    exit 255
+  local ref=$( if [ -f ../fstar_version ]; then cat ../fstar_version | tr -d '\r\n'; else echo origin/stable; fi )
+  echo Switching to F* $ref
+  git reset --hard $ref
   cd ..
-  if command -v cygpath >/dev/null 2>&1; then
-    export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
-  else
-    export FSTAR_HOME=$(pwd)/fstar
-  fi
+  export_home FSTAR "$(pwd)/fstar"
 }
 
-function fetch_kremlin_stable() {
-  # Clone Kremlin stable version, set KREMLIN_HOME
+function fetch_and_make_fstar() {
+  fetch_fstar
+  make -C fstar/src/ocaml-output $PARALLEL_OPT || \
+    (sh src/ocaml-output/_build/sanitize.sh && make -C src/ocaml-output $PARALLEL_OPT) || \
+    exit 255
+  make -C fstar/ulib/ml
+}
+
+# By default, kremlin master works against F* stable. Can also be overridden.
+function fetch_kremlin() {
   if [ ! -d kremlin ]; then
     git clone https://github.com/FStarLang/kremlin kremlin
   fi
   cd kremlin
   git fetch origin
-  git reset --hard origin/stable
-  make clean
-  make $PARALLEL_OPT
+  local ref=$( if [ -f ../kremlin_version ]; then cat ../kremlin_version | tr -d '\r\n'; else echo origin/master; fi )
+  echo Switching to KreMLin $ref
+  git reset --hard $ref
   cd ..
-  if command -v cygpath >/dev/null 2>&1; then
-    export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
-  else
-    export KREMLIN_HOME=$(pwd)/kremlin
-  fi
+  export_home KREMLIN "$(pwd)/kremlin"
 }
 
-function fetch_hacl_for_mitls() {
-  # Clone hacl-star master version, set HACL_HOME
+function fetch_and_make_kremlin() {
+  fetch_kremlin
+  make -C kremlin $PARALLEL_OPT
+}
+
+# By default, HACL* master works against F* stable. Can also be overridden.
+function fetch_hacl() {
   if [ ! -d hacl-star ]; then
     git clone https://github.com/mitls/hacl-star hacl-star
   fi
   cd hacl-star
   git fetch origin
-  git reset --hard origin/master
-  make -C secure_api clean
-  make -C secure_api/LowCProvider $PARALLEL_OPT
+  local ref=$( if [ -f ../hacl_version ]; then cat ../hacl_version | tr -d '\r\n'; else echo origin/master; fi )
+  echo Switching to HACL $ref
+  git reset --hard $ref
   cd ..
-  if command -v cygpath >/dev/null 2>&1; then
-    export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
-  else
-    export HACL_HOME=$(pwd)/hacl-star
-  fi
+  export_home HACL "$(pwd)/hacl-star"
 }
 
+# By default, mitls-fstar master works against F* stable. Can also be overridden.
+function fetch_mitls() {
+  if [ ! -d mitls-fstar ]; then
+    git clone https://github.com/mitls/mitls-fstar mitls-fstar
+  fi
+  cd mitls-fstar
+  git fetch origin
+  local ref=$( if [ -f ../mitls_version ]; then cat ../mitls_version | tr -d '\r\n'; else echo origin/master; fi )
+  echo Switching to mitls-fstar $ref
+  git reset --hard $ref
+  cd ..
+  export_home MITLS "$(pwd)/mitls-fstar"
+}
 
 function mitls_verify() {
-  fetch_fstar_version && fetch_kremlin_stable && fetch_hacl_for_mitls && make -C src/tls $PARALLEL_OPT all -k
+  # Only building a subset of HACL* for now
+  fetch_and_make_fstar && fetch_and_make_kremlin && fetch_hacl && \
+    make -C hacl-star/secure_api/LowCProvider $PARALLEL_OPT && \
+    make -C src/tls $PARALLEL_OPT all -k
 }
 
 function mitls_verify_and_hints() {
@@ -555,35 +580,15 @@ function mitls_verify_and_hints() {
 }
 
 function hacl_test() {
-  if which cygpath 2>&1 >/dev/null; then
-    export FSTAR_HOME=$(cygpath -m $(pwd)/dependencies/FStar)
-    export OPENSSL_HOME=$(cygpath -m $FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl)
-    export KREMLIN_HOME=$(cygpath -m $(pwd)/dependencies/kremlin)
-    export HACL_HOME=$(cygpath -m $(pwd))
-  else
-    export FSTAR_HOME=$(pwd)/dependencies/FStar
-    export OPENSSL_HOME=$FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl
-    export KREMLIN_HOME=$(pwd)/dependencies/kremlin
-    export HACL_HOME=$(pwd)
-  fi
-  # VSTS doesn't update submodules recursively, so we do this explicitly
-  (cd $OPENSSL_HOME && git clean -fdx) && \
-    (cd $FSTAR_HOME && git submodule update --init -f) && \
-    make -C dependencies/FStar/src/ocaml-output $PARALLEL_OPT && \
-    make -C dependencies/FStar/ulib/ml $PARALLEL_OPT && \
-    SYSTEM= BUILD= RELEASE= VERSION= make -C dependencies/FStar/ucontrib/CoreCrypto/ml $PARALLEL_OPT && \
-    make -C dependencies/kremlin $PARALLEL_OPT && \
-    make $PARALLEL_OPT ci -k
+  fetch_and_make_fstar
+  fetch_and_make_kremlin
+  export_home OPENSSL "$FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl"
+  export_home HACL "$(pwd)"
+  make $PARALLEL_OPT ci -k
 }
 
 function hacl_test_and_hints() {
-  if hacl_test; then
-    refresh_hacl_hints
-  else
-    refresh_hacl_hints
-    echo "HACL build FAILED, refreshing hints nonetheless"
-    return 1
-  fi
+  hacl_test && refresh_hacl_hints
 }
 
 # Parse options. All options should come first, before the operation.
@@ -605,12 +610,50 @@ do
   shift
 done
 
-run_fstar () {
-  local target=$1
-  if [ -x configure ]; then
-    eval $(./configure)
+# Runs F* along with some representative tests from other projects. Writes into
+# the ORANGE global variable.
+fstar_and_friends () {
+  # Communication from sub-process shells. The status of the main command, and
+  # possibly some orange information.
+  local out=$(mktemp)
+  local orange=$(mktemp)
+
+  # Warm-up: bootstrap F* and fetch other repositories
+  echo -n false > $out
+  { make -C src $PARALLEL_OPT utest-prelude && echo -n true > $out; } &
+  fetch_hacl &
+  fetch_and_make_kremlin &
+  fetch_mitls &
+  wait
+  if [[ $(cat $out) != "true" ]]; then
+    echo "warm-up failed" && rm $out && rm $orange && return 1
   fi
-  make -C src $target $PARALLEL_OPT -k
+
+  # The commands above were executed in sub-shells and their EXPORTs are not
+  # propagated to the current shell. Re-do.
+  export_home HACL "$(pwd)/hacl-star"
+  export_home KREMLIN "$(pwd)/kremlin"
+  export_home FSTAR "$(pwd)"
+
+  # Once F* is built, run its main regression suite, along with more relevant
+  # tests.
+  echo -n false > $out
+  { make -C src $PARALLEL_OPT uregressions && echo -n true > $out; } &
+  { make -C hacl-star/code/hash/ $PARALLEL_OPT SHA2_256.fst-verify || \
+    echo "SHA2_256.fst-verify (HACL*)" >> $orange; } &
+  { make -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
+    echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $orange; } &
+  { make -C mitls-fstar/src/tls $PARALLEL_OPT Negotiation.fst-ver || \
+    echo "Negotiation.fst-ver (mitls)" >> $orange; } &
+  { make -C hacl-star/secure_api $PARALLEL_OPT krml-test-hacl.exe || \
+    echo "krml-test-hacl.exe (HACL*)" >> $orange; } &
+  wait
+  if [[ $(cat $out) != "true" ]]; then
+    echo "F* regression failed" && rm $out && rm $orange && return 1
+  fi
+
+  ORANGE=$(cat $orange | xargs echo -n)
+  rm $out && rm $orange
 }
 
 # Main commands.
@@ -620,8 +663,8 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    fetch_kremlin_stable
-    run_log_commit "run_fstar utest" "fstar-ci" "#fstar-build" "FStarLang/FStar" "."
+    fetch_kremlin
+    run_log_commit "fstar_and_friends" "fstar-ci" "#fstar-build" "FStarLang/FStar" "."
     ;;
 
   fstar-nightly)
@@ -631,8 +674,8 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints $OTHERFLAGS"
-    fetch_kremlin_stable
-    run_log_commit "run_fstar ulong" "fstar-nightly" "#fstar-build" "FStarLang/FStar" "."
+    fetch_kremlin
+    run_log_commit "make -C src ulong $PARALLEL_OPT" "fstar-nightly" "#fstar-build" "FStarLang/FStar" "."
     refresh_fstar_hints
     ;;
 
@@ -686,7 +729,7 @@ case "$1" in
       exit 1
     fi
 
-    run_log_commit "hacl_test" "hacl-ci" "#hacl-build" "mitls/hacl-star" "./dependencies/FStar"
+    run_log_commit "hacl_test" "hacl-ci" "#hacl-build" "mitls/hacl-star" "./fstar"
     ;;
 
   hacl-nightly)
@@ -696,7 +739,7 @@ case "$1" in
     fi
 
     export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS --z3rlimit_factor 2"
-    run_log_commit "hacl_test_and_hints" "hacl-ci" "#hacl-build" "mitls/hacl-star" "./dependencies/FStar"
+    run_log_commit "hacl_test_and_hints" "hacl-ci" "#hacl-build" "mitls/hacl-star" "./fstar"
     ;;
 
   everest-ci)
@@ -739,11 +782,11 @@ case "$1" in
       exit 1
     fi
 
-    fetch_kremlin_stable
+    fetch_kremlin
 
     # Build F* if needed
     if [ -d .fstar_version ]; then
-      fetch_fstar_version
+      fetch_fstar
     fi
 
     # Set up build environment
