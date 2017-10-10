@@ -247,7 +247,7 @@ function run_log_commit() {
     local slack_os=$(uname)
     local slack_emoji=""
     local slack_type=""
-    local slack_orange
+    local slack_orange=""
 
     if [[ $ORANGE != "" ]]; then
       slack_orange="*Breakage:* $ORANGE\n"
@@ -470,6 +470,14 @@ function docker_from_scratch() {
   docker_image_prune
 }
 
+function export_home() {
+  if command -v cygpath >/dev/null 2>&1; then
+    export $1_HOME=$(cygpath -m "$2")
+  else
+    export $1_HOME="$2"
+  fi
+}
+
 # Since many projects may depend on F*, we provide a function to just clone F*
 # (by default, the stable branch), unless otherwise specified via the
 # .fstar_version file.
@@ -483,11 +491,7 @@ function fetch_fstar() {
   echo Switching to F* $ref
   git reset --hard $ref
   cd ..
-  if command -v cygpath >/dev/null 2>&1; then
-    export FSTAR_HOME=$(cygpath -m $(pwd)/fstar)
-  else
-    export FSTAR_HOME=$(pwd)/fstar
-  fi
+  export_home FSTAR "$(pwd)/fstar"
 }
 
 function fetch_and_make_fstar() {
@@ -509,11 +513,7 @@ function fetch_kremlin() {
   echo Switching to KreMLin $ref
   git reset --hard $ref
   cd ..
-  if command -v cygpath >/dev/null 2>&1; then
-    export KREMLIN_HOME=$(cygpath -m $(pwd)/kremlin)
-  else
-    export KREMLIN_HOME=$(pwd)/kremlin
-  fi
+  export_home KREMLIN "$(pwd)/kremlin"
 }
 
 function fetch_and_make_kremlin() {
@@ -532,11 +532,7 @@ function fetch_hacl() {
   echo Switching to HACL $ref
   git reset --hard $ref
   cd ..
-  if command -v cygpath >/dev/null 2>&1; then
-    export HACL_HOME=$(cygpath -m $(pwd)/hacl-star)
-  else
-    export HACL_HOME=$(pwd)/hacl-star
-  fi
+  export_home HACL "$(pwd)/hacl-star"
 }
 
 # By default, mitls-fstar master works against F* stable. Can also be overridden.
@@ -550,11 +546,7 @@ function fetch_mitls() {
   echo Switching to mitls-fstar $ref
   git reset --hard $ref
   cd ..
-  if command -v cygpath >/dev/null 2>&1; then
-    export MITLS_HOME=$(cygpath -m $(pwd)/hacl-star)
-  else
-    export MITLS_HOME=$(pwd)/hacl-star
-  fi
+  export_home MITLS "$(pwd)/mitls-fstar"
 }
 
 function mitls_verify() {
@@ -569,15 +561,10 @@ function mitls_verify_and_hints() {
 }
 
 function hacl_test() {
-  if which cygpath 2>&1 >/dev/null; then
-    export OPENSSL_HOME=$(cygpath -m $FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl)
-    export HACL_HOME=$(cygpath -m $(pwd))
-  else
-    export OPENSSL_HOME=$FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl
-    export HACL_HOME=$(pwd)
-  fi
   fetch_and_make_fstar
   fetch_and_make_kremlin
+  export_home OPENSSL "$FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl"
+  export_home HACL "$(pwd)"
   make $PARALLEL_OPT ci -k
 }
 
@@ -604,29 +591,50 @@ do
   shift
 done
 
+# Runs F* along with some representative tests from other projects. Writes into
+# the ORANGE global variable.
 fstar_and_friends () {
+  # Communication from sub-process shells. The status of the main command, and
+  # possibly some orange information.
+  local out=$(mktemp)
+  local orange=$(mktemp)
+
   # Warm-up: bootstrap F* and fetch other repositories
-  make -C src $PARALLEL_OPT utest-prelude &
+  echo -n false > $out
+  { make -C src $PARALLEL_OPT utest-prelude && echo -n true > $out; } &
   fetch_hacl &
   fetch_and_make_kremlin &
   fetch_mitls &
   wait
+  if [[ $(cat $out) != "true" ]]; then
+    echo "warm-up failed" && rm $out && rm $orange && return 1
+  fi
+
+  # The commands above were executed in sub-shells and their EXPORTs are not
+  # propagated to the current shell. Re-do.
+  export_home HACL "$(pwd)/hacl-star"
+  export_home KREMLIN "$(pwd)/kremlin"
+  export_home FSTAR "$(pwd)"
 
   # Once F* is built, run its main regression suite, along with more relevant
   # tests.
-  local success
-  { make -C src $PARALLEL_OPT uregressions && success=true || success=false }&
+  echo -n false > $out
+  { make -C src $PARALLEL_OPT uregressions && echo -n true > $out; } &
   { make -C hacl-star/code/hash/ SHA2_256.fst-verify || \
-    ORANGE="SHA2_256.fst-verify (HACL*) $ORANGE" }&
+    echo "SHA2_256.fst-verify (HACL*)" >> $orange; } &
   { make -C hacl-star/secure_api/aead Crypto.AEAD.Encrypt.fst-ver || \
-    ORANGE="Crypto.AEAD.Encrypt.fst-ver (HACL*) $ORANGE" }&
+    echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $orange; } &
   { make -C mitls-fstar/src/tls Negotiation.fst-ver || \
-    ORANGE="Negotiation.fst-ver (mitls) $ORANGE" }&
+    echo "Negotiation.fst-ver (mitls)" >> $orange; } &
   { make -C hacl-star/secure_api krml-test-hacl.exe || \
-    ORANGE="krml-test-hacl.exe (HACL*) $ORANGE" }&
+    echo "krml-test-hacl.exe (HACL*)" >> $orange; } &
   wait
+  if [[ $(cat $out) != "true" ]]; then
+    echo "F* regression failed" && rm $out && rm $orange && return 1
+  fi
 
-  $success
+  ORANGE=$(cat $orange | xargs echo -n)
+  rm $out && rm $orange
 }
 
 # Main commands.
