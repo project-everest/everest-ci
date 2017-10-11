@@ -599,18 +599,18 @@ done
 fstar_and_friends () {
   # Communication from sub-process shells. The status of the main command, and
   # possibly some orange information.
-  local out=$(mktemp)
-  local orange=$(mktemp)
+  local out_file=$(mktemp)
+  local orange_file=$(mktemp)
 
   # Warm-up: bootstrap F* and fetch other repositories
-  echo -n false > $out
-  { make -C src $PARALLEL_OPT utest-prelude && echo -n true > $out; } &
+  echo -n false > $out_file
+  { make -C src $PARALLEL_OPT utest-prelude && echo -n true > $out_file; } &
   fetch_hacl &
   fetch_and_make_kremlin &
   fetch_mitls &
   wait
-  if [[ $(cat $out) != "true" ]]; then
-    echo "warm-up failed" && rm $out && rm $orange && return 1
+  if [[ $(cat $out_file) != "true" ]]; then
+    echo "warm-up failed" && rm $out_file && rm $orange_file && return 1
   fi
 
   # The commands above were executed in sub-shells and their EXPORTs are not
@@ -621,26 +621,23 @@ fstar_and_friends () {
 
   # Once F* is built, run its main regression suite, along with more relevant
   # tests.
-  echo -n false > $out
-  { make -C src $PARALLEL_OPT uregressions && echo -n true > $out; } &
+  echo -n false > $out_file
+  { make -C src $PARALLEL_OPT uregressions && echo -n true > $out_file; } &
   { make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
-    echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $orange; } &
+    echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $orange_file; } &
   { make -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
-    echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $orange; } &
+    echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $orange_file; } &
   { make -C mitls-fstar/src/tls $PARALLEL_OPT ConnInvariant.fst-ver || \
-    echo "ConnInvariant.fst-ver (mitls)" >> $orange; } &
+    echo "ConnInvariant.fst-ver (mitls)" >> $orange_file; } &
   { make -C hacl-star/secure_api $PARALLEL_OPT krml-test-hacl.exe || \
-    echo "krml-test-hacl.exe (HACL*)" >> $orange; } &
+    echo "krml-test-hacl.exe (HACL*)" >> $orange_file; } &
   wait
-  if [[ $(cat $out) != "true" ]]; then
-    echo "F* regression failed" && rm $out && rm $orange && return 1
+  if [[ $(cat $out_file) != "true" ]]; then
+    echo "F* regression failed" && rm $out_file && rm $orange_file && return 1
   fi
 
-  ORANGE="$(cat $orange | xargs echo -n)"
-  echo orange file is:
-  cat $orange
-  echo ORANGE is $ORANGE
-  rm $out && rm $orange
+  ORANGE="$(cat $orange_file | xargs echo -n)"
+  rm $out_file && rm $orange_file
 }
 
 # Main commands.
