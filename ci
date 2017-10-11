@@ -250,7 +250,7 @@ function run_log_commit() {
     local slack_orange=""
 
     if [[ $ORANGE != "" ]]; then
-      slack_orange="*Breakage:* $ORANGE\n"
+      slack_orange="      *Breakage:* $ORANGE\n"
     fi
 
     if $success && [[ $ORANGE == "" ]]; then
@@ -455,18 +455,18 @@ function docker_from_scratch() {
   current_commit_hash=`git rev-parse HEAD`
   old_commit_hash=`docker inspect --format '{{index .Config.Labels "commit_hash"}}' projecteverest/everest`
   if
-      [[ -z ${DOCKER_FORCE_BUILD+x} ]] &&
-      [[ "x$current_commit_hash" = "x$old_commit_hash" ]]
+    [[ -z ${DOCKER_FORCE_BUILD+x} ]] &&
+    [[ "x$current_commit_hash" = "x$old_commit_hash" ]]
   then
-      echo Docker image does not need to be rebuilt
-      return 0
+    echo Docker image does not need to be rebuilt
+    return 0
   fi
   # Then, log into the Docker Hub server
   if [ -z ${DOCKER_HUB_USERNAME+x} ] || [ -z ${DOCKER_HUB_PASSWORD+x} ]
   then
-      echo Please specify Docker Hub username and password
-      echo using the DOCKER_HUB_USERNAME and DOCKER_HUB_PASSWORD environment variables
-      exit 1
+    echo Please specify Docker Hub username and password
+    echo using the DOCKER_HUB_USERNAME and DOCKER_HUB_PASSWORD environment variables
+    exit 1
   fi
   docker login --username="$DOCKER_HUB_USERNAME" --password="$DOCKER_HUB_PASSWORD" &&
   # Build the Docker image
@@ -475,14 +475,14 @@ function docker_from_scratch() {
   echo "PIPESTATUS=${PIPESTATUS[@]}" &&
   echo Pushing projecteverest/everest to Docker Hub &&
   {
-      # Retrying $retry times
-      local retry=5
-      until [ $retry -eq 0 ] || docker push projecteverest/everest
-      do
-	  retry=$(($retry - 1))
-	  echo "Push failed. Number of remaining attempts: $retry"
-      done
-      [ $retry -ne 0 ]
+    # Retrying $retry times
+    local retry=5
+    until [ $retry -eq 0 ] || docker push projecteverest/everest
+    do
+      retry=$(($retry - 1))
+      echo "Push failed. Number of remaining attempts: $retry"
+    done
+    [ $retry -ne 0 ]
   } &&
   # Cleanup: log out from Docker Hub and remove intermediate images
   docker logout &&
@@ -652,7 +652,10 @@ fstar_and_friends () {
     echo "F* regression failed" && rm $out && rm $orange && return 1
   fi
 
-  ORANGE=$(cat $orange | xargs echo -n)
+  ORANGE="$(cat $orange | xargs echo -n)"
+  echo orange file is:
+  cat $orange
+  echo ORANGE is $ORANGE
   rm $out && rm $orange
 }
 
