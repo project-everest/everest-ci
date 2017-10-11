@@ -623,12 +623,12 @@ fstar_and_friends () {
   # tests.
   echo -n false > $out
   { make -C src $PARALLEL_OPT uregressions && echo -n true > $out; } &
-  { make -C hacl-star/code/hash/ $PARALLEL_OPT SHA2_256.fst-verify || \
-    echo "SHA2_256.fst-verify (HACL*)" >> $orange; } &
+  { make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
+    echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $orange; } &
   { make -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
     echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $orange; } &
-  { make -C mitls-fstar/src/tls $PARALLEL_OPT Negotiation.fst-ver || \
-    echo "Negotiation.fst-ver (mitls)" >> $orange; } &
+  { make -C mitls-fstar/src/tls $PARALLEL_OPT ConnInvariant.fst-ver || \
+    echo "ConnInvariant.fst-ver (mitls)" >> $orange; } &
   { make -C hacl-star/secure_api $PARALLEL_OPT krml-test-hacl.exe || \
     echo "krml-test-hacl.exe (HACL*)" >> $orange; } &
   wait
