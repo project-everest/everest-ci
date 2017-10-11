@@ -119,9 +119,13 @@ function log_prelude() {
   echo "Z3 is $(which z3)"
 }
 
-# Global variable; if non-empty, build is orange and the message is displayed
-# along with the notification
-ORANGE=""
+# Global variable; if the file is non-empty, build is orange and the message is
+# displayed along with the notification
+ORANGE_FILE=$(mktemp)
+function cleanup () {
+  rm $ORANGE_FILE
+}
+trap cleanup EXIT
 
 # Run a given command and commit & push the logs the the CI_LOGS repository.
 # $1: the command to run
@@ -247,13 +251,13 @@ function run_log_commit() {
     local slack_os=$(uname)
     local slack_emoji=""
     local slack_type=""
-    local slack_orange=""
+    local slack_orange=$(cat $ORANGE_FILE | xargs echo -n)
 
-    if [[ $ORANGE != "" ]]; then
-      slack_orange="      *Breakage:* $ORANGE\n"
+    if [[ $slack_orange != "" ]]; then
+      slack_orange="      *Breakage:* $slack_orange\n"
     fi
 
-    if $success && [[ $ORANGE == "" ]]; then
+    if $success && [[ $slack_orange == "" ]]; then
       slack_emoji=":white_check_mark:"
       slack_type="success :smile_cat:"
     elif $success; then
@@ -595,12 +599,10 @@ do
 done
 
 # Runs F* along with some representative tests from other projects. Writes into
-# the ORANGE global variable.
+# $ORANGE_FILE (since it's called from within a sub-shell).
 fstar_and_friends () {
-  # Communication from sub-process shells. The status of the main command, and
-  # possibly some orange information.
+  # Communication from sub-process shells.
   local out_file=$(mktemp)
-  local orange_file=$(mktemp)
 
   # Warm-up: bootstrap F* and fetch other repositories
   echo -n false > $out_file
@@ -610,7 +612,7 @@ fstar_and_friends () {
   fetch_mitls &
   wait
   if [[ $(cat $out_file) != "true" ]]; then
-    echo "warm-up failed" && rm $out_file && rm $orange_file && return 1
+    echo "warm-up failed" && rm $out_file && return 1
   fi
 
   # The commands above were executed in sub-shells and their EXPORTs are not
@@ -624,20 +626,19 @@ fstar_and_friends () {
   echo -n false > $out_file
   { make -C src $PARALLEL_OPT uregressions && echo -n true > $out_file; } &
   { timeout 180 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
-    echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $orange_file; } &
+    echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
   { timeout 180 make -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
-    echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $orange_file; } &
+    echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $ORANGE_FILE; } &
   { timeout 180 make -C mitls-fstar/src/tls $PARALLEL_OPT ConnInvariant.fst-ver || \
-    echo "ConnInvariant.fst-ver (mitls)" >> $orange_file; } &
+    echo "ConnInvariant.fst-ver (mitls)" >> $ORANGE_FILE; } &
   { timeout 180 make -C hacl-star/secure_api $PARALLEL_OPT krml-test-hacl.exe || \
-    echo "krml-test-hacl.exe (HACL*)" >> $orange_file; } &
+    echo "krml-test-hacl.exe (HACL*)" >> $ORANGE_FILE; } &
   wait
   if [[ $(cat $out_file) != "true" ]]; then
-    echo "F* regression failed" && rm $out_file && rm $orange_file && return 1
+    echo "F* regression failed" && rm $out_file && return 1
   fi
 
-  ORANGE="$(cat $orange_file | xargs echo -n)"
-  rm $out_file && rm $orange_file
+  rm $out_file
 }
 
 # Main commands.
