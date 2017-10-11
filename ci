@@ -230,18 +230,6 @@ function run_log_commit() {
   git push
   popd
 
-  # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error)
-  # something. Note: grep -v returns 1 if no lines were selected.
-  local failed_modules=$(egrep '\.fst.*: ?\(Error\)' $CI_LOGS/$log_err | \
-    grep -v NegativeTests | \
-    sed 's/^\(C:\)\?[^:]*[\\\/]\([^:]*\.fst\)[^:]*:.*/\2/' |
-    sort | \
-    uniq | \
-    tr '\r\n' ' ')
-  if [[ $failed_modules != "" ]]; then
-    failed_modules="      *Verification failed :rage: for:* "$(quote "$failed_modules")"\n"
-  fi
-
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
     local slack_time=$(if (( $SECONDS >= 3600 )); then $DATE -d@$SECONDS -u +%Hh%Mm%Ss; else $DATE -d@$SECONDS -u +%Mm%Ss; fi)
     local slack_msg="<$raw_url/$log_err|stderr> <$raw_url/$log_all|stdout+stderr>"
@@ -251,21 +239,37 @@ function run_log_commit() {
     local slack_os=$(uname)
     local slack_emoji=""
     local slack_type=""
-    local slack_orange=$(cat $ORANGE_FILE | xargs echo -n)
+    local slack_breakage=""
 
-    if [[ $slack_orange != "" ]]; then
-      slack_orange="      *Breakage:* $slack_orange\n"
-    fi
-
-    if $success && [[ $slack_orange == "" ]]; then
-      slack_emoji=":white_check_mark:"
-      slack_type="success :smile_cat:"
-    elif $success; then
-      slack_emoji=":fire:"
-      slack_type="success with breakage :scream_cat:"
+    if $success; then
+      # Main F* build succeeded
+      local orange=$(cat $ORANGE_FILE | xargs echo -n)
+      if [[ $orange == "" ]]; then
+        # Perfect build, no breakage
+        slack_emoji=":white_check_mark:"
+        slack_type="success :smile_cat:"
+      else
+        # Build with breakage, display where the breakage is
+        slack_emoji=":fire:"
+        slack_type="success with breakage :scream_cat:"
+        slack_breakage="      *Breakage:* $slack_orange\n"
+      fi
     else
+      # Build failure, display the list of modules that failed to verify
       slack_emoji=":no_entry:"
       slack_type="failure :crying_cat_face:"
+
+      # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error)
+      # something. Note: grep -v returns 1 if no lines were selected.
+      local failed_modules=$(egrep '\.fst.*: ?\(Error\)' $CI_LOGS/$log_err | \
+        grep -v NegativeTests | \
+        sed 's/^\(C:\)\?[^:]*[\\\/]\([^:]*\.fst\)[^:]*:.*/\2/' |
+        sort | \
+        uniq | \
+        tr '\r\n' ' ')
+      if [[ $failed_modules != "" ]]; then
+        slack_breakage="      *Verification failed :rage: for:* "$(quote "$failed_modules")"\n"
+      fi
     fi
 
     # The branch *may* be of the form user_foobar
@@ -287,7 +291,7 @@ function run_log_commit() {
       *Author:* $slack_author\n\
       *Duration:* $slack_time\n\
       *OS:* $slack_os\n\
-      *Logs:* $slack_msg\n$failed_modules$failed_hints$slack_orange\
+      *Logs:* $slack_msg\n$failed_hints$slack_orange\
       *VSTS Build definition:* $BUILD_DEFINITIONNAME"
 
     post_to_slack "$slack_channel" "$payload" || echo "Slack notification NOT sent"
