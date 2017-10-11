@@ -399,22 +399,6 @@ function everest_move() {
     git push git@github.com:project-everest/everest.git $CI_BRANCH || \
     post_to_slack "#everest-build" ":no_entry: *Nightly Everest Upgrade:* could not push fresh commit on branch $CI_BRANCH"
 
-    # Import Vale assemblies into F*
-    cd FStar
-    # Ignore other changes (e.g. submodules)
-    if false && ! git diff --exit-code examples/low-level/spartan_aes ; then
-      echo "New assemblies from Vale, committing"
-      git add -u examples/low-level/spartan_aes
-      git commit -m "[CI] New assemblies coming from Vale"
-      local commit=$(git rev-parse HEAD)
-      local branch=${branches[FStar]}
-      git fetch
-      git reset --hard origin/$branch
-      git merge -Xours $commit
-      git push
-    fi
-    cd ..
-
     # Import Vale assemblies into HACL*
     cd hacl-star
     # Ignore other changes (e.g. submodules)
