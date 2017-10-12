@@ -605,6 +605,8 @@ done
 # Runs F* along with some representative tests from other projects. Writes into
 # $ORANGE_FILE (since it's called from within a sub-shell).
 fstar_and_friends () {
+  local target=$1
+
   # Communication from sub-process shells.
   local out_file=$(mktemp)
 
@@ -628,7 +630,7 @@ fstar_and_friends () {
   # Once F* is built, run its main regression suite, along with more relevant
   # tests.
   echo -n false > $out_file
-  { make -C src $PARALLEL_OPT uregressions && echo -n true > $out_file; } &
+  { make -C src $PARALLEL_OPT $target && echo -n true > $out_file; } &
   { timeout 180 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
   { timeout 180 make -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
@@ -653,7 +655,7 @@ case "$1" in
       exit 1
     fi
     fetch_kremlin
-    run_log_commit "fstar_and_friends" "fstar-ci" "#fstar-build" "FStarLang/FStar" "."
+    run_log_commit "fstar_and_friends uregressions" "fstar-ci" "#fstar-build" "FStarLang/FStar" "."
     ;;
 
   fstar-nightly)
@@ -664,7 +666,7 @@ case "$1" in
     fi
     export OTHERFLAGS="--record_hints $OTHERFLAGS"
     fetch_kremlin
-    run_log_commit "make -C src ulong $PARALLEL_OPT" "fstar-nightly" "#fstar-build" "FStarLang/FStar" "."
+    run_log_commit "fstar_and_friends uregressions-ulong" "fstar-nightly" "#fstar-build" "FStarLang/FStar" "."
     refresh_fstar_hints
     ;;
 
