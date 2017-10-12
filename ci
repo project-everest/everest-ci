@@ -252,7 +252,7 @@ function run_log_commit() {
         # Build with breakage, display where the breakage is
         slack_emoji=":fire:"
         slack_type="success with breakage :scream_cat:"
-        slack_breakage="      *Breakage:* $slack_orange\n"
+        slack_breakage="      *Breakage:* $orange\n"
       fi
     else
       # Build failure, display the list of modules that failed to verify
