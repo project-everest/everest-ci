@@ -609,11 +609,10 @@ fstar_and_friends () {
 
   # Communication from sub-process shells.
   local out_file=$(mktemp)
-  TIME=$(which time || echo time)
 
   # Warm-up: bootstrap F* and fetch other repositories
   echo -n false > $out_file
-  { ${TIME} make -C src $PARALLEL_OPT utest-prelude && echo -n true > $out_file; } &
+  { time make -C src $PARALLEL_OPT utest-prelude && echo -n true > $out_file; } &
   fetch_hacl &
   fetch_and_make_kremlin &
   fetch_mitls &
@@ -631,7 +630,7 @@ fstar_and_friends () {
   # Once F* is built, run its main regression suite, along with more relevant
   # tests.
   echo -n false > $out_file
-  { ${TIME} make -C src $PARALLEL_OPT $target && echo -n true > $out_file; } &
+  { time make -C src $PARALLEL_OPT $target && echo -n true > $out_file; } &
   { timeout 720 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
   { timeout 240 make -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
