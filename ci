@@ -617,7 +617,7 @@ fstar_and_friends () {
   else
     gnutime=""
   fi
-  { $gnutime make -C src $PARALLEL_OPT utest-prelude && echo -n true > $out_file; } &
+  { $gnutime make -C src $PARALLEL_OPT -k utest-prelude && echo -n true > $out_file; } &
   fetch_hacl &
   fetch_and_make_kremlin &
   fetch_mitls &
