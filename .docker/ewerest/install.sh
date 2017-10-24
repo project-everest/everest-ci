@@ -24,5 +24,8 @@ popd
 
 # git clone 'https://github.com/project-everest/everest.git' everest
 # pushd everest
-# ./everest check
+# ./everest --yes check
+# source "$EVEREST_ENV_DEST_FILE"
+# export PLATFORM=X64 # until Vale's SConscript/SConstruct are fixed
+# ./everest make
 # popd
