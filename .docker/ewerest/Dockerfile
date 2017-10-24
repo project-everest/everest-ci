@@ -8,6 +8,18 @@ WORKDIR "C:\ewerest"
 # RUN .\vs2017.exe --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.Component.MSBuild --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreIde --quiet
 # WORKDIR ".."
 
+# WORKDIR "python"
+# ENV PYTHON_VER "2.7.13"
+# ADD ["https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi", "python.msi"]
+# RUN msiexec /i python.msi /quiet
+# ENV PATH "C:\Python27;C:\Python27\Scripts;$PATH"
+# WORKDIR ".."
+
+# WORKDIR "scons"
+# ENV SCONS_VER "3.0.0"
+
+# WORKDIR ".."
+
 WORKDIR "cygwin"
 ADD ["http://cygwin.org/setup-x86_64.exe", "setup-x86_64.exe"]
 # JP: this sleep command allows the container network to be set up, if the network is configured in transparent mode.
