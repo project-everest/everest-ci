@@ -12,7 +12,7 @@ WORKDIR "cygwin"
 ADD ["http://cygwin.org/setup-x86_64.exe", "setup-x86_64.exe"]
 # JP: this sleep command allows the container network to be set up, if the network is configured in transparent mode.
 # (NAT mode may not work on all physical networks)
-RUN powershell -Command "sleep 5" && .\setup-x86_64.exe --site http://mirrors.metapeer.com/cygwin --no-desktop --no-shortcuts --quiet-mode --verbose --no-startmenu --wait --packages=rsync,patch,diffutils,curl,make,unzip,git,m4,perl,mingw64-x86_64-gcc-core
+RUN powershell -Command "sleep 5" && .\setup-x86_64.exe --site http://mirrors.metapeer.com/cygwin --no-desktop --no-shortcuts --quiet-mode --verbose --no-startmenu --wait --packages=rsync,patch,diffutils,curl,make,unzip,git,m4,perl,mingw64-x86_64-gcc-core,wget
 WORKDIR ".."
 
 # ADD ["https://raw.githubusercontent.com/project-everest/everest-ci/master/.docker/ewerest/install.sh", "install.sh"]
