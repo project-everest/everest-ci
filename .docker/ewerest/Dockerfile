@@ -16,4 +16,4 @@ RUN powershell -Command "sleep 5" && .\setup-x86_64.exe --site http://mirrors.me
 WORKDIR ".."
 
 # ADD ["https://raw.githubusercontent.com/project-everest/everest-ci/master/.docker/ewerest/install.sh", "install.sh"]
-# RUN C:\Cygwin64\bin\bash.exe install.sh
+# RUN C:\Cygwin64\bin\bash.exe --login C:\ewerest\install.sh
