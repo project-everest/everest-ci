@@ -29,8 +29,9 @@ WORKDIR ".."
 
 WORKDIR "scons"
 ENV SCONS_VER 3.0.0
-ADD ["http://downloads.sourceforge.net/scons/scons-$SCONS_VER.zip", "scons.zip"]
-RUN C:\Cygwin64\bin\unzip.exe C:\ewerest\scons\scons.zip
+# ADD does not seem to support such redirections as SourceForge's
+RUN C:\Cygwin64\bin\wget.exe http://prdownloads.sourceforge.net/scons/scons-%SCONS_VER%.zip
+RUN C:\Cygwin64\bin\unzip.exe C:\ewerest\scons\scons-%SCONS_VER%.zip
 WORKDIR "scons-"$SCONS_VER
 RUN python setup.py install
 WORKDIR "..\.."
