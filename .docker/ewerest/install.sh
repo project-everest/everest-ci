@@ -24,7 +24,7 @@ popd
 
 # Install Everest
 
-git clone 'https://github.com/project-everest/everest.git' everest
+git clone --branch taramana_vs2017 'https://github.com/project-everest/everest.git' everest
 pushd everest
 ./everest --yes check
 # source "$EVEREST_ENV_DEST_FILE"
