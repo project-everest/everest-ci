@@ -12,7 +12,10 @@ WORKDIR "python"
 ENV PYTHON_VER 2.7.13
 ADD ["https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi", "python.msi"]
 RUN msiexec /i python.msi /quiet
-ENV PATH C:\Python27;C:\Python27\Scripts;$PATH
+# ENV does not support quoting PATH for Windows images,
+# so take solution adapted from:
+# https://stackoverflow.com/questions/42092932/appending-to-path-in-a-windows-docker-container
+RUN ["powershell", "-Command", "[Environment]::SetEnvironmentVariable('Path', 'C:\\Python27;C:\\Python27\\Scripts;' + $env:Path, [EnvironmentVariableTarget]::Machine)"]
 WORKDIR ".."
 
 # NOTE: we need to install cygwin before scons,
