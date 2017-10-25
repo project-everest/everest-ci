@@ -26,7 +26,9 @@ popd
 
 git clone --branch taramana_vs2017 'https://github.com/project-everest/everest.git' everest
 pushd everest
-./everest --yes check
+./everest --yes check # will stop after installing Cygwin packages
+source "$EVEREST_ENV_DEST_FILE"
+./everest --yes check # hopefully resumes at installing OCaml packages?
 # source "$EVEREST_ENV_DEST_FILE"
 # export PLATFORM=X64 # until Vale's SConscript/SConstruct are fixed
 # ./everest make
