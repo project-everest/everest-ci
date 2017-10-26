@@ -1,6 +1,9 @@
 #!/bin/bash
 
-echo "HOME is: $HOME"
+if echo "$HOME" | grep -q '/$'
+then
+   export HOME="$HOME".
+fi
 
 # NOTE: we assume that everything has been installed in the Docker image
 
