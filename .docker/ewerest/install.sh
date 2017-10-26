@@ -1,9 +1,11 @@
 #!/bin/bash
 
+echo "HOME is: $HOME"
+
 # NOTE: we assume that everything has been installed in the Docker image
 
-if [[ -z "$EVEREST_ENV_DEST_FILE" ]] ; then
-  EVEREST_ENV_DEST_FILE="$HOME/.bash_profile"
+if [[ "$EVEREST_ENV_DEST_FILE" == "" ]] ; then
+  export EVEREST_ENV_DEST_FILE="$HOME/.bash_profile"
 fi
 
 # Install OCaml for Windows, from:
