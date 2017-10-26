@@ -18,6 +18,9 @@ RUN msiexec /i python.msi /quiet
 RUN ["powershell", "-Command", "[Environment]::SetEnvironmentVariable('Path', 'C:\\Python27;C:\\Python27\\Scripts;' + $env:Path, [EnvironmentVariableTarget]::Machine)"]
 WORKDIR ".."
 
+ENV EVEREST_BRANCH taramana_vs2017
+ENV EVEREST_CI_BRANCH taramana_ewerest
+
 # NOTE: we need to install cygwin before scons,
 # because cygwin provides unzip
 
@@ -27,7 +30,12 @@ ADD ["http://cygwin.org/setup-x86_64.exe", "setup-x86_64.exe"]
 # powershell -Command "sleep 5" && 
 # this sleep command allows the container network to be set up, if the network is configured in transparent mode.
 # (NAT mode may not work on all physical networks)
-RUN .\setup-x86_64.exe --site http://mirrors.metapeer.com/cygwin --no-desktop --no-shortcuts --quiet-mode --verbose --no-startmenu --wait --packages=rsync,patch,diffutils,curl,make,unzip,git,m4,perl,mingw64-x86_64-gcc-core,wget
+# Also install all Cygwin packages needed by everest
+# NOTE: cygwin setup cannot be run from inside powershell,
+# so we write the command line into a .bat file that we will separately run
+ADD ["https://raw.githubusercontent.com/project-everest/everest/$EVEREST_BRANCH/cygwin-packages", "everest-packages"]
+RUN ["powershell", "-Command", "('.\\setup-x86_64.exe --site http://mirrors.metapeer.com/cygwin --no-desktop --no-shortcuts --quiet-mode --verbose --no-startmenu --wait --packages=' + ((cat everest-packages) -join ',') + ',rsync,patch,diffutils,curl,make,unzip,git,m4,perl,mingw64-x86_64-gcc-core,wget') | Out-File runsetup.bat -Encoding ASCII"]
+RUN .\runsetup.bat
 WORKDIR ".."
 
 WORKDIR "scons"
@@ -39,5 +47,5 @@ WORKDIR "scons-"$SCONS_VER
 RUN python setup.py install
 WORKDIR "..\.."
 
-ADD ["https://raw.githubusercontent.com/project-everest/everest-ci/taramana_ewerest/.docker/ewerest/install.sh", "install.sh"]
+ADD ["https://raw.githubusercontent.com/project-everest/everest-ci/$EVEREST_CI_BRANCH/.docker/ewerest/install.sh", "install.sh"]
 RUN C:\Cygwin64\bin\bash.exe --login C:\ewerest\install.sh
