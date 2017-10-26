@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if echo "$HOME" | grep -q '/$'
 then
    export HOME="$HOME".
