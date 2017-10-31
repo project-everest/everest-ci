@@ -59,8 +59,8 @@ RUN git config --global user.email "everbld@microsoft.com"
 RUN git config --global user.name "Dzomo the everest Yak"
 
 #Prepare vsts agent
-ENV agentv v2.111.1
-ENV agentplatform vsts-agent-ubuntu.16.04-x64-2.111.1
+ENV agentv v2.123.0
+ENV agentplatform vsts-agent-ubuntu.16.04-x64-2.123.0
 RUN mkdir vsts-agent
 WORKDIR ${MYHOME}/vsts-agent
 RUN wget https://github.com/Microsoft/vsts-agent/releases/download/${agentv}/${agentplatform}.tar.gz
