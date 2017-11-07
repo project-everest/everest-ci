@@ -636,13 +636,13 @@ fstar_and_friends () {
   # tests.
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
-  { timeout 240 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
+  { timeout 240 make -B -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
-  { timeout 240 make -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
+  { timeout 240 make -B -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
     echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $ORANGE_FILE; } &
-  { timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
+  { timeout 240 make -B -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
     echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE; } &
-  { timeout 240 make -C hacl-star/secure_api $PARALLEL_OPT krml-test-hacl.exe || \
+  { timeout 240 make -B -C hacl-star/secure_api $PARALLEL_OPT krml-test-hacl.exe || \
     echo "krml-test-hacl.exe (HACL*)" >> $ORANGE_FILE; } &
   wait
   if [[ $(cat $out_file) != "true" ]]; then
