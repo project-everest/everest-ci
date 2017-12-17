@@ -259,9 +259,9 @@ function run_log_commit() {
       slack_emoji=":no_entry:"
       slack_type="failure :crying_cat_face:"
 
-      # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error)
+      # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error <num>)
       # something. Note: grep -v returns 1 if no lines were selected.
-      local failed_modules=$(egrep '\.fst.*: ?\(Error\)' $CI_LOGS/$log_err | \
+      local failed_modules=$(egrep '\.fst.*: ?\(Error [0-9]*\)' $CI_LOGS/$log_err | \
         grep -v NegativeTests | \
         sed 's/^\(C:\)\?[^:]*[\\\/]\([^:]*\.fst\)[^:]*:.*/\2/' |
         sort | \
