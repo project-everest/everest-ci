@@ -634,6 +634,9 @@ fstar_and_friends () {
 
   # Once F* is built, run its main regression suite, along with more relevant
   # tests.
+  # JP: this is likely to cause more and more problems as we move towards proper
+  # parallel, dependency-based builds, as multiple F* processes may be run to
+  # generate .checked files in shared directories...
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
 
@@ -656,7 +659,8 @@ fstar_and_friends () {
   } &
 
   { touch hacl-star/secure_api/aead/Crypto.AEAD.Main.fst; #force a rebuild of krml-test-hacl.exe
-    OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/secure_api $PARALLEL_OPT krml-test-hacl.exe || \
+    OTHERFLAGS=--use_hint_hashes timeout 240 make -f \
+      hacl-star/secure_api/Makefile.extract -C hacl-star/secure_api $PARALLEL_OPT || \
     echo "krml-test-hacl.exe (HACL*)" >> $ORANGE_FILE; } &
   wait
   if [[ $(cat $out_file) != "true" ]]; then
