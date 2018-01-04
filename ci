@@ -636,12 +636,25 @@ fstar_and_friends () {
   # tests.
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
+
   { OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
+
   { OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
     echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $ORANGE_FILE; } &
+
   { OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
-    echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE; } &
+    echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE;
+    #run additional tests on the verify branch, currently hardcoded
+    cd mitls-fstar
+    git checkout verify
+    cd ..
+    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Mem.fst-ver || \
+    echo "Mem.fst-ver (mitls verify)" >> $ORANGE_FILE;
+    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Pkg.fst-ver || \
+    echo "Pkg.fst-ver (mitls verify)" >> $ORANGE_FILE;
+  } &
+
   { touch hacl-star/secure_api/aead/Crypto.AEAD.Main.fst; #force a rebuild of krml-test-hacl.exe
     OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/secure_api $PARALLEL_OPT krml-test-hacl.exe || \
     echo "krml-test-hacl.exe (HACL*)" >> $ORANGE_FILE; } &
