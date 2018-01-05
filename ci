@@ -640,10 +640,10 @@ fstar_and_friends () {
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
 
-  { OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
+  { OTHERFLAGS=--use_hint_hashes timeout 240 make -f Makefile.old -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
 
-  { OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
+  { OTHERFLAGS=--use_hint_hashes timeout 240 make -f Makefile.old -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
     echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $ORANGE_FILE; } &
 
   { OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
