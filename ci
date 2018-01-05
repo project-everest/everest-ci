@@ -640,10 +640,10 @@ fstar_and_friends () {
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
 
-  { OTHERFLAGS=--use_hint_hashes timeout 240 make -f Makefile.old -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
+  { OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
 
-  { OTHERFLAGS=--use_hint_hashes timeout 240 make -f Makefile.old -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
+  { OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
     echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $ORANGE_FILE; } &
 
   { OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
@@ -659,8 +659,9 @@ fstar_and_friends () {
   } &
 
   { touch hacl-star/secure_api/aead/Crypto.AEAD.Main.fst; #force a rebuild of krml-test-hacl.exe
-    OTHERFLAGS=--use_hint_hashes timeout 240 make -f Makefile.extract -C hacl-star/secure_api $PARALLEL_OPT || \
-    echo "krml-test.exe (HACL*)" >> $ORANGE_FILE; } &
+    OTHERFLAGS=--use_hint_hashes timeout 240 make -f \
+      hacl-star/secure_api/Makefile.extract -C hacl-star/secure_api $PARALLEL_OPT || \
+    echo "krml-test-hacl.exe (HACL*)" >> $ORANGE_FILE; } &
   wait
   if [[ $(cat $out_file) != "true" ]]; then
     echo "F* regression failed" && rm $out_file && return 1
