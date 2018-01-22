@@ -260,10 +260,8 @@ function run_log_commit() {
       slack_type="failure :crying_cat_face:"
 
       # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error...
-      # something. Note: grep -v returns 1 if no lines were selected.
-      local failed_modules=$(egrep '\.fst.*: ?\(Error' $CI_LOGS/$log_err | \
-        grep -v NegativeTests | \
-        sed 's/^\(C:\)\?[^:]*[\\\/]\([^:]*\.fst\)[^:]*:.*/\2/' |
+      # something. Erase the path while at it, keeping the filename only.
+      local failed_modules=$(sed -n 's/\(.*[\\\/]\)\?\([^(]*\)[^:]*: (Error.*/\2/p' $CI_LOGS/$log_err | \
         sort | \
         uniq | \
         tr '\r\n' ' ')
