@@ -587,8 +587,9 @@ function fetch_mitls() {
 function mitls_verify() {
   # Only building a subset of HACL* for now
   fetch_and_make_fstar && fetch_and_make_kremlin all && fetch_hacl && \
-    fetch_and_make_mlcrypto &&
+    fetch_and_make_mlcrypto && \
     make -C hacl-star/secure_api/LowCProvider $PARALLEL_OPT && \
+    make -C libs/ffi $PARALLEL_OPT && \
     make -C src/tls $PARALLEL_OPT all -k
 }
 
