@@ -527,7 +527,7 @@ function fetch_kremlin() {
 
 function fetch_and_make_kremlin() {
   fetch_kremlin
-  make -C kremlin $PARALLEL_OPT
+  make -C kremlin $PARALLEL_OPT minimal
 }
 
 # By default, HACL* master works against F* stable. Can also be overridden.
@@ -671,7 +671,6 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
-    export_home FSTAR "$(pwd)"
     fetch_kremlin
     run_log_commit "fstar_and_friends uregressions" "fstar-ci" "#fstar-build" "FStarLang/FStar" "."
     ;;
@@ -683,7 +682,6 @@ case "$1" in
       exit 1
     fi
     export OTHERFLAGS="--record_hints $OTHERFLAGS"
-    export_home FSTAR "$(pwd)"
     fetch_kremlin
     run_log_commit "fstar_and_friends uregressions-ulong" "fstar-nightly" "#fstar-build" "FStarLang/FStar" "."
     refresh_fstar_hints
