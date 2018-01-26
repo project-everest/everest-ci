@@ -527,7 +527,11 @@ function fetch_kremlin() {
 
 function fetch_and_make_kremlin() {
   fetch_kremlin
-  make -C kremlin $PARALLEL_OPT minimal
+  if [[ $1 == "" ]]; then
+    make -C kremlin $PARALLEL_OPT minimal
+  else
+    make -C kremlin $PARALLEL_OPT $1
+  fi
 }
 
 # By default, HACL* master works against F* stable. Can also be overridden.
@@ -560,7 +564,7 @@ function fetch_mitls() {
 
 function mitls_verify() {
   # Only building a subset of HACL* for now
-  fetch_and_make_fstar && fetch_and_make_kremlin && fetch_hacl && \
+  fetch_and_make_fstar && fetch_and_make_kremlin all && fetch_hacl && \
     make -C hacl-star/secure_api/LowCProvider $PARALLEL_OPT && \
     make -C src/tls $PARALLEL_OPT all -k
 }
