@@ -532,6 +532,7 @@ function fetch_and_make_kremlin() {
   else
     make -C kremlin $PARALLEL_OPT $1
   fi
+  export PATH="$(pwd)/kremlin:$PATH"
 }
 
 function fetch_mlcrypto() {
