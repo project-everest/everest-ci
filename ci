@@ -534,6 +534,24 @@ function fetch_and_make_kremlin() {
   fi
 }
 
+function fetch_mlcrypto() {
+  if [ ! -d mlcrypto  ]; then
+    git clone https://github.com/project-everest/MLCrypto mlcrypto
+  fi
+  cd mlcrypto
+  git fetch origin
+  local ref=$( if [ -f ../.mlcrypto_version ]; then cat ../.mlcrypto_version | tr -d '\r\n'; else echo origin/master; fi )
+  echo Switching to MLCrypto $ref
+  git reset --hard $ref
+  cd ..
+  export_home MLCRYPTO "$(pwd)/mlcrypto"
+}
+
+function fetch_and_make_mlcrypto() {
+  fetch_mlcrypto
+  make -C mlcrypto $PARALLEL_OPT
+}
+
 # By default, HACL* master works against F* stable. Can also be overridden.
 function fetch_hacl() {
   if [ ! -d hacl-star ]; then
@@ -565,6 +583,7 @@ function fetch_mitls() {
 function mitls_verify() {
   # Only building a subset of HACL* for now
   fetch_and_make_fstar && fetch_and_make_kremlin all && fetch_hacl && \
+    fetch_and_make_mlcrypto &&
     make -C hacl-star/secure_api/LowCProvider $PARALLEL_OPT && \
     make -C src/tls $PARALLEL_OPT all -k
 }
