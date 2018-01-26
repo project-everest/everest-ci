@@ -527,8 +527,8 @@ function fetch_kremlin() {
 
 function fetch_and_make_kremlin() {
   fetch_kremlin
-  if [[ -x kremlin/_build/sanitize.sh ]]; then
-    ./kremlin/_build/sanitize.sh || true
+  if [[ -f kremlin/_build/sanitize.sh ]]; then
+    (cd kremlin && sh _build/sanitize.sh) || true
   fi
   if [[ $1 == "" ]]; then
     make -C kremlin $PARALLEL_OPT minimal
