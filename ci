@@ -534,7 +534,7 @@ function fetch_and_make_kremlin() {
   else
     target="$1"
   fi
-  make -C kremlin $PARALLEL_OPT $target || \
+  make -C kremlin $PARALLEL_OPT $target || \
     (cd kremlin && sh _build/sanitize.sh && make $PARALLEL_OPT $target)
   export PATH="$(pwd)/kremlin:$PATH"
 }
