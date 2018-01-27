@@ -527,14 +527,15 @@ function fetch_kremlin() {
 
 function fetch_and_make_kremlin() {
   fetch_kremlin
-  if [[ -f kremlin/_build/sanitize.sh ]]; then
-    (cd kremlin && sh _build/sanitize.sh) || true
-  fi
+  # Default build target is minimal, unless specified otherwise
+  local target
   if [[ $1 == "" ]]; then
-    make -C kremlin $PARALLEL_OPT minimal
+    target="minimal"
   else
-    make -C kremlin $PARALLEL_OPT $1
+    target="$1"
   fi
+  make -C kremlin $PARALLEL_OPT $target || \
+    (cd kremlin && sh _build/sanitize.sh && make $PARALLEL_OPT $target)
   export PATH="$(pwd)/kremlin:$PATH"
 }
 
