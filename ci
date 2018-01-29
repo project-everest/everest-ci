@@ -548,6 +548,7 @@ function fetch_mlcrypto() {
   local ref=$( if [ -f ../.mlcrypto_version ]; then cat ../.mlcrypto_version | tr -d '\r\n'; else echo origin/master; fi )
   echo Switching to MLCrypto $ref
   git reset --hard $ref
+  git submodule update
   cd ..
   export_home MLCRYPTO "$(pwd)/mlcrypto"
 }
