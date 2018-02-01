@@ -593,6 +593,7 @@ function build_pki_if() {
 }
 
 function mitls_verify() {
+  export_home MITLS "$(pwd)"
   # Only building a subset of HACL* for now
   fetch_and_make_fstar && fetch_and_make_kremlin all && fetch_hacl && \
     fetch_and_make_mlcrypto && \
