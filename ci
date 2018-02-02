@@ -352,7 +352,7 @@ function refresh_hacl_hints() {
 
 function everest_rebuild() {
   git clean -ffdx
-  ./everest --yes $PARALLEL_OPT check reset make
+  ./everest --yes $PARALLEL_OPT $1 check reset make
 }
 
 function everest_move() {
@@ -801,6 +801,20 @@ case "$1" in
     run_log_commit "./everest --yes $PARALLEL_OPT test" "everest-test" "#everest-build" "project-everest/everest"
     # If it builds & tests, verify it.
     run_log_commit "./everest --yes $PARALLEL_OPT verify" "everest-verify" "#everest-build" "project-everest/everest" "./FStar"
+    ;;
+
+  everest-ci-nouint128)
+    # Clone all projects together and make sure they test and build together
+    if ! [ -x everest ]; then
+      echo "Not in the right directory"
+      exit 1
+    fi
+    run_log_commit "everest_rebuild -fnouint128" "everest-build-nouint128" "#everest-build" "project-everest/everest"
+    # This second command is only run if the first one succeeds (the script
+    # aborts otherwise).
+    run_log_commit "./everest --yes -fnouint128 $PARALLEL_OPT test" "everest-test-nouint128" "#everest-build" "project-everest/everest"
+    # If it builds & tests, verify it.
+    run_log_commit "./everest --yes -fnouint128 $PARALLEL_OPT verify" "everest-verify-nouint128" "#everest-build" "project-everest/everest" "./FStar"
     ;;
 
   everest-nightly-check)
