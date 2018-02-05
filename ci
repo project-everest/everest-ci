@@ -259,11 +259,9 @@ function run_log_commit() {
       slack_emoji=":no_entry:"
       slack_type="failure :crying_cat_face:"
 
-      # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error)
-      # something. Note: grep -v returns 1 if no lines were selected.
-      local failed_modules=$(egrep '\.fst.*: ?\(Error\)' $CI_LOGS/$log_err | \
-        grep -v NegativeTests | \
-        sed 's/^\(C:\)\?[^:]*[\\\/]\([^:]*\.fst\)[^:]*:.*/\2/' |
+      # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error...
+      # something. Erase the path while at it, keeping the filename only.
+      local failed_modules=$(sed -n 's/\(.*[\\\/]\)\?\([^(]*\)[^:]*: (Error.*/\2/p' $CI_LOGS/$log_err | \
         sort | \
         uniq | \
         tr '\r\n' ' ')
@@ -354,7 +352,7 @@ function refresh_hacl_hints() {
 
 function everest_rebuild() {
   git clean -ffdx
-  ./everest --yes $PARALLEL_OPT check reset make
+  ./everest --yes $PARALLEL_OPT $1 check reset make
 }
 
 function everest_move() {
@@ -498,7 +496,7 @@ function fetch_fstar() {
   fi
   cd fstar
   git fetch origin
-  local ref=$( if [ -f ../fstar_version ]; then cat ../fstar_version | tr -d '\r\n'; else echo origin/stable; fi )
+  local ref=$( if [ -f ../.fstar_version ]; then cat ../.fstar_version | tr -d '\r\n'; else echo origin/stable; fi )
   echo Switching to F* $ref
   git reset --hard $ref
   cd ..
@@ -529,7 +527,35 @@ function fetch_kremlin() {
 
 function fetch_and_make_kremlin() {
   fetch_kremlin
-  make -C kremlin $PARALLEL_OPT
+  # Default build target is minimal, unless specified otherwise
+  local target
+  if [[ $1 == "" ]]; then
+    target="minimal"
+  else
+    target="$1"
+  fi
+  make -C kremlin $PARALLEL_OPT $target || \
+    (cd kremlin && sh _build/sanitize.sh && make $PARALLEL_OPT $target)
+  export PATH="$(pwd)/kremlin:$PATH"
+}
+
+function fetch_mlcrypto() {
+  if [ ! -d mlcrypto  ]; then
+    git clone https://github.com/project-everest/MLCrypto mlcrypto
+  fi
+  cd mlcrypto
+  git fetch origin
+  local ref=$( if [ -f ../.mlcrypto_version ]; then cat ../.mlcrypto_version | tr -d '\r\n'; else echo origin/master; fi )
+  echo Switching to MLCrypto $ref
+  git reset --hard $ref
+  git submodule update
+  cd ..
+  export_home MLCRYPTO "$(pwd)/mlcrypto"
+}
+
+function fetch_and_make_mlcrypto() {
+  fetch_mlcrypto
+  make -C mlcrypto $PARALLEL_OPT
 }
 
 # By default, HACL* master works against F* stable. Can also be overridden.
@@ -560,11 +586,22 @@ function fetch_mitls() {
   export_home MITLS "$(pwd)/mitls-fstar"
 }
 
+function build_pki_if() {
+  if [[ -d src/pki ]]; then
+    make -C src/pki $PARALLEL_OPT
+  fi
+}
+
 function mitls_verify() {
+  export_home MITLS "$(pwd)"
   # Only building a subset of HACL* for now
-  fetch_and_make_fstar && fetch_and_make_kremlin && fetch_hacl && \
+  fetch_and_make_fstar && fetch_and_make_kremlin all && fetch_hacl && \
+    fetch_and_make_mlcrypto && \
     make -C hacl-star/secure_api/LowCProvider $PARALLEL_OPT && \
-    make -C src/tls $PARALLEL_OPT all -k
+    make -C libs/ffi $PARALLEL_OPT && \
+    build_pki_if && \
+    make -C src/tls $PARALLEL_OPT all -k && \
+    make -C src/tls $PARALLEL_OPT test -k
 }
 
 function mitls_verify_and_hints() {
@@ -636,12 +673,25 @@ fstar_and_friends () {
   # tests.
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
+
   { OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
+
   { OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/secure_api/aead $PARALLEL_OPT Crypto.AEAD.Encrypt.fst-ver || \
     echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $ORANGE_FILE; } &
+
   { OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
-    echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE; } &
+    echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE;
+    #run additional tests on the verify branch, currently hardcoded
+    cd mitls-fstar
+    git reset --hard origin/verify
+    cd ..
+    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Mem.fst-ver || \
+    echo "Mem.fst-ver (mitls verify)" >> $ORANGE_FILE;
+    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Pkg.fst-ver || \
+    echo "Pkg.fst-ver (mitls verify)" >> $ORANGE_FILE;
+  } &
+
   { touch hacl-star/secure_api/aead/Crypto.AEAD.Main.fst; #force a rebuild of krml-test-hacl.exe
     OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/secure_api $PARALLEL_OPT krml-test-hacl.exe || \
     echo "krml-test-hacl.exe (HACL*)" >> $ORANGE_FILE; } &
@@ -751,6 +801,20 @@ case "$1" in
     run_log_commit "./everest --yes $PARALLEL_OPT test" "everest-test" "#everest-build" "project-everest/everest"
     # If it builds & tests, verify it.
     run_log_commit "./everest --yes $PARALLEL_OPT verify" "everest-verify" "#everest-build" "project-everest/everest" "./FStar"
+    ;;
+
+  everest-ci-nouint128)
+    # Clone all projects together and make sure they test and build together
+    if ! [ -x everest ]; then
+      echo "Not in the right directory"
+      exit 1
+    fi
+    run_log_commit "everest_rebuild -fnouint128" "everest-build-nouint128" "#everest-build" "project-everest/everest"
+    # This second command is only run if the first one succeeds (the script
+    # aborts otherwise).
+    run_log_commit "./everest --yes -fnouint128 $PARALLEL_OPT test" "everest-test-nouint128" "#everest-build" "project-everest/everest"
+    # If it builds & tests, verify it.
+    run_log_commit "./everest --yes -fnouint128 $PARALLEL_OPT verify" "everest-verify-nouint128" "#everest-build" "project-everest/everest" "./FStar"
     ;;
 
   everest-nightly-check)
