@@ -227,7 +227,15 @@ function run_log_commit() {
   else
     git commit -am "[CI] $stem logs (failure)"
   fi
-  git push
+  local pull_success=true
+  until git push
+  do
+    git pull --no-edit || {
+      pull_success=false
+      break
+    }
+  done
+  $pull_success
   popd
 
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
