@@ -823,6 +823,8 @@ case "$1" in
     run_log_commit "./everest --yes -fnouint128 $PARALLEL_OPT test" "everest-test-nouint128" "#everest-build" "project-everest/everest"
     # If it builds & tests, verify it.
     run_log_commit "./everest --yes -fnouint128 $PARALLEL_OPT verify" "everest-verify-nouint128" "#everest-build" "project-everest/everest" "./FStar"
+    # Finally, build QUICFStar
+    run_log_commit "./everest drop qbuild" "everest-quic-nouint128" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
