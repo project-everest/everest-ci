@@ -811,20 +811,20 @@ case "$1" in
     run_log_commit "./everest --yes $PARALLEL_OPT verify" "everest-verify" "#everest-build" "project-everest/everest" "./FStar"
     ;;
 
-  everest-ci-nouint128)
+  everest-ci-windows)
     # Clone all projects together and make sure they test and build together
     if ! [ -x everest ]; then
       echo "Not in the right directory"
       exit 1
     fi
-    run_log_commit "everest_rebuild -fnouint128" "everest-build-nouint128" "#everest-build" "project-everest/everest"
+    run_log_commit "everest_rebuild -windows" "everest-build-windows" "#everest-build" "project-everest/everest"
     # This second command is only run if the first one succeeds (the script
     # aborts otherwise).
-    run_log_commit "./everest --yes -fnouint128 $PARALLEL_OPT test" "everest-test-nouint128" "#everest-build" "project-everest/everest"
+    run_log_commit "./everest --yes -windows $PARALLEL_OPT test" "everest-test-windows" "#everest-build" "project-everest/everest"
     # If it builds & tests, verify it.
-    run_log_commit "./everest --yes -fnouint128 $PARALLEL_OPT verify" "everest-verify-nouint128" "#everest-build" "project-everest/everest" "./FStar"
+    run_log_commit "./everest --yes -windows $PARALLEL_OPT verify" "everest-verify-windows" "#everest-build" "project-everest/everest" "./FStar"
     # Finally, build QUICFStar
-    run_log_commit "./everest drop qbuild" "everest-quic-nouint128" "#everest-build" "project-everest/everest"
+    run_log_commit "./everest drop qbuild" "everest-qbuild-windows" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
