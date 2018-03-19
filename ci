@@ -107,7 +107,7 @@ fi
 
 # Some environment variables we want
 export OCAMLRUNPARAM=b
-export OTHERFLAGS="--print_z3_statistics --use_hints --hint_info"
+export OTHERFLAGS="--print_z3_statistics --use_hints --query_stats"
 
 function log_prelude() {
   # Some basic information
@@ -227,7 +227,15 @@ function run_log_commit() {
   else
     git commit -am "[CI] $stem logs (failure)"
   fi
-  git push
+  local pull_success=true
+  until git push
+  do
+    git pull --no-edit || {
+      pull_success=false
+      break
+    }
+  done
+  $pull_success
   popd
 
   if [[ $SLACK_FSTAR_WEBHOOK != "" ]]; then
@@ -352,7 +360,7 @@ function refresh_hacl_hints() {
 
 function everest_rebuild() {
   git clean -ffdx
-  ./everest --yes $PARALLEL_OPT check reset make
+  ./everest --yes $PARALLEL_OPT $1 check reset make
 }
 
 function everest_move() {
@@ -593,6 +601,7 @@ function build_pki_if() {
 }
 
 function mitls_verify() {
+  export_home MITLS "$(pwd)"
   # Only building a subset of HACL* for now
   fetch_and_make_fstar && fetch_and_make_kremlin all && fetch_hacl && \
     fetch_and_make_mlcrypto && \
@@ -681,14 +690,15 @@ fstar_and_friends () {
 
   { OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
     echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE;
-    #run additional tests on the verify branch, currently hardcoded
-    cd mitls-fstar
-    git reset --hard origin/verify
-    cd ..
-    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Mem.fst-ver || \
-    echo "Mem.fst-ver (mitls verify)" >> $ORANGE_FILE;
-    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Pkg.fst-ver || \
-    echo "Pkg.fst-ver (mitls verify)" >> $ORANGE_FILE;
+    # NS: removed this until some other suitable targets are restored in miTLS' verify branch
+    # #run additional tests on the verify branch, currently hardcoded
+    # cd mitls-fstar
+    # git reset --hard origin/verify
+    # cd ..
+    # OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Mem.fst-ver || \
+    # echo "Mem.fst-ver (mitls verify)" >> $ORANGE_FILE;
+    # OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Pkg.fst-ver || \
+    # echo "Pkg.fst-ver (mitls verify)" >> $ORANGE_FILE;
   } &
 
   { touch hacl-star/secure_api/aead/Crypto.AEAD.Main.fst; #force a rebuild of krml-test-hacl.exe
@@ -765,7 +775,7 @@ case "$1" in
       exit 1
     fi
 
-    export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS"
+    export OTHERFLAGS="--record_hints $OTHERFLAGS"
     run_log_commit "mitls_verify_and_hints" "mitls-ci" "#mitls-build" "mitls/mitls-fstar" "./fstar"
     ;;
 
@@ -785,7 +795,7 @@ case "$1" in
       exit 1
     fi
 
-    export OTHERFLAGS="--record_hints --hint_info $OTHERFLAGS --z3rlimit_factor 2"
+    export OTHERFLAGS="--record_hints $OTHERFLAGS --z3rlimit_factor 2"
     run_log_commit "hacl_test_and_hints" "hacl-ci" "#hacl-build" "mitls/hacl-star" "./fstar"
     ;;
 
@@ -801,6 +811,22 @@ case "$1" in
     run_log_commit "./everest --yes $PARALLEL_OPT test" "everest-test" "#everest-build" "project-everest/everest"
     # If it builds & tests, verify it.
     run_log_commit "./everest --yes $PARALLEL_OPT verify" "everest-verify" "#everest-build" "project-everest/everest" "./FStar"
+    ;;
+
+  everest-ci-windows)
+    # Clone all projects together and make sure they test and build together
+    if ! [ -x everest ]; then
+      echo "Not in the right directory"
+      exit 1
+    fi
+    run_log_commit "everest_rebuild -windows" "everest-build-windows" "#everest-build" "project-everest/everest"
+    # This second command is only run if the first one succeeds (the script
+    # aborts otherwise).
+    run_log_commit "./everest --yes -windows $PARALLEL_OPT test" "everest-test-windows" "#everest-build" "project-everest/everest"
+    # If it builds & tests, verify it.
+    run_log_commit "./everest --yes -windows $PARALLEL_OPT verify" "everest-verify-windows" "#everest-build" "project-everest/everest" "./FStar"
+    # Finally, build QUICFStar
+    run_log_commit "./everest drop qbuild" "everest-qbuild-windows" "#everest-build" "project-everest/everest"
     ;;
 
   everest-nightly-check)
