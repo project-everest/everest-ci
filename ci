@@ -324,10 +324,10 @@ function refresh_hints() {
   # Add all the hints, even those not under version control
   find $hints_dir -iname '*.hints' -and -not -path '*/.*' -and -not -path '*/dependencies/*' | xargs git add
 
-  # Without the bash -c, this was doing weird stuff such as,
+  # Without the eval, this was doing weird stuff such as,
   # when $2 = "git ls-files src/ocaml-output/ | xargs git add",
   # outputting the list of files to stdout
-  bash -c "$extra"
+  eval "$extra"
 
   git commit --allow-empty -m "[CI] $msg"
   # Memorize that commit
