@@ -323,7 +323,11 @@ function refresh_hints() {
 
   # Add all the hints, even those not under version control
   find $hints_dir -iname '*.hints' -and -not -path '*/.*' -and -not -path '*/dependencies/*' | xargs git add
-  $extra
+
+  # Without the eval, this was doing weird stuff such as,
+  # when $2 = "git ls-files src/ocaml-output/ | xargs git add",
+  # outputting the list of files to stdout
+  eval "$extra"
 
   git commit --allow-empty -m "[CI] $msg"
   # Memorize that commit
@@ -690,14 +694,15 @@ fstar_and_friends () {
 
   { OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
     echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE;
-    #run additional tests on the verify branch, currently hardcoded
-    cd mitls-fstar
-    git reset --hard origin/verify
-    cd ..
-    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Mem.fst-ver || \
-    echo "Mem.fst-ver (mitls verify)" >> $ORANGE_FILE;
-    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Pkg.fst-ver || \
-    echo "Pkg.fst-ver (mitls verify)" >> $ORANGE_FILE;
+    # NS: removed this until some other suitable targets are restored in miTLS' verify branch
+    # #run additional tests on the verify branch, currently hardcoded
+    # cd mitls-fstar
+    # git reset --hard origin/verify
+    # cd ..
+    # OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Mem.fst-ver || \
+    # echo "Mem.fst-ver (mitls verify)" >> $ORANGE_FILE;
+    # OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Pkg.fst-ver || \
+    # echo "Pkg.fst-ver (mitls verify)" >> $ORANGE_FILE;
   } &
 
   { touch hacl-star/secure_api/aead/Crypto.AEAD.Main.fst; #force a rebuild of krml-test-hacl.exe
@@ -755,6 +760,7 @@ case "$1" in
       echo "I don't seem to be in the right directory, bailing"
       exit 1
     fi
+    fetch_kremlin
     run_log_commit "./.scripts/process_build.sh" "fstar-binarybuild" "#fstar-build" "FStarLang/FStar"
     ;;
 
