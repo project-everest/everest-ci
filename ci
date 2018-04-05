@@ -670,6 +670,7 @@ fstar_and_friends () {
   fetch_hacl &
   fetch_and_make_kremlin &
   fetch_mitls &
+  fetch_and_make_mlcrypto &
   wait
   if [[ $(cat $out_file) != "true" ]]; then
     echo "warm-up failed" && rm $out_file && return 1
