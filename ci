@@ -518,7 +518,7 @@ function fetch_fstar() {
 function fetch_and_make_fstar() {
   fetch_fstar
   make -C fstar/src/ocaml-output $PARALLEL_OPT || \
-    (sh src/ocaml-output/_build/sanitize.sh && make -C src/ocaml-output $PARALLEL_OPT) || \
+    (git clean -fdx && make -C src/ocaml-output $PARALLEL_OPT) || \
     exit 255
   make -C fstar/ulib/ml
 }
@@ -547,7 +547,7 @@ function fetch_and_make_kremlin() {
     target="$1"
   fi
   make -C kremlin $PARALLEL_OPT $target || \
-    (cd kremlin && sh _build/sanitize.sh && make $PARALLEL_OPT $target)
+    (cd kremlin && git clean -fdx && make $PARALLEL_OPT $target)
   export PATH="$(pwd)/kremlin:$PATH"
 }
 
