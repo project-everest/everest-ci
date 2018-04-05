@@ -706,7 +706,8 @@ fstar_and_friends () {
   } &
 
   { touch hacl-star/secure_api/aead/Crypto.AEAD.Main.fst; #force a rebuild of krml-test-hacl.exe
-    OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/secure_api $PARALLEL_OPT -f Makefile.extract && \
+    OTHERFLAGS=--use_hint_hashes make -C hacl-star/code/curve25519 extract-c && \
+      timeout 240 make -C hacl-star/secure_api $PARALLEL_OPT -f Makefile.extract && \
       hacl-star/secure_api/out/runtime_switch/krml-test.exe || \
     echo "krml-test-hacl.exe (HACL*)" >> $ORANGE_FILE; } &
   wait
