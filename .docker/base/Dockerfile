@@ -1,4 +1,4 @@
-FROM projecteverest/everest-chomolungma-d8
+FROM projecteverest/everest-chomolungma
 LABEL maintainer "Irina Spiridonova <irinasp@microsoft.com>; Darren Gehring <darrenge@microsoft.com>; Tahina Ramananandro <taramana@microsoft.com>"
 
 #Following variables should be provided while creating new Linux container: 
