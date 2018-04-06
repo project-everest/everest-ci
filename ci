@@ -654,18 +654,6 @@ done
 # Runs F* along with some representative tests from other projects. Writes into
 # $ORANGE_FILE (since it's called from within a sub-shell).
 fstar_and_friends () {
-  # VSTS has two options: "Clean sources and output directories", and "Clean all
-  # build directories". Neither of these options does what we want.
-  # - For some unfathomable reason, the former decides to only clean the "src"
-  #   and "bin" directories, not the rest of the tree, even though the log says
-  #   "git clean -fdx" (spoiler: it's not the command that VSTS runs, it's a
-  #   lie).
-  # - The latter just removes the directory and starts from a fresh git clone.
-  # Why VSTS would not offer the option to just run "git clean -fdx" is a
-  # mystery to me, but wisdom dictates that we write the workaround and move on
-  # rather than understand the ways of VSTS which are impenetrable.
-  git clean -fdx
-
   local target=$1
 
   # Communication from sub-process shells.
