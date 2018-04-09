@@ -520,7 +520,7 @@ function fetch_fstar() {
 function fetch_and_make_fstar() {
   fetch_fstar
   make -C fstar/src/ocaml-output $PARALLEL_OPT || \
-    (sh src/ocaml-output/_build/sanitize.sh && make -C src/ocaml-output $PARALLEL_OPT) || \
+    (git clean -fdx && make -C src/ocaml-output $PARALLEL_OPT) || \
     exit 255
   make -C fstar/ulib/ml
 }
@@ -549,7 +549,7 @@ function fetch_and_make_kremlin() {
     target="$1"
   fi
   make -C kremlin $PARALLEL_OPT $target || \
-    (cd kremlin && sh _build/sanitize.sh && make $PARALLEL_OPT $target)
+    (cd kremlin && git clean -fdx && make $PARALLEL_OPT $target)
   export PATH="$(pwd)/kremlin:$PATH"
 }
 
@@ -672,7 +672,6 @@ fstar_and_friends () {
   fetch_hacl &
   fetch_and_make_kremlin &
   fetch_mitls &
-  fetch_and_make_mlcrypto &
   { if [ ! -d hacl-star-old ]; then
       git clone https://github.com/mitls/hacl-star hacl-star-old
       cd hacl-star-old && git reset --hard 98755f79579a0c153140e8d9a186145beafacf8f
@@ -718,8 +717,7 @@ fstar_and_friends () {
   # regenerate krml-test.exe and the .krml files.
   { rm -rf hacl-star/secure_api/out/runtime_switch/extracted;
     OTHERFLAGS=--use_hint_hashes make -C hacl-star/code/curve25519 extract-c && \
-      timeout 240 make -C hacl-star/secure_api $PARALLEL_OPT -f Makefile.extract && \
-      hacl-star/secure_api/out/runtime_switch/krml-test.exe || \
+      timeout 240 make -C hacl-star/secure_api $PARALLEL_OPT -f Makefile.extract krml-test ||
     echo "krml-test.exe (HACL*)" >> $ORANGE_FILE; } &
   wait
 
