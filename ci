@@ -33,8 +33,10 @@ set -o pipefail
 # Some commands...
 if [[ $(uname) = "Darwin" ]]; then
   DATE=gdate
+  FIND=gfind
 else
   DATE=date
+  FIND=find
 fi
 
 # Self-update
@@ -720,6 +722,14 @@ fstar_and_friends () {
       hacl-star/secure_api/out/runtime_switch/krml-test.exe || \
     echo "krml-test.exe (HACL*)" >> $ORANGE_FILE; } &
   wait
+
+  # Make it an orange if there's a git diff
+  echo "Searching for a diff in src/ocaml-output"
+  if ! $(FIND) src/ocaml-output/ -iname '*.ml' -and -not -iname 'FStar_Version.ml' | xargs git diff --exit-code --name-only; then
+    echo "GIT DIFF: the files in the list above have a git diff"
+  fi
+  echo "snapshot-diff (F*)" >> $ORANGE_FILE
+
   if [[ $(cat $out_file) != "true" ]]; then
     echo "F* regression failed" && rm $out_file && return 1
   fi
