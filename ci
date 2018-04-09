@@ -721,9 +721,10 @@ fstar_and_friends () {
     echo "krml-test.exe (HACL*)" >> $ORANGE_FILE; } &
   wait
 
-  # Make it an orange if there's a git diff
+  # Make it an orange if there's a git diff. Note: FStar_Version.ml is in the
+  # .gitignore.
   echo "Searching for a diff in src/ocaml-output"
-  if ! $(FIND) src/ocaml-output/ -iname '*.ml' -and -not -iname 'FStar_Version.ml' | xargs git diff --exit-code --name-only --; then
+  if git diff --exit-code --name-only src/ocaml-output; then
     echo "GIT DIFF: the files in the list above have a git diff"
   fi
   echo "snapshot-diff (F*)" >> $ORANGE_FILE
