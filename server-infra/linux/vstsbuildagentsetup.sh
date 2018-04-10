@@ -16,6 +16,11 @@ Setup ()
         bash ./configagents.sh $vstsPat $agentNumber
         sudo bash ./startagents.sh $vstsPat $agentNumber
     done
+
+    # Restart machine to take any effect that requires a restart.
+    echo "Restarting machine"
+    sleep 5
+    sudo shutdown -r 0
 }
 
 Setup
