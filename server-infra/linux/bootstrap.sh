@@ -24,7 +24,6 @@ Bootstrap ()
     if [ $servername != "Everest-BuildServer-Linux" ]
     then
         echo "Everest-BuildServer-Linux" | sudo tee /etc/hostname
-        sleep 2
     fi
 
     # Verify dotnet is not installed.
@@ -110,6 +109,8 @@ Bootstrap ()
 
         docker run hello-world
     fi
+
+    usermod -a -G docker $USER
 
     # Check if we have the agents folder, create it if needed.
     if ! [ -d /home/everest/build/agents ]; then
