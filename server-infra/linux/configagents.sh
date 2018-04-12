@@ -10,7 +10,7 @@ ConfigAgents ()
     cd /home/everest/build/agents/$agentNumber
 
     # Now we setup the new agent.
-    bash ./config.sh --unattended --url https://msr-everest.visualstudio.com --auth pat --token $vstsPat --pool MsrEverestPoolLinux --agent $agentNumber --acceptTeeEula
+    bash ./config.sh --unattended --url https://msr-project-everest.visualstudio.com --auth pat --token $vstsPat --pool MsrEverestPoolLinux --agent $agentNumber --acceptTeeEula
 }
 
 ConfigAgents

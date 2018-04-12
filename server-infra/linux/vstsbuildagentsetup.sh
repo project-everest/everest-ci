@@ -7,7 +7,7 @@ vstsPat=$1
 Setup () 
 {
     numberOfAgents=8
-    sudo bash ./bootstrap.sh $numberOfAgents
+    sudo bash ./bootstrap.sh $numberOfAgents $USER
 
     for i in $(seq 1 $numberOfAgents)
     do
