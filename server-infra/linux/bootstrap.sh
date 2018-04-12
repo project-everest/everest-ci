@@ -4,6 +4,7 @@
 # Run it if you need to setup or resetup the linux build server.
 
 numberOfAgents=$1
+serviceUser=$2
 
 Bootstrap () 
 {
@@ -110,7 +111,7 @@ Bootstrap ()
         docker run hello-world
     fi
 
-    usermod -a -G docker $USER
+    usermod -a -G docker $serviceUser
 
     # Check if we have the agents folder, create it if needed.
     if ! [ -d /home/everest/build/agents ]; then
