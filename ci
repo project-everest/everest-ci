@@ -110,6 +110,7 @@ fi
 # Some environment variables we want
 export OCAMLRUNPARAM=b
 export OTHERFLAGS="--print_z3_statistics --use_hints --query_stats"
+export MAKEFLAGS="$MAKEFLAGS -Otarget"
 
 function log_prelude() {
   # Some basic information
@@ -644,7 +645,6 @@ do
       # (max number of parallel jobs)
       shift
       PARALLEL_OPT="-j $1"
-      export MAKEFLAGS="$MAKEFLAGS -Otarget"
       ;;
     *)
       break
