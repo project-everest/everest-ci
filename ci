@@ -119,6 +119,8 @@ function log_prelude() {
   echo "About to run: $build_command"
   echo "BUILD_SOURCEBRANCHNAME: $BUILD_SOURCEBRANCHNAME"
   echo "BUILD_DEFINITIONNAME: $BUILD_DEFINITIONNAME"
+  echo "BUILD_BUILDID: $BUILD_BUILDID"
+  echo "DEFINITIONNAME: $DEFINITIONNAME"
   echo "Z3 is $(which z3)"
 }
 
