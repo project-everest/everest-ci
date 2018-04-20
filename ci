@@ -694,15 +694,15 @@ fstar_and_friends () {
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
 
-  { OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
+  { OTHERFLAGS=--use_hint_hashes timeout 480 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
 
-  { OTHERFLAGS=--use_hint_hashes timeout 240 make -C hacl-star/secure_api -f Makefile.old $PARALLEL_OPT aead/Crypto.AEAD.Encrypt.fst-ver || \
+  { OTHERFLAGS=--use_hint_hashes timeout 480 make -C hacl-star/secure_api -f Makefile.old $PARALLEL_OPT aead/Crypto.AEAD.Encrypt.fst-ver || \
     echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $ORANGE_FILE; } &
 
   # TODO: remove this hacl-old clone once we manage to get an updated StreamAE
   # on the verify branch of miTLS
-  { HACL_HOME=$(pwd)/hacl-star-old OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
+  { HACL_HOME=$(pwd)/hacl-star-old OTHERFLAGS=--use_hint_hashes timeout 480 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
     echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE;
     # NS: removed this until some other suitable targets are restored in miTLS' verify branch
     # #run additional tests on the verify branch, currently hardcoded
@@ -719,7 +719,7 @@ fstar_and_friends () {
   # regenerate krml-test.exe and the .krml files.
   { rm -rf hacl-star/secure_api/out/runtime_switch/extracted;
     OTHERFLAGS=--use_hint_hashes make -C hacl-star/code/curve25519 extract-c && \
-      timeout 240 make -C hacl-star/secure_api $PARALLEL_OPT -f Makefile.extract krml-test ||
+      timeout 480 make -C hacl-star/secure_api $PARALLEL_OPT -f Makefile.extract krml-test ||
     echo "krml-test.exe (HACL*)" >> $ORANGE_FILE; } &
   wait
 
