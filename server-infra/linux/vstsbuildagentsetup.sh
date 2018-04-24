@@ -4,6 +4,11 @@
 
 vstsPat=$1
 
+if [ -z "$1" ]; then
+    echo "VSTS Personal Access Token was not provided."
+    exit
+fi
+
 Setup () 
 {
     numberOfAgents=8

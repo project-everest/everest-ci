@@ -42,6 +42,7 @@ Bootstrap ()
         apt-get install -y gnupg
         apt-get install -y ca-certificates
         apt-get install -y software-properties-common
+        apt-get install -y dirmngr
 
         # Download script to install dotnet runtime
         echo "Download dotnet core install script."
@@ -90,6 +91,24 @@ Bootstrap ()
             echo "Fail to install powershell."
             exit
         fi
+
+        # Install Azure Powerhsell module
+        sudo pwsh -c "Install-Module AzureRM.NetCore -Force"
+    fi
+
+    # Verify Azure CLI is installed
+    if ! command -v az > /dev/null 2>&1; then
+        # Install Azure CLI
+        echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli stretch main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
+        apt-key adv --keyserver packages.microsoft.com --recv-keys 52E16F86FEE04B979B07E28DB02C46DF417A0893
+        apt-get update -y
+        apt-get install azure-cli -y
+
+         # Verify PowerShell was installed.
+        if ! command -v az > /dev/null 2>&1; then
+            echo "Fail to install Azure CLI."
+            exit
+        fi
     fi
 
     # Verify docker is not installed.
@@ -108,7 +127,8 @@ Bootstrap ()
             exit
         fi
 
-        docker run hello-world
+        #Build our Everest base image
+        docker build -f .docker/Dockerfile -t everest_base_image:1 .
     fi
 
     usermod -a -G docker $serviceUser
