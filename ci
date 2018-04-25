@@ -694,7 +694,7 @@ fstar_and_friends () {
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
 
-  { OTHERFLAGS=--use_hint_hashes timeout 480 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
+  { OTHERFLAGS='--warn_error -276 --use_hint_hashes' timeout 480 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
 
   { OTHERFLAGS=--use_hint_hashes timeout 480 make -C hacl-star/secure_api -f Makefile.old $PARALLEL_OPT aead/Crypto.AEAD.Encrypt.fst-ver || \
