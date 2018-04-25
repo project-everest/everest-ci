@@ -2,7 +2,7 @@
 # Version 1
 # If you make changes to this file, make sure to update the version above and rebuild the image, 
 # also update all references to use the new version, this image should be built using:
-# docker build -f Dockerfile -t EverestBaseImage:$V .
+# docker build -f Dockerfile -t everest_base_image:$V .
 # Where $V is the number of the version above
 FROM ubuntu:xenial
 
@@ -55,8 +55,14 @@ RUN until apt-get install --no-install-recommends --yes \
 		libtool \
 		autoconf \
 		tzdata \
-                nodejs \
 		; do apt-get --yes update ; done
+
+#Install node.js
+RUN curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
+RUN apt-get install -y nodejs
+
+#install typescript
+npm install -g typescript
 
 # Install madoko
 RUN npm install madoko -g
