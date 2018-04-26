@@ -603,6 +603,20 @@ function fetch_mitls() {
   export_home MITLS "$(pwd)/mitls-fstar"
 }
 
+function fetch_vale() {
+  if [ ! -d vale ]; then
+    git clone https://github.com/project-everest/vale vale
+  fi
+  cd vale
+  git fetch origin
+  echo Switching to vale to fstar_ci
+  git clean -fdx .
+  git reset --hard origin/fstar_ci
+  nuget.exe restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc
+  cd ..
+  export_home VALE "$(pwd)/vale"
+}
+
 function build_pki_if() {
   if [[ -d src/pki ]]; then
     make -C src/pki $PARALLEL_OPT
@@ -671,6 +685,7 @@ fstar_and_friends () {
     gnutime=""
   fi
   { $gnutime make -C src $PARALLEL_OPT -k utest-prelude && echo -n true > $out_file; } &
+  fetch_vale &
   fetch_hacl &
   fetch_and_make_kremlin &
   fetch_mitls &
@@ -694,15 +709,24 @@ fstar_and_friends () {
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
 
-  { OTHERFLAGS='--warn_error -276 --use_hint_hashes' timeout 480 make -C hacl-star/code/hash/ $PARALLEL_OPT Hacl.Hash.SHA2_256.fst-verify || \
+  { cd vale
+    if [[ "$OS" == "Windows_NT" ]]; then
+        timeout 480 scons.bat -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "Vale min-test" >> $ORANGE_FILE
+    else
+        timeout 480 scons -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "Vale min-test" >> $ORANGE_FILE
+    fi
+    cd ..
+  } &
+
+  { OTHERFLAGS='--warn_error -276 --use_hint_hashes' timeout 480 make -C hacl-star/code/hash/ -j 4 Hacl.Hash.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
 
-  { OTHERFLAGS=--use_hint_hashes timeout 480 make -C hacl-star/secure_api -f Makefile.old $PARALLEL_OPT aead/Crypto.AEAD.Encrypt.fst-ver || \
+  { OTHERFLAGS=--use_hint_hashes timeout 480 make -C hacl-star/secure_api -f Makefile.old -j 4 aead/Crypto.AEAD.Encrypt.fst-ver || \
     echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $ORANGE_FILE; } &
 
   # TODO: remove this hacl-old clone once we manage to get an updated StreamAE
   # on the verify branch of miTLS
-  { HACL_HOME=$(pwd)/hacl-star-old OTHERFLAGS=--use_hint_hashes timeout 480 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
+  { HACL_HOME=$(pwd)/hacl-star-old OTHERFLAGS=--use_hint_hashes timeout 480 make -C mitls-fstar/src/tls -j 4 StreamAE.fst-ver || \
     echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE;
     # NS: removed this until some other suitable targets are restored in miTLS' verify branch
     # #run additional tests on the verify branch, currently hardcoded
@@ -719,7 +743,7 @@ fstar_and_friends () {
   # regenerate krml-test.exe and the .krml files.
   { rm -rf hacl-star/secure_api/out/runtime_switch/extracted;
     OTHERFLAGS=--use_hint_hashes make -C hacl-star/code/curve25519 extract-c && \
-      timeout 480 make -C hacl-star/secure_api $PARALLEL_OPT -f Makefile.extract krml-test ||
+      timeout 480 make -C hacl-star/secure_api -j 4 -f Makefile.extract krml-test ||
     echo "krml-test.exe (HACL*)" >> $ORANGE_FILE; } &
   wait
 
