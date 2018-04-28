@@ -27,7 +27,7 @@ Bootstrap ()
         echo "Everest-BuildServer-Linux" | sudo tee /etc/hostname
     fi
 
-    # Check if we have the agents folder, create it if needed.
+    # Check if we have build folder, create it if needed.
     if ! [ -d /home/everest/build ]; then
         mkdir -p /home/everest/build
     fi
