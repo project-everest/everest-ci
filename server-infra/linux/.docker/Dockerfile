@@ -62,7 +62,7 @@ RUN curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
 RUN apt-get install -y nodejs
 
 #install typescript
-npm install -g typescript
+RUN npm install -g typescript
 
 # Install madoko
 RUN npm install madoko -g
