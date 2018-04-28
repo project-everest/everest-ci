@@ -4,10 +4,10 @@
         "LogFile": "buildlogfile.txt"
     },
     "Azure": {
-        "StorageAccount": "everestlogstorage",
-        "StorageAccessKey": "meerYGuMleCFqfg/HOeoPRBWTv/rh7NP+xx+C0kJD2R8CbhzArtfMYnbM7bACeE83oqN3ORPV5FWy5X0IkSMCA=="
+        "StorageAccount": "PlaceHolder",
+        "StorageAccessKey": "PlaceHolder"
     },
     "Slack" : {
-        "AccessToken" : "xoxp-22218353987-352465152145-352911814259-d2adcdf3fa200bbc8d8a31069a411c8c"
+        "AccessToken" : "PlaceHolder"
     }
 }
