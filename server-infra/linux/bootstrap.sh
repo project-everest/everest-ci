@@ -27,6 +27,18 @@ Bootstrap ()
         echo "Everest-BuildServer-Linux" | sudo tee /etc/hostname
     fi
 
+    # Check if we have the agents folder, create it if needed.
+    if ! [ -d /home/everest/build ]; then
+        mkdir -p /home/everest/build
+    fi
+
+    if ! [ -d /home/everest/build ]; then
+        echo "Unable to create /home/everest/build directory"
+        exit
+    fi
+
+    cd /home/everest/build
+
     # Verify dotnet is not installed.
     if ! command -v dotnet > /dev/null 2>&1; then
 
