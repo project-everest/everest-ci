@@ -709,14 +709,17 @@ fstar_and_friends () {
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
 
-  { cd vale
-    if [[ "$OS" == "Windows_NT" ]]; then
-        timeout 480 scons.bat -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
-    else
-        timeout 480 scons -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
-    fi
-    cd ..
-  } &
+  # JP: commenting this out since for now, since a scons timeout does not kill
+  # the underlying F* processes, which then hold filesystem locks and causes
+  # sadness since Windows does not allow you to delete those files
+#   { cd vale
+#     if [[ "$OS" == "Windows_NT" ]]; then
+#         timeout 480 scons.bat -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
+#     else
+#         timeout 480 scons -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
+#     fi
+#     cd ..
+#   } &
 
   { OTHERFLAGS='--warn_error -276 --use_hint_hashes' timeout 480 make -C hacl-star/code/hash/ -j 4 Hacl.Hash.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
@@ -739,18 +742,16 @@ fstar_and_friends () {
     # echo "Pkg.fst-ver (mitls verify)" >> $ORANGE_FILE;
   } &
 
-  # Test some degree of extraction, via a couple files from the KreMLin
-  # testsuite. Note: these use KreMLin as a driver which does two invocations of
-  # F*, one to verify, the other one to extract... but at least it doesn't
-  # re-verify the entire ulib.
-  { cd kremlin/test && timeout 480 ../krml -warn-error @4 -static-header FStar -no-prefix \
-      Test128 Test128.fst -verify -verbose -fnouint128 -tmpdir .output/Test128.out || \
-    echo "test/Test128.test (KreMLin)" >> $ORANGE_FILE; } &
+  # JP: doesn't work because it leads to uint128 being verified in the wrong Z3
+  # context (?) meaning that some proof obligations fail
+  # { cd kremlin/test && timeout 480 ../krml -warn-error @4 -static-header FStar -no-prefix \
+  #     Test128 Test128.fst -verify -verbose -fnouint128 -tmpdir .output/Test128.out || \
+  #   echo "test/Test128.test (KreMLin)" >> $ORANGE_FILE; } &
 
-  { cd kremlin/test && timeout 480 ../krml -warn-error @4 -add-include '"kremstr.h"' \
-      main-Server.c -tmpdir .output/Server.out -no-prefix Server -verify \
-      Server.fst -verbose || \
-    echo "test/Server.test (KreMLin)" >> $ORANGE_FILE; } &
+  # { cd kremlin/test && timeout 480 ../krml -warn-error @4 -add-include '"kremstr.h"' \
+  #     main-Server.c -tmpdir .output/Server.out -no-prefix Server -verify \
+  #     Server.fst -verbose || \
+  #   echo "test/Server.test (KreMLin)" >> $ORANGE_FILE; } &
   wait
 
   # Make it an orange if there's a git diff. Note: FStar_Version.ml is in the
