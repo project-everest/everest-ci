@@ -14,7 +14,8 @@ param
 docker run -t -d --name $BuildRequestedAuthor $ContainerImageName
 
 # Copy buildlog file.
-docker exec $BuildRequestedAuthor cat $BuildLogFile >$BuildLogFile
+docker exec $BuildRequestedAuthor cat $BuildLogFile > $BuildLogFile
+docker exec $BuildRequestedAuthor cat "result.txt" > "result.txt"
 
 # Stop Container
 docker stop $BuildRequestedAuthor

@@ -19,7 +19,7 @@ $commitInfo = Get-Content -Raw -Path $CommitInfoFileName  | ConvertFrom-Json
 
 Write-Host "##vso[task.setvariable variable=GitHubCommitMessage]$($commitInfo.value.message)"
 Write-Host "##vso[task.setvariable variable=GitHubCommitAuthor]$($commitInfo.value.author.displayName)"
-Write-Host "##vso[task.setvariable variable=GitHubCommitId]$($commitInfo.value.id)"
+Write-Host "##vso[task.setvariable variable=GitHubCommitId]$($commitInfo.value.id.Substring(0,6))"
 Write-Host "##vso[task.setvariable variable=GitHubCommitLink]$($commitInfo.value.displayUri)"
 
 $buildRequestedAuthor = $commitInfo.value.author.displayName.Replace(" ", "").ToLower()
