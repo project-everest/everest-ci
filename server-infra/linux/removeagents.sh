@@ -7,8 +7,8 @@ agentNumber=$2
 
 RemoveAgents () 
 {
-    if [ -d /home/everest/build/agents/$agentNumber ]; then
-        cd /home/everest/build/agents/$agentNumber
+    if [ -d /home/builder/build/agents/$agentNumber ]; then
+        cd /home/builder/build/agents/$agentNumber
 
         # Remove agents from a previous agent setup.
         sudo bash ./svc.sh stop >1

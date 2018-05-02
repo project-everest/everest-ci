@@ -28,16 +28,16 @@ Bootstrap ()
     fi
 
     # Check if we have build folder, create it if needed.
-    if ! [ -d /home/everest/build ]; then
-        mkdir -p /home/everest/build
+    if ! [ -d /home/build/build ]; then
+        mkdir -p /home/builder/build
     fi
 
-    if ! [ -d /home/everest/build ]; then
-        echo "Unable to create /home/everest/build directory"
+    if ! [ -d /home/builder/build ]; then
+        echo "Unable to create /home/builder/build directory"
         exit
     fi
 
-    cd /home/everest/build
+    cd /home/builder/build
 
     # Verify dotnet is not installed.
     if ! command -v dotnet > /dev/null 2>&1; then
@@ -146,17 +146,17 @@ Bootstrap ()
     usermod -a -G docker $serviceUser
 
     # Check if we have the agents folder, create it if needed.
-    if ! [ -d /home/everest/build/agents ]; then
-        mkdir -p /home/everest/build/agents
+    if ! [ -d /home/builder/build/agents ]; then
+        mkdir -p /home/builder/build/agents
     fi
 
-    if ! [ -d /home/everest/build/agents ]; then
-        echo "Unable to create /home/everest/build/agents directory"
+    if ! [ -d /home/builder/build/agents ]; then
+        echo "Unable to create /home/builder/build/agents directory"
         exit
     fi
 
     # Download VSTS linux agent
-    cd /home/everest/build/agents
+    cd /home/builder/build/agents
     curl -O https://vstsagentpackage.azureedge.net/agent/2.131.0/vsts-agent-linux-x64-2.131.0.tar.gz
 
     for i in $(seq 1 $numberOfAgents)
