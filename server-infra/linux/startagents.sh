@@ -7,7 +7,7 @@ agentNumber=$2
 
 StartAgents () 
 {
-    cd /home/everest/build/agents/$agentNumber
+    cd /home/builder/build/agents/$agentNumber
 
     bash ./svc.sh install >1
     bash ./svc.sh start >1
