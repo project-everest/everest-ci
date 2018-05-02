@@ -22,10 +22,10 @@ Setup ()
         sudo bash ./startagents.sh $vstsPat $agentNumber
     done
 
-    # Restart machine to take any effect that requires a restart.
-    echo "Restarting machine"
-    sleep 5
-    sudo shutdown -r 0
+    if [[ "$(docker images -q everest_base_image:1 2> /dev/null)" == "" ]]; then
+        #Build our Everest base image
+        docker build -f .docker/Dockerfile -t everest_base_image:1 .
+    fi
 }
 
 Setup
