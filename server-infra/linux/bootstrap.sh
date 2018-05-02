@@ -139,11 +139,16 @@ Bootstrap ()
             exit
         fi
 
-        #Build our Everest base image
-        docker build -f .docker/Dockerfile -t everest_base_image:1 .
+        usermod -a -G docker $serviceUser
+        
+        # Restart machine to take any effect that requires a restart.
+        echo "Restarting machine, please re-run script once it is back."
+        sleep 5
+        sudo shutdown -r 0
     fi
 
-    usermod -a -G docker $serviceUser
+    #Build our Everest base image
+    docker build -f .docker/Dockerfile -t everest_base_image:1 .
 
     # Check if we have the agents folder, create it if needed.
     if ! [ -d /home/builder/build/agents ]; then
