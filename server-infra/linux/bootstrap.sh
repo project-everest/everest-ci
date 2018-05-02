@@ -108,6 +108,13 @@ Bootstrap ()
 
         # remove dotnet script file.
         rm dotnet-install.sh
+
+        #Install node.js
+        curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
+        apt-get install -y nodejs
+
+        #install typescript
+        npm install -g typescript
     fi
 
     # Verify PowerShell is not installed.
@@ -169,9 +176,6 @@ Bootstrap ()
         sleep 5
         sudo shutdown -r 0
     fi
-
-    #Build our Everest base image
-    docker build -f .docker/Dockerfile -t everest_base_image:1 .
 
     # Check if we have the agents folder, create it if needed.
     if ! [ -d /home/builder/build/agents ]; then
