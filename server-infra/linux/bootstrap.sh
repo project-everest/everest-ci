@@ -14,6 +14,29 @@ Bootstrap ()
         exit
     fi
 
+    # Globally disable password prompts on sudo
+    if ! [ -f /etc/sudoers.d/nopasswd ] ; then
+        echo '%sudo ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd
+        chmod 0440 /etc/sudoers.d/nopasswd
+    fi
+
+    # Disable SSH password authentication
+    local must_restart_ssh=false
+    if ! grep '^ *PasswordAuthentication +No' /etc/ssh/sshd_config ; then
+        echo 'PasswordAuthentication No' >> /etc/ssh/sshd_config
+        must_restart_ssh=true
+    fi
+
+    if ! grep '^ *DenyUsers \(.* \)*'$serviceUser'\( \|$\)' /etc/ssh/sshd_config ; then
+        # Disable SSH login for the service user
+        echo "DenyUsers $serviceUser" >> /etc/ssh/sshd_config
+        must_restart_ssh=true
+    fi
+    
+    if $must_restart_ssh ; then
+        service sshd restart
+    fi
+
     apt-get upgrade -y
 
     # Install some dependencies
