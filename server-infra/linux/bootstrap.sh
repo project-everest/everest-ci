@@ -22,8 +22,8 @@ Bootstrap ()
 
     # Disable SSH password authentication
     local must_restart_ssh=false
-    if ! grep '^ *PasswordAuthentication \+No' /etc/ssh/sshd_config ; then
-        echo 'PasswordAuthentication No' >> /etc/ssh/sshd_config
+    if ! grep '^ *PasswordAuthentication \+no' /etc/ssh/sshd_config ; then
+        echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
         must_restart_ssh=true
     fi
 
