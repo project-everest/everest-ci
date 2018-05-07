@@ -721,7 +721,7 @@ fstar_and_friends () {
 #     cd ..
 #   } &
 
-  { OTHERFLAGS='--warn_error -276 --use_hint_hashes' timeout 480 make -C hacl-star/code/hash/ -j 4 Hacl.Hash.SHA2_256.fst-verify || \
+  { OTHERFLAGS='--warn_error -276 --use_hint_hashes' timeout 480 make -C hacl-star/code/hash/ -j 4 Hacl.Impl.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
 
   { OTHERFLAGS=--use_hint_hashes timeout 480 make -C hacl-star/secure_api -f Makefile.old -j 4 aead/Crypto.AEAD.Encrypt.fst-ver || \
