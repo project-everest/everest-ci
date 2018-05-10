@@ -30,5 +30,5 @@ Write-Host "##vso[task.setvariable variable=SlackAccessToken;issecret=true]$($co
 #### Load other variables
 
 # Generate the name of the log file that should be upload to azure blob.
-$uploadFile =  [System.IO.Path]::GetFileNameWithoutExtension($config.Build.LogFile) + "_" +  $BuildId + ".txt"
+$uploadFile =  [System.IO.Path]::GetFileNameWithoutExtension($config.Build.LogFile) + "_" +  $BuildId + ".html"
 Write-Host "##vso[task.setvariable variable=UploadFileName]$uploadFile"

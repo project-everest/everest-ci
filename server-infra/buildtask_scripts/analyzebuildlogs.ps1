@@ -13,6 +13,11 @@ $end =  $logContent | Select-Object -last 1
 $BuildContainerTime = (Get-Date -Date $end) - (Get-Date -Date $start)
 Write-Host "##vso[task.setvariable variable=BuildContainerTime]$BuildContainerTime"
 
-# TODO Detemrine if build pass or failed.
-$buildStatus = "good"
+$content = Get-Content "result.txt"
+
+$buildStatus = "danger"
+if ($content -eq "success") {
+    $buildStatus = "good"
+}
+
 Write-Host "##vso[task.setvariable variable=BuildStatus]$buildStatus"
