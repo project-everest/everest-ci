@@ -709,17 +709,14 @@ fstar_and_friends () {
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
 
-  # JP: commenting this out since for now, since a scons timeout does not kill
-  # the underlying F* processes, which then hold filesystem locks and causes
-  # sadness since Windows does not allow you to delete those files
-#   { cd vale
-#     if [[ "$OS" == "Windows_NT" ]]; then
-#         timeout 480 scons.bat -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
-#     else
-#         timeout 480 scons -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
-#     fi
-#     cd ..
-#   } &
+  { cd vale
+    if [[ "$OS" == "Windows_NT" ]]; then
+        timeout 480 scons_cygwin.sh -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
+    else
+        timeout 480 scons -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
+    fi
+    cd ..
+  } &
 
   { OTHERFLAGS='--warn_error -276 --use_hint_hashes' timeout 480 make -C hacl-star/code/hash/ -j 4 Hacl.Impl.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
