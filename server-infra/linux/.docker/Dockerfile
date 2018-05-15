@@ -84,12 +84,16 @@ RUN useradd --shell /bin/bash --create-home --home-dir ${MYHOME} everest
 RUN echo "everest ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 RUN echo everest:3vere$t | chpasswd
 
+# Set root password
+RUN echo 'root:Docker!' >> /root/passwdfile
+
+# Apply root password
+RUN chpasswd -c SHA512 < /root/passwdfile && rm /root/passwdfile
+
 # --login: Ensure that the .profile is read at each subsequent RUN (to take all the settings and environment that opam will write there).
 # Other options to bash may be added here, but -c MUST BE the last one (it introduces the actual command to be RUN)
 SHELL ["/bin/bash", "--login", "-c"]
 
-# Switch to user mode
-USER everest
 WORKDIR ${MYHOME}
 
 # Prepare build (OCaml packages)
@@ -111,12 +115,11 @@ RUN  eval $(opam config env)
 WORKDIR ${MYHOME}/everest
 
 EXPOSE 22
-CMD ["/usr/sbin/sshd", "-D", "-o", "Port 2022"]
 
-# Provide the default command prefix when a container is created from this image, by 'docker run'
-ENTRYPOINT ["/bin/bash", "--login", "-c"]
+COPY init_container.sh /bin/
 
-# Kitematic GUI does not seem to honor ENTRYPOINT/CMD above, and instead relies on the SHELL environment variable:
-ENV SHELL "/bin/bash --login"
+# Fix all permissions
+RUN chmod +x /bin/init_container.sh
 
-
+CMD ["/bin"]
+ENTRYPOINT ["/bin/init_container.sh"]
