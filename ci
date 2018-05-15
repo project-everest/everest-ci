@@ -709,27 +709,24 @@ fstar_and_friends () {
   echo -n false > $out_file
   { $gnutime make -C src $PARALLEL_OPT -k $target && echo -n true > $out_file; } &
 
-  # JP: commenting this out since for now, since a scons timeout does not kill
-  # the underlying F* processes, which then hold filesystem locks and causes
-  # sadness since Windows does not allow you to delete those files
-#   { cd vale
-#     if [[ "$OS" == "Windows_NT" ]]; then
-#         timeout 480 scons.bat -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
-#     else
-#         timeout 480 scons -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
-#     fi
-#     cd ..
-#   } &
+  # { cd vale
+  #   if [[ "$OS" == "Windows_NT" ]]; then
+  #       timeout 480 ./scons_cygwin.sh -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
+  #   else
+  #       timeout 480 scons -j 4 --FSTAR-MY-VERSION --MIN_TEST || echo "min-test (Vale)" >> $ORANGE_FILE
+  #   fi
+  #   cd ..
+  # } &
 
-  { OTHERFLAGS='--warn_error -276 --use_hint_hashes' timeout 480 make -C hacl-star/code/hash/ -j 4 Hacl.Impl.SHA2_256.fst-verify || \
+  { OTHERFLAGS='--use_two_phase_tc false --warn_error -276 --use_hint_hashes' timeout 480 make -C hacl-star/code/hash/ -j 4 Hacl.Impl.SHA2_256.fst-verify || \
     echo "Hacl.Hash.SHA2_256.fst-verify (HACL*)" >> $ORANGE_FILE; } &
 
-  { OTHERFLAGS=--use_hint_hashes timeout 480 make -C hacl-star/secure_api -f Makefile.old -j 4 aead/Crypto.AEAD.Encrypt.fst-ver || \
+  { OTHERFLAGS='--use_two_phase_tc false --use_hint_hashes' timeout 480 make -C hacl-star/secure_api -f Makefile.old -j 4 aead/Crypto.AEAD.Encrypt.fst-ver || \
     echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $ORANGE_FILE; } &
 
   # TODO: remove this hacl-old clone once we manage to get an updated StreamAE
   # on the verify branch of miTLS
-  { HACL_HOME=$(pwd)/hacl-star-old OTHERFLAGS=--use_hint_hashes timeout 480 make -C mitls-fstar/src/tls -j 4 StreamAE.fst-ver || \
+  { HACL_HOME=$(pwd)/hacl-star-old OTHERFLAGS='--use_two_phase_tc false --use_hint_hashes' timeout 480 make -C mitls-fstar/src/tls -j 4 StreamAE.fst-ver || \
     echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE;
     # NS: removed this until some other suitable targets are restored in miTLS' verify branch
     # #run additional tests on the verify branch, currently hardcoded
