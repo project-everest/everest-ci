@@ -55,6 +55,11 @@ RUN until apt-get install --no-install-recommends --yes \
 		libtool \
 		autoconf \
 		tzdata \
+		openssh-server \
+		vim \
+		curl \
+		wget \
+		tcptraceroute \
 		; do apt-get --yes update ; done
 
 #Install node.js
@@ -74,9 +79,6 @@ ENV MYHOME /home/everest
 RUN useradd --shell /bin/bash --create-home --home-dir ${MYHOME} everest
 RUN echo "everest ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 RUN echo everest:3vere$t | chpasswd
-
-# Set everest user password
-RUN	echo 'everest:everest!' >> /root/passwdfile
 
 # --login: Ensure that the .profile is read at each subsequent RUN (to take all the settings and environment that opam will write there).
 # Other options to bash may be added here, but -c MUST BE the last one (it introduces the actual command to be RUN)
@@ -101,7 +103,11 @@ ENV EVEREST_ENV_DEST_FILE ${MYHOME}/.profile
 RUN ./everest/everest --yes check
 RUN  eval $(opam config env)
 
+COPY sshd_config /etc/ssh/
+
 EXPOSE 2222 80
+
+RUN service ssh start
 
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
