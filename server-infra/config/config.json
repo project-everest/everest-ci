@@ -5,7 +5,9 @@
     },
     "Azure": {
         "StorageAccount": "PlaceHolder",
-        "StorageAccessKey": "PlaceHolder"
+        "StorageAccessKey": "PlaceHolder",
+        "AzureContainerRegistryName" : "PlaceHolder",
+        "AzureContainerRegistryPassword" : "PlaceHolder"
     },
     "Slack" : {
         "AccessToken" : "PlaceHolder"

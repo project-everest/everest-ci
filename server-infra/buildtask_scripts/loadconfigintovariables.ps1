@@ -23,6 +23,9 @@ Write-Host "##vso[task.setvariable variable=BuildLogFile]$($config.Build.LogFile
 Write-Host "##vso[task.setvariable variable=AzureStorageAccount;issecret=true]$($config.Azure.StorageAccount)"
 Write-Host "##vso[task.setvariable variable=AzureStorageAccessKey;issecret=true]$($config.Azure.StorageAccessKey)"
 
+Write-Host "##vso[task.setvariable variable=AzureContainerRegistryName;issecret=true]$($config.Azure.AzureContainerRegistryName)"
+Write-Host "##vso[task.setvariable variable=AzureContainerRegistryPassword;issecret=true]$($config.Azure.AzureContainerRegistryPassword)"
+
 Write-Host "##vso[task.setvariable variable=SlackAccessToken;issecret=true]$($config.Slack.AccessToken)"
 
 
