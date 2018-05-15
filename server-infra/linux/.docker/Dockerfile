@@ -107,16 +107,14 @@ ENV EVEREST_ENV_DEST_FILE ${MYHOME}/.profile
 RUN ./everest/everest --yes check
 RUN  eval $(opam config env)
 
-EXPOSE 2222 80
-
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
 
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D", "-o", "Port 2022"]
+
 # Provide the default command prefix when a container is created from this image, by 'docker run'
 ENTRYPOINT ["/bin/bash", "--login", "-c"]
-
-# Provide the default command when a container is created from this image, by `docker attach`
-CMD ["/bin/bash", "--login"]
 
 # Kitematic GUI does not seem to honor ENTRYPOINT/CMD above, and instead relies on the SHELL environment variable:
 ENV SHELL "/bin/bash --login"
