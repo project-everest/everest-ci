@@ -81,9 +81,9 @@ RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/s
 
 # SSH login fix. Otherwise user is kicked off after login
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
 # start service
-RUN service ssh stop
 RUN service ssh start
 
 # Create user everest.
@@ -117,12 +117,18 @@ ENV EVEREST_ENV_DEST_FILE ${MYHOME}/.profile
 RUN ./everest/everest --yes check
 RUN  eval $(opam config env)
 
+EXPOSE 22 80
+
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
 
-EXPOSE 22
+RUN sudo /etc/init.d/ssh start
 
-COPY init_container.sh /bin/
+# Provide the default command prefix when a container is created from this image, by 'docker run'
+ENTRYPOINT ["/bin/bash", "--login", "-c"]
 
-CMD ["/usr/sbin/sshd", "-D"]
-ENTRYPOINT ["/bin/bash", "--login", "-c"] 
+# Provide the default command when a container is created from this image, by `docker attach`
+CMD ["/bin/bash", "--login"]
+
+# Kitematic GUI does not seem to honor ENTRYPOINT/CMD above, and instead relies on the SHELL environment variable:
+ENV SHELL "/bin/bash --login"
