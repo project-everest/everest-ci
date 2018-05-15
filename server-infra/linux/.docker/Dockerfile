@@ -92,7 +92,7 @@ RUN service ssh start
 ENV MYHOME /home/everest
 RUN useradd --shell /bin/bash --create-home --home-dir ${MYHOME} everest
 RUN echo "everest ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
-RUN echo everest:3vere$t | chpasswd
+RUN echo everest:Docker! | chpasswd
 
 # --login: Ensure that the .profile is read at each subsequent RUN (to take all the settings and environment that opam will write there).
 # Other options to bash may be added here, but -c MUST BE the last one (it introduces the actual command to be RUN)
@@ -122,4 +122,6 @@ EXPOSE 22 80
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
 
-CMD [" sudo /usr/bin/sshd", "-D"]
+ADD ./start_container /start_container
+RUN sudo chmod +x /start_container
+CMD ["/start_container"]

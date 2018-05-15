@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Run OpenSSH server in daemon mode
+sudo /usr/sbin/sshd -D
