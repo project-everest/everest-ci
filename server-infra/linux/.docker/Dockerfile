@@ -72,6 +72,10 @@ RUN npm install -g typescript
 # Install madoko
 RUN npm install madoko -g
 
+# Start ssh service.
+COPY sshd_config /etc/ssh/
+RUN service ssh start
+
 # Create user everest.
 # We define a home directory by ourselves, because there is no way to have the HOME variable caught by WORKDIR.
 # So, to make it consistent, we explicitly make this directory home when creating the user.
@@ -103,11 +107,7 @@ ENV EVEREST_ENV_DEST_FILE ${MYHOME}/.profile
 RUN ./everest/everest --yes check
 RUN  eval $(opam config env)
 
-COPY sshd_config /etc/ssh/
-
 EXPOSE 2222 80
-
-RUN service ssh start
 
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
