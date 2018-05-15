@@ -72,8 +72,18 @@ RUN npm install -g typescript
 # Install madoko
 RUN npm install madoko -g
 
-# Start ssh service.
-COPY sshd_config /etc/ssh/
+# Setup ssh
+RUN mkdir /var/run/sshd
+
+# Set root password
+RUN echo root:Docker! | chpasswd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+# start service
+RUN service ssh stop
 RUN service ssh start
 
 # Create user everest.
@@ -84,16 +94,12 @@ RUN useradd --shell /bin/bash --create-home --home-dir ${MYHOME} everest
 RUN echo "everest ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 RUN echo everest:3vere$t | chpasswd
 
-# Set root password
-RUN echo 'root:Docker!' >> /root/passwdfile
-
-# Apply root password
-RUN chpasswd -c SHA512 < /root/passwdfile && rm /root/passwdfile
-
 # --login: Ensure that the .profile is read at each subsequent RUN (to take all the settings and environment that opam will write there).
 # Other options to bash may be added here, but -c MUST BE the last one (it introduces the actual command to be RUN)
 SHELL ["/bin/bash", "--login", "-c"]
 
+# Switch to user mode 
+USER everest 
 WORKDIR ${MYHOME}
 
 # Prepare build (OCaml packages)
@@ -118,8 +124,5 @@ EXPOSE 22
 
 COPY init_container.sh /bin/
 
-# Fix all permissions
-RUN chmod +x /bin/init_container.sh
-
-CMD ["/bin"]
-ENTRYPOINT ["/bin/init_container.sh"]
+CMD ["/usr/sbin/sshd", "-D"]
+ENTRYPOINT ["/bin/bash", "--login", "-c"] 
