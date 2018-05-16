@@ -726,7 +726,7 @@ fstar_and_friends () {
 
   # TODO: remove this hacl-old clone once we manage to get an updated StreamAE
   # on the verify branch of miTLS
-  { HACL_HOME=$(pwd)/hacl-star-old OTHERFLAGS='--use_two_phase_tc false --use_hint_hashes' timeout 480 make -C mitls-fstar/src/tls -j 4 StreamAE.fst-ver || \
+  { HACL_HOME=$(pwd)/hacl-star-old OTHERFLAGS='--use_two_phase_tc false --use_hint_hashes' timeout 480 make -d -C mitls-fstar/src/tls -j 4 StreamAE.fst-ver || \
     echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE;
     # NS: removed this until some other suitable targets are restored in miTLS' verify branch
     # #run additional tests on the verify branch, currently hardcoded
