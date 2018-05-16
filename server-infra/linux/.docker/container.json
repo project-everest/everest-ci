@@ -1,0 +1,86 @@
+{
+  "additionalProperties": {},
+  "containers": [
+    {
+      "additionalProperties": {},
+      "command": null,
+      "environmentVariables": [],
+      "image": "everestvstsacr.azurecr.io/fstarlang-fstar:gustavovaro-20180515-8",
+      "instanceView": null,
+      "name": "gugavaro-20180515-8",
+      "ports": [
+        {
+          "additionalProperties": {},
+          "port": 80,
+          "protocol": null
+        },
+        {
+          "additionalProperties": {},
+          "port": 22,
+          "protocol": null
+        },
+        {
+          "additionalProperties": {},
+          "port": 30111,
+          "protocol": null
+        }
+      ],
+      "resources": {
+        "additionalProperties": {},
+        "limits": null,
+        "requests": {
+          "additionalProperties": {},
+          "cpu": 4.0,
+          "memoryInGb": 8.0
+        }
+      },
+      "volumeMounts": null
+    }
+  ],
+  "id": "/subscriptions/fd87bb83-54ae-426f-834f-21c6ee029ce2/resourceGroups/everest-vsts-rg/providers/Microsoft.ContainerInstance/containerGroups/gugavaro-20180515-8",
+  "imageRegistryCredentials": [
+    {
+      "additionalProperties": {},
+      "password": null,
+      "server": "everestvstsacr.azurecr.io",
+      "username": "everestvstsacr"
+    }
+  ],
+  "instanceView": {
+    "additionalProperties": {},
+    "events": null,
+    "state": "Pending"
+  },
+  "ipAddress": {
+    "additionalProperties": {},
+    "dnsNameLabel": null,
+    "fqdn": null,
+    "ip": "13.91.41.142",
+    "ports": [
+      {
+        "additionalProperties": {},
+        "port": 80,
+        "protocol": "TCP"
+      },
+      {
+        "additionalProperties": {},
+        "port": 22,
+        "protocol": "TCP"
+      },
+      {
+        "additionalProperties": {},
+        "port": 30111,
+        "protocol": "TCP"
+      }
+    ]
+  },
+  "location": "westus",
+  "name": "gugavaro-20180515-8",
+  "osType": "Linux",
+  "provisioningState": "Pending",
+  "resourceGroup": "everest-vsts-rg",
+  "restartPolicy": "Always",
+  "tags": null,
+  "type": "Microsoft.ContainerInstance/containerGroups",
+  "volumes": null
+}

@@ -74,24 +74,28 @@ $body = "<h1>Build Summary</h1><br><br><table>
                 <td>$OSName</td>
             </tr>
             <tr id='placeholder1' style='visibility:hidden'>
-                <th style='text-align:left'>$th_placeholder1</th>
-                <td>$td_placeholder1</td>
+                <th style='text-align:left'>th_placeholder1</th>
+                <td>td_placeholder1</td>
             </tr>
             <tr id='placeholder2' style='visibility:hidden'>
-                <th style='text-align:left'>$th_placeholder2</th>
-                <td>$td_placeholder2</td>
+                <th style='text-align:left'>th_placeholder2</th>
+                <td>td_placeholder2</td>
             </tr>
             <tr id='placeholder3' style='visibility:hidden'>
-                <th style='text-align:left'>$th_placeholder3</th>
-                <td>$td_placeholder3</td>
+                <th style='text-align:left'>th_placeholder3</th>
+                <td>td_placeholder3</td>
             </tr>
             <tr id='placeholder4' style='visibility:hidden'>
-                <th style='text-align:left'>$th_placeholder4</th>
-                <td>$td_placeholder4</td>
+                <th style='text-align:left'>th_placeholder4</th>
+                <td>td_placeholder4</td>
             </tr>
             <tr id='placeholder5' style='visibility:hidden'>
-                <th style='text-align:left'>$th_placeholder5</th>
-                <td>$td_placeholder5</td>
+                <th style='text-align:left'>th_placeholder5</th>
+                <td>td_placeholder5</td>
+            </tr>
+            <tr id='placeholder6' style='visibility:hidden'>
+                <th style='text-align:left'>th_placeholder6</th>
+                <td>td_placeholder6</td>
             </tr>
         </table>
         <br><br>
