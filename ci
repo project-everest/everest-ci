@@ -587,6 +587,7 @@ function fetch_hacl() {
   git reset --hard $ref
   cd ..
   export_home HACL "$(pwd)/hacl-star"
+  export_home EVERCRYPT "$(pwd)/hacl-star/providers"
 }
 
 # By default, mitls-fstar master works against F* stable. Can also be overridden.
