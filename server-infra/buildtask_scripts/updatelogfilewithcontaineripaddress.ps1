@@ -13,8 +13,8 @@ $log = Get-Content $UploadFileName
 
 $log = $log -replace " id='placeholder6' style='visibility:hidden'",""
 
-$log = $log -replace "th_placeholder6", "Container Ip Address"
-$log = $log -replace "td_placeholder6", $IpAddress
+$log = $log -replace "th_placeholder6", "Connect to Container"
+$log = $log -replace "td_placeholder6", "ssh everest@$IpAddress<br>Password: Docker!"
 
 Remove-Item $UploadFileName -Force
 $log | Out-File $UploadFileName

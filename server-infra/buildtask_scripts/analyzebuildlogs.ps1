@@ -16,8 +16,11 @@ Write-Host "##vso[task.setvariable variable=BuildContainerTime]$BuildContainerTi
 $content = Get-Content "result.txt"
 
 $buildStatus = "danger"
-if ($content -eq "success") {
+if ($content -eq "Success") {
     $buildStatus = "good"
+} if ($content -eq "Success with breakages") {
+    $buildStatus = "warning"
 }
 
 Write-Host "##vso[task.setvariable variable=BuildStatus]$buildStatus"
+Write-Host "##vso[task.setvariable variable=BuildResult]$content"

@@ -3,6 +3,8 @@
 param
 (
     [Parameter(Mandatory=$true)]
+    [String] $BuildStatus,
+    [Parameter(Mandatory=$true)]
     [String] $BuildNumber,
     [Parameter(Mandatory=$true)]
     [String] $BuildDefinitionName,
@@ -37,6 +39,10 @@ $log = $log -replace "(\[STDERR])(.*?)$","<p><font color=`"red`">`$2</font></p>"
 
 # Build Summary info.
 $body = "<h1>Build Summary</h1><br><br><table>
+            <tr>
+                <th style='text-align:left'>Build Status:</th>
+                <td>$BuildStatus</td>
+            </tr>
             <tr>
                 <th style='text-align:left'>Project:</th>
                 <td>$ProjectName</td>
