@@ -406,7 +406,7 @@ function everest_move() {
   if ! $fresh; then
     # Bail out early if there's nothing to do
     post_to_slack "#everest-build" ":information_source: *Nightly Everest Upgrade ($CI_BRANCH):* nothing to upgrade"
-  elif ! ./everest --yes $PARALLEL_OPT make test verify; then
+  elif ! ./everest --yes $PARALLEL_OPT -windows make test verify drop qbuild; then
     # Provide a meaningful summary of what we tried
     msg=":no_entry: *Nightly Everest Upgrade ($CI_BRANCH):* upgrading each project to its latest version breaks the build\n$versions"
     post_to_slack "#everest-build" "$msg"
@@ -587,6 +587,7 @@ function fetch_hacl() {
   git reset --hard $ref
   cd ..
   export_home HACL "$(pwd)/hacl-star"
+  export_home EVERCRYPT "$(pwd)/hacl-star/providers"
 }
 
 # By default, mitls-fstar master works against F* stable. Can also be overridden.
@@ -628,7 +629,9 @@ function mitls_verify() {
   # Only building a subset of HACL* for now
   fetch_and_make_fstar && fetch_and_make_kremlin all && fetch_hacl && \
     fetch_and_make_mlcrypto && \
-    make -C hacl-star/secure_api/LowCProvider $PARALLEL_OPT && \
+    make -C hacl-star/code extract-c $PARALLEL_OPT && \
+    OTHERFLAGS="--admit_smt_queries true $OTHERFLAGS" make -C hacl-star/providers $PARALLEL_OPT && \
+    make -C hacl-star/secure_api $PARALLEL_OPT && \
     make -C libs/ffi $PARALLEL_OPT && \
     build_pki_if && \
     make -C src/tls $PARALLEL_OPT all -k && \
