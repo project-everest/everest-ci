@@ -692,6 +692,10 @@ fstar_and_friends () {
   fetch_hacl &
   fetch_and_make_kremlin &
   fetch_mitls &
+  { if [ ! -d hacl-star-old ]; then
+      git clone https://github.com/mitls/hacl-star hacl-star-old
+      cd hacl-star-old && git reset --hard 98755f79579a0c153140e8d9a186145beafacf8f
+    fi } &
   wait
   if [[ $(cat $out_file) != "true" ]]; then
     echo "warm-up failed" && rm $out_file && return 1
@@ -723,14 +727,19 @@ fstar_and_friends () {
   { OTHERFLAGS='--use_hint_hashes' timeout 480 make -C hacl-star/secure_api -f Makefile.old -j 4 aead/Crypto.AEAD.Encrypt.fst-ver || \
     echo "Crypto.AEAD.Encrypt.fst-ver (HACL*)" >> $ORANGE_FILE; } &
 
-  # 2018.05.29: removed the hacl-star-old clone, we were using HACL_HOME=$(pwd)/hacl-star-old
-  # We now run all (hardcoded) tests in mitls-fstar@master
-  { OTHERFLAGS=--use_hint_hashes timeout 480 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
+  # TODO: remove this hacl-old clone once we manage to get an updated StreamAE
+  # on the verify branch of miTLS
+  { HACL_HOME=$(pwd)/hacl-star-old OTHERFLAGS='--use_two_phase_tc false --use_hint_hashes' timeout 480 make -C mitls-fstar/src/tls -j 4 StreamAE.fst-ver || \
     echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE;
-    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Mem.fst-ver || \
-    echo "Mem.fst-ver (mitls verify)" >> $ORANGE_FILE;
-    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Pkg.fst-ver || \
-    echo "Pkg.fst-ver (mitls verify)" >> $ORANGE_FILE;
+    # NS: removed this until some other suitable targets are restored in miTLS' verify branch
+    # #run additional tests on the verify branch, currently hardcoded
+    # cd mitls-fstar
+    # git reset --hard origin/verify
+    # cd ..
+    # OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Mem.fst-ver || \
+    # echo "Mem.fst-ver (mitls verify)" >> $ORANGE_FILE;
+    # OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Pkg.fst-ver || \
+    # echo "Pkg.fst-ver (mitls verify)" >> $ORANGE_FILE;
   } &
 
   # JP: doesn't work because it leads to uint128 being verified in the wrong Z3
