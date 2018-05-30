@@ -725,11 +725,9 @@ fstar_and_friends () {
 
   # 2018.05.29: removed the hacl-star-old clone, we were using HACL_HOME=$(pwd)/hacl-star-old
   # We now run all (hardcoded) tests in mitls-fstar@master
-  { OTHERFLAGS=--use_hint_hashes timeout 480 make -C mitls-fstar/src/tls $PARALLEL_OPT StreamAE.fst-ver || \
+  { OTHERFLAGS=--use_hint_hashes timeout 480 make -C mitls-fstar/src/tls -j 4 StreamAE.fst-ver || \
     echo "StreamAE.fst-ver (mitls)" >> $ORANGE_FILE;
-    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Mem.fst-ver || \
-    echo "Mem.fst-ver (mitls verify)" >> $ORANGE_FILE;
-    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls $PARALLEL_OPT Pkg.fst-ver || \
+    OTHERFLAGS=--use_hint_hashes timeout 240 make -C mitls-fstar/src/tls -j 4 Pkg.fst-ver || \
     echo "Pkg.fst-ver (mitls verify)" >> $ORANGE_FILE;
   } &
 
