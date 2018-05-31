@@ -60,6 +60,7 @@ RUN until apt-get install --no-install-recommends --yes \
 		curl \
 		wget \
 		tcptraceroute \
+		emacs \
 		; do apt-get --yes update ; done
 
 #Install node.js
@@ -68,6 +69,9 @@ RUN apt-get install -y nodejs
 
 #install typescript
 RUN npm install -g typescript
+
+#install less
+RUN npm install -g less
 
 # Install madoko
 RUN npm install madoko -g
