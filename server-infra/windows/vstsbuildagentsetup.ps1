@@ -7,40 +7,37 @@ param
   [string] $vstsPat
 )
 
-function runAgent {
-  Param (
-    [Parameter(Mandatory=$true)][int] $i,
-    [Parameter(Mandatory=$true)][string] $agentCommand,
-    [Parameter(Mandatory=$false)][string] $agentArgument
-  )
+function getAgent {
+  Param ([int] $i, [string] $agentCommand)
 
   $a = "/home/builder/build/agents/agent-$i/" + $agentCommand
   $b = $a -replace '/','\' # powershell bug: Start-Process doesn't support '/' in paths.
-  write-host $b $agentArgument
+  return $b
+}
 
-  if ($agentArgument) {
-    Start-Process $b -ArgumentList $agentArgument -NoNewWindow -Wait
-  } else {
-    Start-Process $b -NoNewWindow -Wait
+function configOrRemoveAgents {
+  Param ([string] $vstsPat, [int] $i, [bool] $remove)
+
+  $a = getAgent $i "config.cmd"
+  $args = "--unattended --url https://msr-project-everest.visualstudio.com --auth path --token $vstsPat --pool MsrEverestPoolWindows --agent $i --acceptTeeEula --runAsService"
+  if ($remove) {
+    $args = "remove", $args
   }
+
+  Start-Process $a -NoNewWindow -Wait -ArgumentList $args
 }
 
 function removeAgents {
   Param ([string] $vstsPat, [int] $i)
 
-  runAgent $i "config.cmd" "remove"
+  configOrRemoveAgents $vstsPat $i $true
 }
 
+# this configures the agent as a Windows Service, and starts it immediately.
 function configAgents {
   Param ([string] $vstsPat, [int] $i)
 
-  runAgent $i "config.cmd" "--unattended --url https://msr-project-everest.visualstudio.com --auth path --token $vstsPat --pool MsrEverestPoolWindows --agent $i --acceptTeeEula"
-}
-
-function startAgents {
-  Param ([string] $vstsPat, [int] $i)
-
-  runAgent $i "run.cmd"
+  configOrRemoveAgents $vstsPat $i $false
 }
 
 $numberOfAgents=8
@@ -49,5 +46,15 @@ $numberOfAgents=8
 for ([int] $i=1; $i -le $numberOfAgents; $i++) {
   removeAgents $vstsPat $i
   configAgents $vstsPat $i
-  startAgents  $vstsPat $i
 }
+
+$hasImage = & docker images -q everest_windows_base_image:1 2>$null
+if (-not $hasImage) {
+  # Build our Everest Windows base image
+  docker build -f .docker/Dockerfile -t everest_windows_base_image:1 .
+
+  write-host "Make sure to copy buildtask_scripts and config folders to be under /home/builder"
+  write-host "Make sure to populate config.json file with correct settings."
+}
+
+write-host "Done with setup."
