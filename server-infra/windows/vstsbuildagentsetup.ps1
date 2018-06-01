@@ -11,12 +11,12 @@ function runAgent {
   Param (
     [Parameter(Mandatory=$true)][int] $i,
     [Parameter(Mandatory=$true)][string] $agentCommand,
-    [Parameter(Mandatory=$false)]'[string] $agentArgument
+    [Parameter(Mandatory=$false)][string] $agentArgument
   )
 
   $a = "/home/builder/build/agents/agent-$i/" + $agentCommand
   $b = $a -replace '/','\' # powershell bug: Start-Process doesn't support '/' in paths.
-  write-host $b
+  write-host $b $agentArgument
 
   if ($agentArgument) {
     Start-Process $b -ArgumentList $agentArgument -NoNewWindow -Wait
@@ -34,7 +34,7 @@ function removeAgents {
 function configAgents {
   Param ([string] $vstsPat, [int] $i)
 
-  runAgent $i "config.cmd"
+  runAgent $i "config.cmd" "--unattended --url https://msr-project-everest.visualstudio.com --auth path --token $vstsPat --pool MsrEverestPoolWindows --agent $i --acceptTeeEula"
 }
 
 function startAgents {
@@ -44,9 +44,9 @@ function startAgents {
 }
 
 $numberOfAgents=8
-.\bootstrap.sh $numberOfAgents
+.\bootstrap.ps1 $numberOfAgents
 
-for ([int] $i=0; $i -lt $numberOfAgents; $i++) {
+for ([int] $i=1; $i -le $numberOfAgents; $i++) {
   removeAgents $vstsPat $i
   configAgents $vstsPat $i
   startAgents  $vstsPat $i

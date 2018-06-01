@@ -8,6 +8,7 @@ param
 
 # Don't report progress... this speeds wget by 10x
 $ProgressPreference = 'SilentlyContinue'
+write-host "==== Bootstrap ===="
 
 #disable password prompts on sudo
 #disable ssh password auth
@@ -22,6 +23,7 @@ cd $build_dir
 #install .net if needed
 #install powershell if needed
 #install azure CLI
+write-host "Installing Azure CLI"
 $azure_cli_msi = $build_dir+"/azurecli.msi"
 # although PowerShell accepts '/' as a path character almost everywhere,
 # Start-Process does not.  It requires '\' or else it fails with file-not-found.
@@ -37,13 +39,15 @@ $agents_dir = $build_dir+"/agents"
 mkdir -Force $agents_dir | Out-Null
 
 # download the VSTS windows agent to that directory
+write-host "Downloading VSTS Windows Agent"
 $agent_zip = $agents_dir+"/vsts-agent.zip"
 wget "https://vstsagentpackage.azureedge.net/agent/2.134.2/vsts-agent-win-x64-2.134.2.zip" -outfile $agent_zip
 
 # for each in $numberOfAgents
 #  create agent-# subdir
 #  copy the agent binary into the subdir and extract from the downloaded .zip
-for ($i=0; $i -lt $numberOfAgents; $i++) {
+for ($i=1; $i -le $numberOfAgents; $i++) {
+  write-host "Unzipping agent $i"
   $agentNumber = $agents_dir+"/agent-$i"
   if (! (Test-Path $agentNumber)) {
     mkdir $agentNumber | Out-Null
@@ -52,3 +56,4 @@ for ($i=0; $i -lt $numberOfAgents; $i++) {
 }
 
 Write-Host "Bootstrap done."
+
