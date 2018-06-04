@@ -526,7 +526,7 @@ function fetch_and_make_fstar() {
     (git clean -fdx && make -C src/ocaml-output $PARALLEL_OPT) || \
     exit 255
   make -C fstar/ulib/ml $PARALLEL_OPT
-  make -C fstar/ulib $PARALLEL_OPT --admit_smt_queries true
+  OTHERFLAGS='--admit_smt_queries true' make -C fstar/ulib $PARALLEL_OPT
 }
 
 # By default, kremlin master works against F* stable. Can also be overridden.
@@ -554,7 +554,7 @@ function fetch_and_make_kremlin() {
   fi
   make -C kremlin $PARALLEL_OPT $target || \
     (cd kremlin && git clean -fdx && make $PARALLEL_OPT $target)
-  make -C kremlin/kremlib $PARALLEL_OPT --admit_smt_queries true
+  OTHERFLAGS='--admit_smt_queries true' make -C kremlin/kremlib $PARALLEL_OPT
   export PATH="$(pwd)/kremlin:$PATH"
 }
 
