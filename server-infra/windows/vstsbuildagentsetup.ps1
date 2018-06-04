@@ -48,6 +48,8 @@ for ([int] $i=1; $i -le $numberOfAgents; $i++) {
   configAgents $vstsPat $i
 }
 
+cd (split-path $SCRIPT:MyInvocation.MyCommand.Path -parent)
+
 $hasImage = & docker images -q everest_windows_base_image:1 2>$null
 if (-not $hasImage) {
   # Build our Everest Windows base image
