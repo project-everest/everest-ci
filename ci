@@ -554,6 +554,7 @@ function fetch_and_make_kremlin() {
   fi
   make -C kremlin $PARALLEL_OPT $target || \
     (cd kremlin && git clean -fdx && make $PARALLEL_OPT $target)
+  make -C kremlin/kremlib $PARALLEL_OPT
   export PATH="$(pwd)/kremlin:$PATH"
 }
 
