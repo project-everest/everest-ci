@@ -525,7 +525,8 @@ function fetch_and_make_fstar() {
   make -C fstar/src/ocaml-output $PARALLEL_OPT || \
     (git clean -fdx && make -C src/ocaml-output $PARALLEL_OPT) || \
     exit 255
-  make -C fstar/ulib/ml
+  make -C fstar/ulib/ml $PARALLEL_OPT
+  make -C fstar/ulib $PARALLEL_OPT --admit_smt_queries true
 }
 
 # By default, kremlin master works against F* stable. Can also be overridden.
