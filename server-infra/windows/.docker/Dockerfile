@@ -23,22 +23,20 @@ WORKDIR ".."
 
 WORKDIR "python"
 ENV PYTHON_VER 2.7.13
-ADD ["https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER-amd64.exe", "pythonsetup.exe"]
-RUN pythonsetup.exe /quiet TargetDir=c:\\Python PrependPath=1 IncludeDoc=0
+ADD ["https://www.python.org/ftp/python/$PYTHON_VER/python-$PYTHON_VER.amd64.msi", "pythonsetup.msi"]
+RUN msiexec.exe /i pythonsetup.msi /quiet TargetDir=c:\\Python PrependPath=1 IncludeDoc=0
 # ENV does not support quoting PATH for Windows images,
 # so take solution adapted from:
 # https://stackoverflow.com/questions/42092932/appending-to-path-in-a-windows-docker-container
-#RUN ["powershell", "-Command", "[Environment]::SetEnvironmentVariable('Path', 'C:\\Python;C:\\Python\\Scripts;' + $env:Path, [EnvironmentVariableTarget]::Machine)"]
+RUN ["powershell", "-Command", "[Environment]::SetEnvironmentVariable('Path', 'C:\\Python;C:\\Python\\Scripts;' + $env:Path, [EnvironmentVariableTarget]::Machine)"]
 WORKDIR ".."
 
 WORKDIR "scons"
 ENV SCONS_VER 2.5.1
-#RUN powershell.exe wget http://prdownloads.sourceforge.net/scons/scons-%SCONS_VER%.zip
 # the URL comes from the "Problem downloading?" link on sourceforge.
-ADD ["https://sourceforge.net/settings/mirror_choices?projectname=scons&filename=scons/2.5.1/scons-2.5.1.zip&selected=svwh", "scons.zip"]
+ADD ["https://downloads.sourceforge.net/project/scons/scons/2.5.1/scons-2.5.1.zip?r=&ts=1528233878", "scons.zip"]
 RUN powershell.exe Expand-Archive scons.zip
 RUN python.exe scons/scons-%SCONS_VER%/setup.py install
-RUN dir /s scons.bat
 WORKDIR ".."
 
 # Create user, with no password, and switch to user mode
@@ -47,8 +45,6 @@ RUN net user everest /add
 RUN net localgroup Administrators everest /add
 USER everest
 
-# add scons.bat to the path
-ENV PATH="c:\python27;${PATH}"
 ENV EVEREST_BRANCH master
 
 WORKDIR "cygwin"
