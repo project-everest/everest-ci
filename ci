@@ -636,7 +636,7 @@ function mitls_verify() {
     make -C hacl-star/secure_api $PARALLEL_OPT && \
     make -C libs/ffi $PARALLEL_OPT && \
     build_pki_if && \
-    make -C src/tls $PARALLEL_OPT all -k && \
+    VERIFY_LOWPARSE=1 make -C src/tls $PARALLEL_OPT all -k && \
     make -C src/tls $PARALLEL_OPT test -k
 }
 
