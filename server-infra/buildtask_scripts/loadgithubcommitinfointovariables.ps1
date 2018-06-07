@@ -17,7 +17,8 @@ If (!(Test-Path $CommitInfoFileName))
 # Load the commit info file into an object.
 $commitInfo = Get-Content -Raw -Path $CommitInfoFileName  | ConvertFrom-Json
 
-Write-Host "##vso[task.setvariable variable=GitHubCommitMessage]$($commitInfo.value.message)"
+$message=$commitInfo.value.message -replace "`"","'"
+Write-Host "##vso[task.setvariable variable=GitHubCommitMessage]$message"
 Write-Host "##vso[task.setvariable variable=GitHubCommitAuthor]$($commitInfo.value.author.displayName)"
 Write-Host "##vso[task.setvariable variable=GitHubCommitId]$($commitInfo.value.id.Substring(0,6))"
 Write-Host "##vso[task.setvariable variable=GitHubCommitLink]$($commitInfo.value.displayUri)"
