@@ -4,6 +4,7 @@ WORKDIR "C:\ewerest"
 # This script runs its command line UAC-elevated.  It is needed
 # for RUN commands that run in the context of the Everest user.
 COPY sudo.ps1 .
+COPY bash.ps1 .
 
 WORKDIR "vs2017"
 ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
