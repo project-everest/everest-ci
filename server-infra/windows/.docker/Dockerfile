@@ -53,6 +53,8 @@ ADD ["http://cygwin.org/setup-x86_64.exe", "setup-x86_64.exe"]
 ADD ["https://raw.githubusercontent.com/project-everest/everest/$EVEREST_BRANCH/cygwin-packages", "everest-packages"]
 RUN ["powershell", "-Command", "('.\\setup-x86_64.exe --site http://mirrors.metapeer.com/cygwin --no-desktop --no-shortcuts --quiet-mode --verbose --no-startmenu --wait --packages=' + ((cat everest-packages) -join ',') + ',rsync,patch,diffutils,curl,make,unzip,git,m4,perl,mingw64-x86_64-gcc-core,wget') | Out-File runsetup.bat -Encoding ASCII"]
 RUN powershell.exe c:\ewerest\sudo.ps1 .\runsetup.bat
+# configure Cygwin home directory to be the Windows home directory (c:\users\everest)
+RUN echo db_home:windows >> C:\cygwin64\etc\nsswitch.conf
 WORKDIR ".."
 
 WORKDIR "opam"
@@ -70,9 +72,12 @@ COPY everestcheck.sh .
 #ENV EVEREST_ENV_DEST_FILE /home/everest/.profile
 RUN C:\Cygwin64\bin\bash.exe --login /cygdrive/c/ewerest/everestcheck.sh
 
+# Used by downstream Dockerfiles
+ENV MYHOME c:\\users\\everest
+
 EXPOSE 22 80
 
 # now assign the password.  From this point onward, RNU will not work, and
 # docker commands like exec will not be able to launch processes either.
 # The only access is via SSH.
-RUN net user everest Docker!
+#RUN net user everest Docker!
