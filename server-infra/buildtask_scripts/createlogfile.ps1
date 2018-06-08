@@ -27,11 +27,13 @@ param
     [Parameter(Mandatory=$true)]
     [String] $BuildLogFile,
     [Parameter(Mandatory=$true)]
-    [String] $UploadFileName
+    [String] $UploadFileName,
+    [Parameter(Mandatory=$true)]
+    [String] $BuildId
 )
 
 # Read the log file and rmeove first and last lines. Those represent start and finish of container.
-$log = Get-Content $BuildLogFile | Select -Skip 1 | Select -SkipLast 1
+$log = Get-Content $BuildLogFile | Select-Object -Skip 1 | Select-Object -SkipLast 1
 
 # Replace lines to indicate errors as red lines.
 $log = $log -replace "(\[STDOUT])(.*?)$","<p>`$2</p>"
@@ -53,7 +55,7 @@ $body = "<h1>Build Summary</h1><br><br><table>
             </tr>
             <tr>
                 <th style='text-align:left'>Build Number:</th>
-                <td>$BuildNumber</td>
+                <td><a href='https://msr-project-everest.visualstudio.com/Everest/Everest%20Team/_build/index?buildid=$BuildId&_a=summary'>$BuildNumber</a></td>
             </tr>
             <tr>
                 <th style='text-align:left'>Date Time:</th>
@@ -78,6 +80,10 @@ $body = "<h1>Build Summary</h1><br><br><table>
             <tr>
                 <th style='text-align:left'>OS:</th>
                 <td>$OSName</td>
+            </tr>
+            <tr>
+                <th style='text-align:left'><a href='buildlogfile_$BuildNumber.txt'>Raw log</a></th>
+                <td></td>
             </tr>
             <tr id='placeholder1' style='visibility:hidden'>
                 <th style='text-align:left'>th_placeholder1</th>

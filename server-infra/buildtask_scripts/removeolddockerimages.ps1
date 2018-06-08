@@ -6,7 +6,7 @@ $images = docker images --format '{{json .}}' | ConvertFrom-Json
 $images | ForEach-Object {
     if ($knownImages.Contains($_.Repository) -eq $false) {
         $created = $_.CreatedAt -ireplace " PDT", ""
-        if (((Get-Date) - (Get-Date -Date $created)).Days -gt 0) {
+        if (((Get-Date) - (Get-Date -Date $created)).TotalHours -gt 1) {
             docker rmi -f $_.ID
         }
     }
