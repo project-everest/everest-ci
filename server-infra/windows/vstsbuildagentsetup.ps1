@@ -54,9 +54,8 @@ $hasImage = & docker images -q everest_windows_base_image:1 2>$null
 if (-not $hasImage) {
   # Build our Everest Windows base image
   docker build -f .docker/Dockerfile -t everest_windows_base_image:1 .
-
-  write-host "Make sure to copy buildtask_scripts and config folders to be under /home/builder"
-  write-host "Make sure to populate config.json file with correct settings."
 }
+xcopy buildtask_scripts c:\home\builder\buildtask_scripts /e/s/c/k/i/d/y
+write-host "Make sure to populate /home/builder/config/config.json file with correct settings."
 
 write-host "Done with setup."

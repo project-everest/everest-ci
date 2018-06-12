@@ -20,8 +20,6 @@ $build_dir = "/home/builder/build"
 mkdir -Force $build_dir | Out-Null
 cd $build_dir
 
-#install .net if needed
-#install powershell if needed
 #install azure CLI
 write-host "Installing Azure CLI"
 $azure_cli_msi = $build_dir+"/azurecli.msi"
@@ -32,7 +30,21 @@ wget "https://aka.ms/installazurecliwindows" -outfile /home/builder/build/azurec
 Start-Process $azure_cli_msi_dos  -Wait -ArgumentList /passive
 # it is installed to "C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
 
-#install docker
+#install git
+write-host "Installing Git"
+# powershell defaults to TLS 1.0, which github.com does not support.  Switch to 1.2.
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+wget "https://github.com/git-for-windows/git/releases/download/v2.17.1.windows.2/Git-2.17.1.2-64-bit.exe" -outfile git_setup.exe
+Start-Process git_setup.exe -Wait -ArgumentList "/SILENT /NORESTART /DIR=c:\Git"
+# add it to the path, both locally in this shell, and machine-wide
+$env:path+=";c:\git\bin"
+[System.Environment]::SetEnvironmentVariable("PATH", $Env:path, "Machine")
+
+#install node.js
+wget https://nodejs.org/dist/v8.11.2/node-v8.11.2-x64.msi -outfile:node_setup.msi
+Start-Process msiexec.exe -Wait -ArgumentList "/i node.msi INSTALLDIR=c:\Node /passive"
+$env:path+=";c:\node"
+[System.Environment]::SetEnvironmentVariable("PATH", $Env:path, "Machine")
 
 # create /home/builder/build/agents
 $agents_dir = $build_dir+"/agents"
