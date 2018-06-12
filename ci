@@ -602,6 +602,7 @@ function fetch_mitls() {
   local ref=$( if [ -f ../.mitls_version ]; then cat ../.mitls_version | tr -d '\r\n'; else echo origin/master; fi )
   echo Switching to mitls-fstar $ref
   git reset --hard $ref
+  git clean -fdx
   cd ..
   export_home MITLS "$(pwd)/mitls-fstar"
 }
