@@ -55,6 +55,15 @@ write-host "Downloading VSTS Windows Agent"
 $agent_zip = $agents_dir+"/vsts-agent.zip"
 wget "https://vstsagentpackage.azureedge.net/agent/2.134.2/vsts-agent-win-x64-2.134.2.zip" -outfile $agent_zip
 
+# The VSTS agents run as NetworkService, which has little local access to the machine.
+# The Docker service's named pipe defaults to only allowing admin users.  So bridge the
+# two via a group called "docker"
+net localgroup docker /add
+net localgroup docker NetworkService /add
+Add-Content -Path C:\ProgramData\Docker\config\daemon.json -Value '{ "group" : "docker" }' -Encoding Ascii
+Start-Process sc.exe -Wait -ArgumentList "stop docker"
+Start-Process sc.exe -Wait -ArgumentList "start docker"
+
 # for each in $numberOfAgents
 #  create agent-# subdir
 #  copy the agent binary into the subdir and extract from the downloaded .zip
