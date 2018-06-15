@@ -369,7 +369,7 @@ function refresh_hacl_hints() {
 
 function everest_rebuild() {
   git clean -ffdx
-  ./everest --yes $PARALLEL_OPT $1 check reset make
+  ./everest --yes $PARALLEL_OPT $1 check reset make test verify
 }
 
 function everest_move() {
@@ -858,11 +858,6 @@ case "$1" in
       exit 1
     fi
     run_log_commit "everest_rebuild" "everest-build" "#everest-build" "project-everest/everest"
-    # This second command is only run if the first one succeeds (the script
-    # aborts otherwise).
-    run_log_commit "./everest --yes $PARALLEL_OPT test" "everest-test" "#everest-build" "project-everest/everest"
-    # If it builds & tests, verify it.
-    run_log_commit "./everest --yes $PARALLEL_OPT verify" "everest-verify" "#everest-build" "project-everest/everest" "./FStar"
     ;;
 
   everest-ci-windows)
@@ -872,12 +867,7 @@ case "$1" in
       exit 1
     fi
     run_log_commit "everest_rebuild -windows" "everest-build-windows" "#everest-build" "project-everest/everest"
-    # This second command is only run if the first one succeeds (the script
-    # aborts otherwise).
-    run_log_commit "./everest --yes -windows $PARALLEL_OPT test" "everest-test-windows" "#everest-build" "project-everest/everest"
-    # If it builds & tests, verify it.
-    run_log_commit "./everest --yes -windows $PARALLEL_OPT verify" "everest-verify-windows" "#everest-build" "project-everest/everest" "./FStar"
-    # Finally, build QUICFStar
+    # collect sources and build with MSVC
     run_log_commit "./everest drop qbuild" "everest-qbuild-windows" "#everest-build" "project-everest/everest"
     ;;
 
