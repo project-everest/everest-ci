@@ -368,8 +368,18 @@ function refresh_hacl_hints() {
 }
 
 function everest_rebuild() {
+  if [[ -x /usr/bin/time ]]; then
+    gnutime=/usr/bin/time
+  else
+    gnutime=""
+  fi
   git clean -ffdx
-  ./everest --yes $PARALLEL_OPT $1 check reset make test verify
+  $gnutime ./everest --yes $PARALLEL_OPT $1 check reset make
+  echo done with check reset make, timing above
+  $gnutime ./everest --yes $PARALLEL_OPT $1 test
+  echo done with test, timing above
+  $gnutime ./everest --yes $PARALLEL_OPT $1 verify
+  echo done with verify, timing above
 }
 
 function everest_move() {
