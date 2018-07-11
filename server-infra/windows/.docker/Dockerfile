@@ -41,6 +41,15 @@ RUN powershell.exe Expand-Archive scons.zip
 RUN python.exe scons/scons-%SCONS_VER%/setup.py install
 WORKDIR ".."
 
+# Create a new user, with no password.  It will become the
+# default user context for new Docker commands to run in
+# after the CI build completes.  The 'everest' user
+# account will be password-protected, meaning it can be
+# accessed via SSH, but not Docker, as Docker has no way
+# to pass a password through to CreateProcessAsUser()
+RUN net user root /add
+RUN net localgroup Administrators root /add
+
 # Create user, with no password, and switch to user mode
 # Subsequent RUN commands will fail if there is a password
 RUN net user everest /add
@@ -77,8 +86,3 @@ RUN C:\Cygwin64\bin\bash.exe --login /cygdrive/c/ewerest/everestcheck.sh
 ENV MYHOME c:\\users\\everest
 
 EXPOSE 22 80
-
-# now assign the password.  From this point onward, RNU will not work, and
-# docker commands like exec will not be able to launch processes either.
-# The only access is via SSH.
-#RUN net user everest Docker!
