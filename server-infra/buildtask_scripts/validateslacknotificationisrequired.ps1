@@ -16,7 +16,7 @@ if ($slackEnabled) {
     Write-Host "##vso[task.setvariable variable=SlackChannel]$Channel"
 } else {
     if ($BranchName.indexof("_") -ne -1) { 
-        $user = "@" + $BranchName.Substring(0, $BranchName.indexof("_")) 
+        $user = $BranchName.Substring(0, $BranchName.indexof("_")) 
         Write-Host "##vso[task.setvariable variable=SlackChannel]$user"
     }
 }
