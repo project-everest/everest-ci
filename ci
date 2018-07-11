@@ -659,7 +659,8 @@ function mitls_verify_and_hints() {
 function hacl_test() {
   fetch_and_make_fstar
   fetch_and_make_kremlin
-  export_home OPENSSL "$FSTAR_HOME/ucontrib/CoreCrypto/ml/openssl"
+  fetch_and_make_mlcrypto
+  export_home OPENSSL "$(pwd)/mlcrypto/openssl"
   export_home HACL "$(pwd)"
   make $PARALLEL_OPT ci -k
 }
