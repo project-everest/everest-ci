@@ -29,6 +29,8 @@ $azure_cli_msi_dos = $azure_cli_msi -replace "/","\"
 wget "https://aka.ms/installazurecliwindows" -outfile /home/builder/build/azurecli.msi
 Start-Process $azure_cli_msi_dos  -Wait -ArgumentList /passive
 # it is installed to "C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
+$env:path+=";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
+[System.Environment]::SetEnvironmentVariable("PATH", $Env:path, "Machine")
 
 #install git
 write-host "Installing Git"
