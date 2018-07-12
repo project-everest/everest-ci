@@ -18,7 +18,7 @@ $content = Get-Content "result.txt"
 $buildStatus = "danger"
 if ($content -eq "Success") {
     $buildStatus = "good"
-} if ($content -eq "Success with breakages") {
+} if ($content.StartsWith("Success with breakages")) {
     $buildStatus = "warning"
 }
 
