@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TcpPortTrackerService", "TcpPortTrackerService\TcpPortTrackerService.csproj", "{7681688C-74F7-4944-A3ED-CB6C0EA23811}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TcpPortTrackerClient", "TcpPortTrackerClient\TcpPortTrackerClient.csproj", "{0086D80D-2EB6-4C7D-A667-260F79D65F73}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7681688C-74F7-4944-A3ED-CB6C0EA23811}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7681688C-74F7-4944-A3ED-CB6C0EA23811}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7681688C-74F7-4944-A3ED-CB6C0EA23811}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7681688C-74F7-4944-A3ED-CB6C0EA23811}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0086D80D-2EB6-4C7D-A667-260F79D65F73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0086D80D-2EB6-4C7D-A667-260F79D65F73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0086D80D-2EB6-4C7D-A667-260F79D65F73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0086D80D-2EB6-4C7D-A667-260F79D65F73}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2589B6B7-35B6-4D7F-86A7-56A31FCD9015}
+	EndGlobalSection
+EndGlobal
