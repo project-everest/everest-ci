@@ -660,6 +660,7 @@ function hacl_test() {
   fetch_and_make_fstar
   fetch_and_make_kremlin
   fetch_and_make_mlcrypto
+  fetch_mitls # for mitlsffi.h, sigh
   export_home OPENSSL "$(pwd)/mlcrypto/openssl"
   export_home HACL "$(pwd)"
   make $PARALLEL_OPT ci -k
