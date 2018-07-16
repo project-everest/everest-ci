@@ -5,10 +5,9 @@ $knownImages = "ubuntu", "everest_base_image", "everest_windows_base_image", "mi
 $images = docker images --format '{{json .}}' | ConvertFrom-Json
 $images | ForEach-Object {
     if ($knownImages.Contains($_.Repository) -eq $false -and $_.Tag -ne "latest") {
-        $created = $_.CreatedAt -ireplace " PDT", ""
-        # Windows docker running in Azure reports times in GMT
-        $created = $created -ireplace " GMT", ""
-        if (((Get-Date) - (Get-Date -Date $created)).TotalHours -gt 1) {
+        $image = "$($images[0].Repository):$($images[0].Tag)"
+        $info = docker inspect $image | ConvertFrom-Json
+        if (((Get-Date) - (Get-Date -Date $info.Metadata.LastTagTime)).TotalHours -gt 72) {
             docker rmi -f $_.ID
         }
     }

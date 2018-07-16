@@ -44,10 +44,7 @@ $buildRequestedAuthor = $author.Normalize([System.Text.NormalizationForm]::FormC
 Write-Host "##vso[task.setvariable variable=BuildRequestedAuthor]$buildRequestedAuthor"
 
 # Now we format the Container image name
-$repoName = $BuildRepositoryName.Replace("/", "-").ToLower();
-if ($repoName -match "-") {
-    $repoName = $repoName.Split("-")[1]
-}
+$repoName = $BuildRepositoryName.Split("/")[1].ToLower();
 
 Write-Host "##vso[task.setvariable variable=AzureRepositoryName]$repoName"
 
