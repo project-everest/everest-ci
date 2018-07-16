@@ -1,1 +1,7 @@
 * eol=lf
+*.exe binary
+*.pdb binary
+*.sln     -text diff
+*.suo     -text diff
+*.csproj  -text diff
+

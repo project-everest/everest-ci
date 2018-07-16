@@ -10,10 +10,8 @@ param
 $ProgressPreference = 'SilentlyContinue'
 write-host "==== Bootstrap ===="
 
-#disable password prompts on sudo
-#disable ssh password auth
-#upgrade OS
-#set hostname if needed
+# powershell defaults to TLS 1.0, which many sites don't support.  Switch to 1.2.
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 # create /home/builder/build if needed
 $build_dir = "/home/builder/build"
@@ -34,13 +32,15 @@ $env:path+=";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
 
 #install git
 write-host "Installing Git"
-# powershell defaults to TLS 1.0, which github.com does not support.  Switch to 1.2.
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 wget "https://github.com/git-for-windows/git/releases/download/v2.17.1.windows.2/Git-2.17.1.2-64-bit.exe" -outfile git_setup.exe
 Start-Process git_setup.exe -Wait -ArgumentList "/SILENT /NORESTART /DIR=c:\Git"
 # add it to the path, both locally in this shell, and machine-wide
 $env:path+=";c:\git\bin"
 [System.Environment]::SetEnvironmentVariable("PATH", $Env:path, "Machine")
+
+#install docker-machine
+write-host "Installing docker-machine"
+wget -UseBasicParsing https://github.com/docker/machine/releases/download/v0.15.0/docker-machine-Windows-x86_64.exe -outfile "c:\Program Files\Docker\docker-machine.exe"
 
 #install node.js
 wget https://nodejs.org/dist/v8.11.2/node-v8.11.2-x64.msi -outfile:node_setup.msi
