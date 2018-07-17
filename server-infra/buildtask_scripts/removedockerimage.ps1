@@ -9,7 +9,8 @@ param
 # Remove image, but first validate the image exists.
 $images = docker images --format '{{json .}}' | ConvertFrom-Json
 $images | ForEach-Object {
-    if ($_.Repository -eq $ContainerImageName) {
+    $image = $_.Repository + ":" + $_.Tag
+    if ($image -eq $ContainerImageName) {
         docker rmi $ContainerImageName -f
     }
 }
