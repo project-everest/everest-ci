@@ -14,10 +14,12 @@ $slackEnabled = $BranchName -eq "Master" -or $BranchName -ilike "*_sn*"
 
 if ($slackEnabled) {
     Write-Host "##vso[task.setvariable variable=SlackChannel]$Channel"
+    Write-Host "##vso[task.setvariable variable=SlackDirectMessage]$false"
 } else {
-    if ($BranchName.indexof("_") -ne -1) { 
-        $user = $BranchName.Substring(0, $BranchName.indexof("_")) 
+    if ($BranchName.indexof("_") -ne -1) {
+        $user = $BranchName.Substring(0, $BranchName.indexof("_"))
         Write-Host "##vso[task.setvariable variable=SlackChannel]$user"
+        Write-Host "##vso[task.setvariable variable=SlackDirectMessage]$true"
     }
 }
 
