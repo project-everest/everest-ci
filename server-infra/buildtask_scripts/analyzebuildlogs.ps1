@@ -18,8 +18,27 @@ $content = Get-Content "result.txt"
 $buildStatus = "danger"
 if ($content -eq "Success") {
     $buildStatus = "good"
-} if ($content.StartsWith("Success with breakages")) {
+} elseif ($content.StartsWith("Success with breakages")) {
     $buildStatus = "warning"
+} else {
+    # this is a failure, try to retrieve what is failing
+    # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error...
+    # something. Erase the path while at it, keeping the filename only.
+    $result = $logContent | Select-String '^((\[STDERR\]+)((.)*)\((.)*\):\s\(Error\s(.)*(\)\)+))$'
+    if ($result.Matches.Count -gt 0) {
+        $failedModules = ""
+        $result.Matches |  ForEach-Object {
+            if ($failedModules.Length -gt 0) {
+                $failedModules += ", "
+            }
+
+            $failedModules += $_.Groups[3].Value
+        }
+
+        if ($failedModules.Length -gt 0) {
+            $content += " - There were errors in: " + $failedModules
+        }
+    }
 }
 
 Write-Host "##vso[task.setvariable variable=BuildStatus]$buildStatus"
