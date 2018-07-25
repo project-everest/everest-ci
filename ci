@@ -374,11 +374,11 @@ function everest_rebuild() {
     gnutime=""
   fi
   git clean -ffdx
-  $gnutime ./everest --yes $PARALLEL_OPT $1 check reset make
-  echo done with check reset make, timing above
-  $gnutime ./everest --yes $PARALLEL_OPT $1 test
-  echo done with test, timing above
-  $gnutime ./everest --yes $PARALLEL_OPT $1 verify
+  $gnutime ./everest --yes $PARALLEL_OPT $1 check reset make &&
+  echo done with check reset make, timing above &&
+  $gnutime ./everest --yes $PARALLEL_OPT $1 test &&
+  echo done with test, timing above &&
+  $gnutime ./everest --yes $PARALLEL_OPT $1 verify &&
   echo done with verify, timing above
 }
 
