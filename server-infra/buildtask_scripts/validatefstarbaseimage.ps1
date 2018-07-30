@@ -10,6 +10,8 @@ param
 $config = get-content $fstarversionFile | ConvertFrom-Json
 $fstarBranchName = $config.branch
 $commitId = $config.commit
+Write-Host "##vso[task.setvariable variable=PartialCommitId]$commitId"
+
 $baseImage = "fstar:$commitId"
 
 $baseImageFound = $false
