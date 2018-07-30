@@ -41,3 +41,8 @@ $uploadFile =  [System.IO.Path]::GetFileNameWithoutExtension($config.Build.LogFi
 Write-Host "##vso[task.setvariable variable=UploadFileName]$uploadFile"
 $logFile =  [System.IO.Path]::GetFileNameWithoutExtension($config.Build.LogFile) + "_" +  $BuildId + ".txt"
 Write-Host "##vso[task.setvariable variable=UploadLogFileName]$logFile"
+
+$buildStatus = "danger"
+Write-Host "##vso[task.setvariable variable=BuildStatus]$buildStatus"
+$content = "Failure"
+Write-Host "##vso[task.setvariable variable=BuildResult]$content"
