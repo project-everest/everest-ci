@@ -1,9 +1,15 @@
 # This script is responsible to validate the fstar base image to be used by child projects
 
+param
+(
+    [Parameter(Mandatory=$true)]
+    [String] $fstarversionFile
+)
+
 # Retrieve which base image we are trying to use.
-$containerContent = get-content "Dockerfile"
-$capture = $containerContent | Select-String '^(FROM )((.)*:([^$]*))'
-$baseImage = $capture.Matches.Groups[2].Value
+$config = get-content $fstarversionFile | ConvertFrom-Json
+$fstarBranchName = $config.branch
+$commitId = $config.commit
 
 $baseImageFound = $false
 
@@ -21,9 +27,15 @@ $images | ForEach-Object {
 Write-Host "##vso[task.setvariable variable=BaseImageFound]$baseImageFound"
 
 if ($baseImageFound -eq $false) {
-    $commitId = $capture.Matches.Groups[4].Value
-    $commitInfo = Invoke-WebRequest -Uri "https://github.com/FStarLang/FStar/commit/$commitId"
-    $commitCapture = $commitInfo.Content | Select-String '((content=\"https:\/\/github.com\/FStarLang\/FStar\/commit\/)+([^\"]*))'
-    $fullCommitId = $commitCapture.Matches.Groups[3].Value
+    Write-Host "##vso[task.setvariable variable=FStarBranchName]$fstarBranchName"
+    $fullCommitId = ""
+
+    if ($commitId -ne "latest") {
+        $commitInfo = Invoke-WebRequest -Uri "https://github.com/FStarLang/FStar/commit/$commitId"
+        $commitCapture = $commitInfo.Content | Select-String '((content=\"https:\/\/github.com\/FStarLang\/FStar\/commit\/)+([^\"]*))'
+        $fullCommitId = $commitCapture.Matches.Groups[3].Value
+        Write-Host "##vso[task.setvariable variable=FullCommitId]$fullCommitId"
+    }
+
     Write-Host "##vso[task.setvariable variable=FullCommitId]$fullCommitId"
 }
