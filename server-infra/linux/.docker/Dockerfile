@@ -131,8 +131,6 @@ EXPOSE 22 80
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
 
-RUN apt-get --yes update
-
 ADD ./start_container /start_container
 RUN sudo chmod +x /start_container
 CMD ["/start_container"]
