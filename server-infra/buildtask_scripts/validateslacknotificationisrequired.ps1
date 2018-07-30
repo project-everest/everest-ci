@@ -8,9 +8,14 @@ param
     [String] $Channel
 )
 
-# We always send notificaiton if a change is being made on Master or if the branch name contains _sn
+# We always send notificaiton if a change is being made on Master or
+# if the branch name contains _sn
 # _sn => slack notification
-$slackEnabled = $BranchName -eq "Master" -or $BranchName -ilike "*_sn*"
+$slackEnabled = $BranchName -eq "Master" -or
+                $BranchName -eq "FStar-Master" -or
+                $BranchName -eq "Dev" -or
+                $BranchName -eq "Stable" -or
+                $BranchName -ilike "*_sn*"
 
 if ($slackEnabled) {
     Write-Host "##vso[task.setvariable variable=SlackChannel]$Channel"
