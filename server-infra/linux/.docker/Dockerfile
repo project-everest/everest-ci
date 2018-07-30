@@ -1,6 +1,6 @@
 # This is the Everest Base Image
 # Version 1
-# If you make changes to this file, make sure to update the version above and rebuild the image, 
+# If you make changes to this file, make sure to update the version above and rebuild the image,
 # also update all references to use the new version, this image should be built using:
 # docker build -f Dockerfile -t everest_base_image:$V .
 # Where $V is the number of the version above
@@ -28,40 +28,45 @@ RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 # Here start the Everest-specific packages.
 RUN until apt-get install --no-install-recommends --yes \
         libssl-dev \
-		libsqlite3-dev \
-		g++-6 \
-		gcc-6 \ 
-		m4 \
-		make \
-		opam \
-		git \
-		pandoc \
-		pkg-config \
-		python \
-		libgmp3-dev \
-		unzip \
-		build-essential \
-		automake \
-		ca-certificates-mono \
-		fsharp \
-		libunwind8 \
-		libcurl3 \
-		scons \
-		sudo \
-		python3 \
-		nuget \
-		ca-certificates \
-		cmake \
-		libtool \
-		autoconf \
-		tzdata \
-		openssh-server \
-		vim \
-		curl \
-		wget \
-		tcptraceroute \
-		emacs \
-		; do apt-get --yes update ; done
+        libsqlite3-dev \
+        g++-6 \
+        gcc-6 \
+        m4 \
+        make \
+        opam \
+        git \
+        pandoc \
+        pkg-config \
+        python \
+        libgmp3-dev \
+        unzip \
+        build-essential \
+        automake \
+        ca-certificates-mono \
+        fsharp \
+        libunwind8 \
+        libcurl3 \
+        scons \
+        sudo \
+        python3 \
+        nuget \
+        ca-certificates \
+        cmake \
+        libtool \
+        autoconf \
+        tzdata \
+        openssh-server \
+        vim \
+        curl \
+        wget \
+        tcptraceroute \
+        emacs \
+        libc6 \
+        libc6-dev \
+        libc6-dev-i386 \
+        gcc-multilib \
+        g++-multilib \
+        ; do apt-get --yes update ; done
 
 #Install node.js
 RUN curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
@@ -102,8 +107,8 @@ RUN echo everest:Docker! | chpasswd
 # Other options to bash may be added here, but -c MUST BE the last one (it introduces the actual command to be RUN)
 SHELL ["/bin/bash", "--login", "-c"]
 
-# Switch to user mode 
-USER everest 
+# Switch to user mode
+USER everest
 WORKDIR ${MYHOME}
 
 # Prepare build (OCaml packages)
@@ -125,6 +130,8 @@ EXPOSE 22 80
 
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
+
+RUN apt-get --yes update
 
 ADD ./start_container /start_container
 RUN sudo chmod +x /start_container
