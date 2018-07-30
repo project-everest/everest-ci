@@ -10,6 +10,7 @@ param
 $config = get-content $fstarversionFile | ConvertFrom-Json
 $fstarBranchName = $config.branch
 $commitId = $config.commit
+$baseImage = "fstar:$commitId"
 
 $baseImageFound = $false
 
