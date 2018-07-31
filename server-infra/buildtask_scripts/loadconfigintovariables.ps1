@@ -42,6 +42,8 @@ Write-Host "##vso[task.setvariable variable=UploadFileName]$uploadFile"
 $logFile =  [System.IO.Path]::GetFileNameWithoutExtension($config.Build.LogFile) + "_" +  $BuildId + ".txt"
 Write-Host "##vso[task.setvariable variable=UploadLogFileName]$logFile"
 
+$BuildContainerTime = "00:00:00"
+Write-Host "##vso[task.setvariable variable=BuildContainerTime]$BuildContainerTime"
 $buildStatus = "danger"
 Write-Host "##vso[task.setvariable variable=BuildStatus]$buildStatus"
 $content = "Failure"
