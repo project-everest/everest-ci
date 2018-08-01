@@ -14,11 +14,14 @@ $BuildContainerTime = (Get-Date -Date $end) - (Get-Date -Date $start)
 Write-Host "##vso[task.setvariable variable=BuildContainerTime]$BuildContainerTime"
 
 $content = Get-Content "result.txt"
+if ($null -eq $content) {
+    $content = "Failure"
+}
 
 $buildStatus = "danger"
-if ($content -eq "Success") {
+if ($null -ne $content -and $content -eq "Success") {
     $buildStatus = "good"
-} elseif ($content.StartsWith("Success with breakages")) {
+} elseif ($null -ne $content -and $content.StartsWith("Success with breakages")) {
     $buildStatus = "warning"
 } else {
     # this is a failure, try to retrieve what is failing
