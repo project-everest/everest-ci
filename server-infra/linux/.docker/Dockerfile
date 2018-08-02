@@ -116,6 +116,10 @@ ENV opamv 4.05.0
 ENV OPAMYES true
 RUN opam init --auto-setup --comp ${opamv} --yes
 
+# Setup the user that will be used to interact with github.
+RUN git config user.email "everbld@microsoft.com"
+RUN git config user.name "Dzomo the everest Yak"
+
 # Prepare Everest; we write the everest-specific settings into the GLOBAL
 # /etc/profile so that all users benefit from them. Note: had to modify
 # init_container.sh so that its dumb writeout of the entire environment goes
