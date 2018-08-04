@@ -10,7 +10,6 @@ param
 $config = get-content $fstarversionFile | ConvertFrom-Json
 $fstarBranchName = $config.branch
 $commitId = $config.commit
-Write-Host "##vso[task.setvariable variable=PartialCommitId]$commitId"
 
 if ($commitId -eq "latest") {
     $commitInfo = Invoke-WebRequest -Uri "https://github.com/FStarLang/FStar/commit"
@@ -18,6 +17,8 @@ if ($commitId -eq "latest") {
     $fullCommitId = $commitCapture.Matches.Groups[3].Value
     $commitId = $fullCommitId.Substring(0, 12)
 }
+
+Write-Host "##vso[task.setvariable variable=PartialCommitId]$commitId"
 
 $baseImage = "fstar:$commitId"
 $baseImageFound = $false
