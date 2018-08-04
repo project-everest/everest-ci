@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+########################################
+#
+# - WARNING WARNING WARNING WARNING -
+#
+#  DO NOT MAKE CHANGES ON THIS FILE!
+#
+#  IF YOU NEED TO MAKE CHANGES USE THE
+#  NEW BUILD SCRIPT !!!
+#
+########################################
+
 cat <<INFO
 This is the Everest CI script.
 ... called as $0
