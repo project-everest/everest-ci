@@ -12,8 +12,14 @@ $fstarBranchName = $config.branch
 $commitId = $config.commit
 Write-Host "##vso[task.setvariable variable=PartialCommitId]$commitId"
 
-$baseImage = "fstar:$commitId"
+if ($commitId -eq "latest") {
+    $commitInfo = Invoke-WebRequest -Uri "https://github.com/FStarLang/FStar/commit"
+    $commitCapture = $commitInfo.Content | Select-String '((content=\"https:\/\/github.com\/FStarLang\/FStar\/commit\/)+([^\"]*))'
+    $fullCommitId = $commitCapture.Matches.Groups[3].Value
+    $commitId = $fullCommitId.Substring(0, 12)
+}
 
+$baseImage = "fstar:$commitId"
 $baseImageFound = $false
 
 # Query all images and verify if we found the image we are looking for.
