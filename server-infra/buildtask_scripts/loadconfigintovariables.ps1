@@ -17,6 +17,8 @@ If (!(Test-Path $ConfigFileName))
 # Load the build info file into an object.
 $config = Get-Content -Raw -Path $ConfigFileName  | ConvertFrom-Json
 
+Write-Host "##vso[task.setvariable variable=VSTSAccessToken;issecret=true]$($config.VSTS.AccessToken)"
+
 Write-Host "##vso[task.setvariable variable=CommitInfoFileName]$($config.Build.CommitInfoFileName)"
 Write-Host "##vso[task.setvariable variable=BuildLogFile]$($config.Build.LogFile)"
 

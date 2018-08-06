@@ -1,4 +1,7 @@
 {
+    "VSTS" : {
+        "AccessToken": "PlaceHolder"
+    },
     "Build": {
         "CommitInfoFileName": "commitinfofilename.json",
         "LogFile": "buildlogfile.txt"
