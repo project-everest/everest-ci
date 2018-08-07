@@ -8,12 +8,13 @@ param
     [String] $Channel
 )
 
-# We always send notificaiton if a change is being made on Master or
+# We always send notification if a change is being made on Master or
 # if the branch name contains _sn
 # _sn => slack notification
 $slackEnabled = $BranchName -eq "Master" -or
                 $BranchName -eq "FStar-Master" -or
-                $BranchName -eq "Dev" -or
+                $BranchName -ilike "Dev*" -or
+                $BranchName -eq "verify" -or
                 $BranchName -eq "Stable" -or
                 $BranchName -ilike "*_sn*"
 
