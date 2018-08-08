@@ -28,4 +28,4 @@ $log = $log -replace "td_placeholder1","(<a href='$noreplay'>not replayable</a>,
 Remove-Item $UploadFileName -Force
 $log | Out-File $UploadFileName
 
-Write-Host "##vso[task.setvariable variable=SlackOffendersText]$hints hints failed to replay (<$noreplay|not replayable>,<$worst|worst offenders>)"
+Write-Host "##vso[task.setvariable variable=SlackOffendersText] - $hints hints failed to replay"
