@@ -27,7 +27,7 @@ if ($null -ne $content -and $content -eq "Success") {
     # this is a failure, try to retrieve what is failing
     # Get all the lines of the form: path\to\foo.fst(111,11-111,11) : (Error...
     # something. Erase the path while at it, keeping the filename only.
-    $result = $logContent | Select-String '^((\[STDERR\]+)((.)*)\((.)*\):\s\(Error\s(.)*(\)\)+))$'
+    $result = $logContent | Select-String '^((\[STDERR\]+)((.)*)\((.)*\):\s\(Error\s(.)*\)(.)*)$'
     if ($result.Matches.Count -gt 0) {
         $failedModules = ""
         $result.Matches |  ForEach-Object {
