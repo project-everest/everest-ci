@@ -29,6 +29,7 @@ $fstarSourceVersion = "FSTARSOURCEVERSION=$fullCommitId"
 $baseImageFound = $false
 
 while ($true) {
+    write-host "Looking for base image."
     $shouldBreak = $true
 
     # Query all images.
@@ -42,10 +43,13 @@ while ($true) {
         # it means we are still building the image, so we should wait 1 minute and retry.
         $info = docker inspect $_.Id | ConvertFrom-Json
         if ($info.ContainerConfig.Cmd -icontains $fstarSourceVersion) {
+            write-host "Found expected image."
+
             # if image has the name we are looking for we are done.
             if ($imageName -eq $baseImage) {
                 # tag the image to renew usage and prevent it to be deleted.
                 docker tag $imageName $imageName
+                write-host "Found base image."
                 $baseImageFound = $true
             } else {
                 # lets make sure it is not a dead image.
@@ -53,20 +57,19 @@ while ($true) {
                 $createdAt = $_.CreatedAt.ToString().Replace(" PDT", "")
                 if (((Get-Date) - (Get-Date -Date $createdAt)).TotalHours -lt 1) {
                     # sleep 1 min and don't break outerloop.
-                    Start-Sleep -Seconds 60
+                    write-host "Waiting for image $($_.Id) to be built."
+                    Start-Sleep -Seconds 30
                     $shouldBreak = $false;
                 }
-            }
-
-            if ($baseImageFound -eq $true -or $shouldBreak -eq $false) {
-                break
             }
         }
     }
 
-    if ($baseImageFound -eq $true -or $shouldBreak -eq $true) {
-        break
+    if ($shouldBreak -eq $false) {
+        continue
     }
+
+    break
 }
 
 Write-Host "##vso[task.setvariable variable=BaseImageFound]$baseImageFound"
