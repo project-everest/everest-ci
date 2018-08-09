@@ -20,22 +20,58 @@ if ($commitId -eq "latest") {
 
 Write-Host "##vso[task.setvariable variable=PartialCommitId]$commitId"
 
+# this is the name of the image we are looking for
 $baseImage = "fstar:$commitId"
+
+# the image we are looking for should have this string in the args
+$fstarSourceVersion = "FSTARSOURCEVERSION=$fullCommitId"
+
 $baseImageFound = $false
 
-# Query all images and verify if we found the image we are looking for.
-$images = docker images --format '{{json .}}' | ConvertFrom-Json
-$images | ForEach-Object {
-    $image = $_.Repository + ":" + $_.Tag
-    if ($image -eq $baseImage) {
-        docker tag $image $image
-        $baseImageFound = $true
+while ($true) {
+    $shouldBreak = $true
+
+    # Query all images.
+    $images = docker images --format '{{json .}}' | ConvertFrom-Json
+    $images | ForEach-Object {
+        # for each image retrieve the image name.
+        $imageName = $_.Repository + ":" + $_.Tag
+
+        # inspect the image.
+        # If the image has the args we are looking for, but the name of the image is not the base image
+        # it means we are still building the image, so we should wait 1 minute and retry.
+        $info = docker inspect $_.Id | ConvertFrom-Json
+        if ($info.ContainerConfig.Cmd -icontains $fstarSourceVersion) {
+            # if image has the name we are looking for we are done.
+            if ($imageName -eq $baseImage) {
+                # tag the image to renew usage and prevent it to be deleted.
+                docker tag $image $image
+                $baseImageFound = $true
+            } else {
+                # lets make sure it is not a dead image.
+                # if it is older than 1 hour and has not the expected name, we skip it.
+                $createdAt = $_.CreatedAt.ToString().Replace(" PDT", "")
+                if (((Get-Date) - (Get-Date -Date $createdAt)).TotalHours -lt 1) {
+                    # sleep 1 min and don't break outerloop.
+                    Start-Sleep -Seconds 60
+                    $shouldBreak = $false;
+                }
+            }
+
+            if ($baseImageFound -eq $true -or $shouldBreak -eq $false) {
+                break
+            }
+        }
+    }
+
+    if ($baseImageFound -eq $true -or $shouldBreak -eq $true) {
         break
     }
 }
 
 Write-Host "##vso[task.setvariable variable=BaseImageFound]$baseImageFound"
 
+# If we still have not found it, then we should request a new build.
 if ($baseImageFound -eq $false) {
     Write-Host "##vso[task.setvariable variable=FStarBranchName]$fstarBranchName"
     $fullCommitId = ""
