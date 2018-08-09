@@ -45,7 +45,7 @@ while ($true) {
             # if image has the name we are looking for we are done.
             if ($imageName -eq $baseImage) {
                 # tag the image to renew usage and prevent it to be deleted.
-                docker tag $image $image
+                docker tag $imageName $imageName
                 $baseImageFound = $true
             } else {
                 # lets make sure it is not a dead image.
