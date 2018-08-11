@@ -6,6 +6,6 @@ param
     [String] $BranchName
 )
 
-$knownBranches = "master", "main"
+$knownBranches = "master", "main", "fstar-master"
 
 Write-Host "##vso[task.setvariable variable=ShouldRemoveContainerImage]$($knownBranches.Contains($BranchName) -eq $false)"

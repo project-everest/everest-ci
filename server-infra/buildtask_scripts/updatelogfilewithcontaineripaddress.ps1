@@ -3,10 +3,11 @@
 param
 (
     [Parameter(Mandatory=$true)]
-    [String] $IpAddress,
-    [Parameter(Mandatory=$true)]
     [String] $UploadFileName
 )
+
+$container= Get-Content -Raw -Path container.json  | ConvertFrom-Json
+$IpAddress = $container.ipAddress.ip
 
 # Read the log file and rmeove first and last lines. Those represent start and finish of container.
 $log = Get-Content $UploadFileName

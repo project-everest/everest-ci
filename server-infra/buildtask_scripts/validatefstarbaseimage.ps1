@@ -6,6 +6,12 @@ param
     [String] $fstarversionFile
 )
 
+# if version does not exist then we don't need a base image.
+if ((Test-Path "$fstarversionFile") -eq $false) {
+    Write-Host "##vso[task.setvariable variable=BaseImageFound]$true"
+    return
+}
+
 # Retrieve which base image we are trying to use.
 $config = get-content $fstarversionFile | ConvertFrom-Json
 $fstarBranchName = $config.branch

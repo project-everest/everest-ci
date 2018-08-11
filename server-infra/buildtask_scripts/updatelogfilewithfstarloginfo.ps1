@@ -10,7 +10,7 @@ param
     [String] $RepoName
 )
 
-# Read the log file and rmeove first and last lines. Those represent start and finish of container.
+# Read the log file and remove first and last lines. Those represent start and finish of container.
 $log = Get-Content $UploadFileName
 
 $log = $log -replace " id='placeholder1' style='visibility:hidden'",""
@@ -28,4 +28,4 @@ $log = $log -replace "td_placeholder1","(<a href='$noreplay'>not replayable</a>,
 Remove-Item $UploadFileName -Force
 $log | Out-File $UploadFileName
 
-Write-Host "##vso[task.setvariable variable=SlackOffendersText] - $hints hints failed to replay"
+Write-Host "##vso[task.setvariable variable=SlackFooterText]<https://everestlogstorage.blob.core.windows.net/$($RepoName)/buildlogfile_$($BuildNumber).txt|Raw log> - $hints hints failed to replay"
