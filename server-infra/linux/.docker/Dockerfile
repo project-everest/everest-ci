@@ -25,6 +25,11 @@ RUN apt-get --yes update
 # from: https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 
+# Configure new PPA for python3.6
+# from: https://askubuntu.com/questions/865554/how-do-i-install-python-3-6-using-apt-get
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt-get --yes update
+
 # Here start the Everest-specific packages.
 RUN until apt-get install --no-install-recommends --yes \
         libssl-dev \
@@ -46,9 +51,8 @@ RUN until apt-get install --no-install-recommends --yes \
         fsharp \
         libunwind8 \
         libcurl3 \
-        scons \
         sudo \
-        python3 \
+        python3.6 \
         nuget \
         ca-certificates \
         cmake \
@@ -67,6 +71,13 @@ RUN until apt-get install --no-install-recommends --yes \
         gcc-multilib \
         g++-multilib \
         ; do apt-get --yes update ; done
+
+#Install scons
+RUN wget https://downloads.sourceforge.net/project/scons/scons/3.0.1/scons-3.0.1.tar.gz
+RUN tar xf scons-3.0.1.tar.gz
+WORKDIR scons-3.0.1
+RUN python3.6 setup.py install
+WORKDIR ..
 
 #Install node.js
 RUN curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
