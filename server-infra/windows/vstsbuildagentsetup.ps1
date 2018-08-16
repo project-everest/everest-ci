@@ -1,61 +1,67 @@
-# This script is responsible to do the complete setup in order to have build agents running 
-# on the Windows 1709 Container build machine.
+# This script is responsible to do the complete setup in order
+# to have build agents running on the Windows build machine.
 
 param
 (
-  [Parameter(Mandatory=$true, HelpMessage="VSTS Personal Access Token")]
-  [string] $vstsPat
+    [Parameter(Mandatory=$true, HelpMessage="VSTS Personal Access Token")]
+    [string] $vstsPat
 )
 
-function getAgent {
-  Param ([int] $i, [string] $agentCommand)
+$Error.Clear()
+$LastExitCode = 0
 
-  $a = "/home/builder/build/agents/agent-$i/" + $agentCommand
-  $b = $a -replace '/','\' # powershell bug: Start-Process doesn't support '/' in paths.
-  return $b
+function ConfigAgents {
+    Param ([string] $vstsPat, [int] $i, [bool] $shouldRemove)
+
+    $args = "--unattended --url https://msr-project-everest.visualstudio.com --auth path --token $vstsPat --pool MsrEverestPoolWindows --agent $i --acceptTeeEula --runAsService"
+    if ($shouldRemove) {
+        $args = "remove", $args
+    }
+
+    Start-Process "$((Get-Location).Path)\config.cmd" -NoNewWindow -Wait -ArgumentList $args
 }
 
-function configOrRemoveAgents {
-  Param ([string] $vstsPat, [int] $i, [bool] $remove)
-
-  $a = getAgent $i "config.cmd"
-  $args = "--unattended --url https://msr-project-everest.visualstudio.com --auth path --token $vstsPat --pool MsrEverestPoolWindows --agent $i --acceptTeeEula --runAsService"
-  if ($remove) {
-    $args = "remove", $args
-  }
-
-  Start-Process $a -NoNewWindow -Wait -ArgumentList $args
-}
-
-function removeAgents {
-  Param ([string] $vstsPat, [int] $i)
-
-  configOrRemoveAgents $vstsPat $i $true
-}
-
-# this configures the agent as a Windows Service, and starts it immediately.
-function configAgents {
-  Param ([string] $vstsPat, [int] $i)
-
-  configOrRemoveAgents $vstsPat $i $false
-}
+$originalLocation = "$((Get-Location).Path)"
 
 $numberOfAgents=8
 .\bootstrap.ps1 $numberOfAgents
 
-for ([int] $i=1; $i -le $numberOfAgents; $i++) {
-  removeAgents $vstsPat $i
-  configAgents $vstsPat $i
+if ($Error.Count -gt 0 -or $LastExitCode -lt 0) {
+    $Error
+    return
 }
 
-cd (split-path $SCRIPT:MyInvocation.MyCommand.Path -parent)
+Write-Host "Setup all agents."
+$agentsFolder = "/home/builder/build/agents"
+for ($i=1; $i -le $numberOfAgents; $i++) {
+    Set-Location "$agentsFolder\agent-$i"
 
-$hasImage = & docker images -q everest_windows_base_image:1 2>$null
-if (-not $hasImage) {
-  # Build our Everest Windows base image
-  docker build -f .docker/Dockerfile -t everest_windows_base_image:1 .
+    # First we remove agent if it exists.
+    ConfigAgents $vstsPat $i $true
+
+    # Add agent
+    ConfigAgents $vstsPat $i $false
+
+    if ($Error.Count -gt 0 -or $LastExitCode -lt 0) {
+        $Error
+        return
+    }
 }
-xcopy ..\buildtask_scripts c:\home\builder\buildtask_scripts /e/s/c/k/i/d/y
+
+# verify if everest base image exists.
+$images = docker images -q everest_base_image:1 --format '{{json .}}' | ConvertFrom-Json
+if ($null -eq $images -or $images.Count -eq 0) {
+    # Build our Everest Windows base image
+    docker build -f .docker/Dockerfile -t everest_base_image:1 .
+
+    if ($Error.Count -gt 0 -or $LastExitCode -lt 0) {
+        $Error
+        return
+    }
+}
+
+Copy-Item "$originalLocation\..\buildtask_scripts" -Destination "c:\home\builder\buildtask_scripts" -Force -Recurse
 write-host "Make sure to populate /home/builder/config/config.json file with correct settings."
 
 write-host "Done with setup."
+Set-Location $originalLocation
