@@ -42,10 +42,7 @@ if ($null -eq $dotnetCoreExists) {
     ./dotnet-install.ps1
     Remove-Item "dotnet-install.ps1"
 
-    if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
-        $Error
-        return
-    }
+    $Error.Clear()
 
     # Now that all dependencies of dotnet core are installed install dontnet core sdk 2.0
     Write-Host "Download and Install dotnetCore SDK"
@@ -97,6 +94,8 @@ if ($null -eq $gitExists) {
 Write-Host "Install Docker if not present."
 $dockerExists = (Get-Command docker -ErrorAction:SilentlyContinue)
 if ($null -eq $dockerExists) {
+    $Error.Clear()
+
     Write-Host "Installing Docker"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
     Install-Module -Name DockerMsftProvider -Force
@@ -129,10 +128,17 @@ if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
 Write-Host "Install Node.js if not present."
 $nodeExists = (Get-Command npm -ErrorAction:SilentlyContinue)
 if ($null -eq $nodeExists) {
+    $Error.Clear()
+
     Write-Host "Installing Node.js"
     wget https://nodejs.org/dist/v8.11.2/node-v8.11.2-x64.msi -outfile "node_setup.msi"
     Start-Process msiexec.exe -Wait -ArgumentList "/i node_setup.msi INSTALLDIR=c:\Node /passive"
     Remove-Item "node_setup.msi"
+
+    if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
+        $Error
+        return
+    }
 
     Write-Host "Restarting machine, please re-run script once it is back."
     Start-Sleep -Seconds 10
@@ -142,6 +148,8 @@ if ($null -eq $nodeExists) {
 Write-Host "Install TypeScript if not present."
 $tscExists = (Get-Command tsc -ErrorAction:SilentlyContinue)
 if ($null -eq $tscExists) {
+    $Error.Clear()
+
     # Install typescript
     Write-Host "Installing TypeScript"
     npm install -g typescript

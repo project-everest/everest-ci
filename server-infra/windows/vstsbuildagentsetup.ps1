@@ -26,7 +26,7 @@ $originalLocation = "$((Get-Location).Path)"
 $numberOfAgents=8
 .\bootstrap.ps1 $numberOfAgents
 
-if ($Error.Count -gt 0 -or $LastExitCode -lt 0) {
+if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
     $Error
     return
 }
@@ -42,7 +42,7 @@ for ($i=1; $i -le $numberOfAgents; $i++) {
     # Add agent
     ConfigAgents $vstsPat $i $false
 
-    if ($Error.Count -gt 0 -or $LastExitCode -lt 0) {
+    if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
         $Error
         return
     }
@@ -54,13 +54,14 @@ if ($null -eq $images -or $images.Count -eq 0) {
     # Build our Everest Windows base image
     docker build -f .docker/Dockerfile -t everest_base_image:1 .
 
-    if ($Error.Count -gt 0 -or $LastExitCode -lt 0) {
+    if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
         $Error
         return
     }
 }
 
 Copy-Item "$originalLocation\..\buildtask_scripts" -Destination "c:\home\builder\buildtask_scripts" -Force -Recurse
+Copy-Item "$originalLocation\..\config" -Destination "c:\home\builder\config" -Force -Recurse
 write-host "Make sure to populate /home/builder/config/config.json file with correct settings."
 
 write-host "Done with setup."
