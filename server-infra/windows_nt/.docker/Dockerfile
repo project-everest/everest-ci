@@ -46,7 +46,6 @@ RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', $env:
 # Install cygwin packages
 ENV EVEREST_BRANCH master
 ADD ["https://raw.githubusercontent.com/project-everest/everest/$EVEREST_BRANCH/cygwin-packages", "everest-packages"]
-RUN powershell.exe -Command "'rsync,diffutils,curl,perl,opam' -replace ',','`r`n' | Add-Content 'everest-packages'"
 RUN powershell.exe -Command "Get-Content everest-packages | ForEach-Object { choco install $_ --source cygwin }"
 RUN del everest-packages
 
