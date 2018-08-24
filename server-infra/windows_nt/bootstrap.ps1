@@ -13,7 +13,7 @@ $LastExitCode = 0
 # Server machine should be name as Everest-BuildServer-Windows
 if ($env:COMPUTERNAME -ne "Everest-Win-Bld") {
     # Enable Remote Desktop
-    Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" –Value 0
+    Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Value 0
     Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
     # Rename machine

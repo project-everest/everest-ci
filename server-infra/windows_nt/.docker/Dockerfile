@@ -31,12 +31,12 @@ RUN del vs2017.exe
 WORKDIR "cygwin"
 ADD ["https://chocolatey.org/install.ps1", "install.ps1"]
 RUN powershell.exe c:\ewerest\cygwin\install.ps1
-RUN powershell.exe -Command "choco install cygwin -y --params='/InstallDir:C:\cygwin64 /NoStartMenu'"
+RUN powershell.exe -Command "choco install cygwin -y --params='/InstallDir:C:\\cygwin64 /NoStartMenu'"
 RUN del install.ps1
 
 # Refresh environment variables.
 RUN powershell.exe -Command "refreshenv"
-RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', '$($env:Path);C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)"
+RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)"
 
 # Install cygwin packages
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
@@ -51,7 +51,7 @@ WORKDIR ".."
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
 RUN powershell.exe -Command "choco install python2 -y"
 RUN powershell.exe -Command "choco install python3 -y"
-RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', '$($env:Path);C:\\Python27\\;', [EnvironmentVariableTarget]::Machine)"
+RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\Python27\\;', [EnvironmentVariableTarget]::Machine)"
 
 # Install Scons
 WORKDIR "scons"
