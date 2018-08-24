@@ -61,13 +61,13 @@ ENV MYHOME C:\\cygwin64\\home\\everest
 COPY bash.ps1 .
 
 # Setup the user that will be used to interact with github.
-RUN powershell.exe bash.ps1 git config --global user.email "everbld@microsoft.com"
-RUN powershell.exe bash.ps1 git config --global user.name "Dzomo the everest Yak"
+RUN powershell.exe .\bash.ps1 git config --global user.email "everbld@microsoft.com"
+RUN powershell.exe .\bash.ps1 git config --global user.name "Dzomo the everest Yak"
 
-RUN powershell.exe bash.ps1 git clone https://github.com/project-everest/everest.git
-RUN powershell.exe bash.ps1 rm -rf .git
-RUN powershell.exe bash.ps1 ./everest/everest --yes check
-RUN powershell.exe bash.ps1 eval $(opam config env)
+RUN powershell.exe .\bash.ps1 git clone https://github.com/project-everest/everest.git
+RUN powershell.exe .\bash.ps1 rm -rf .git
+RUN powershell.exe .\bash.ps1 ./everest/everest --yes check
+RUN powershell.exe .\bash.ps1 eval $(opam config env)
 
 ENTRYPOINT ["powershell.exe"]
 
