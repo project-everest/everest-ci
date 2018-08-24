@@ -1,4 +1,4 @@
-# Bootstrap a fresh "Windows Server 1709 Docker" OS
+# Bootstrap a fresh Windows Server OS to become a build agent server.
 
 param
 (
@@ -12,6 +12,11 @@ $LastExitCode = 0
 # Rename machine name.
 # Server machine should be name as Everest-BuildServer-Windows
 if ($env:COMPUTERNAME -ne "Everest-Win-Bld") {
+    # Enable Remote Desktop
+    Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" –Value 0
+    Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+    # Rename machine
     Write-Host "Machine needs to be renamed and a restart is required."
     Write-Host "Restarting machine, please re-run script once it is back."
     Start-Sleep -Seconds 10

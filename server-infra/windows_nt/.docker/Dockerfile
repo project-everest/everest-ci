@@ -22,11 +22,6 @@ RUN net user everest /add
 RUN net localgroup Administrators everest /add
 USER everest
 
-# This script runs its command line UAC-elevated.  It is needed
-# for RUN commands that run in the context of the Everest user.
-COPY sudo.ps1 .
-COPY bash.ps1 .
-
 # Install Windows SDK and .NET Framework 4.5 (not 4.5.x) needed to rebuild F* with F#
 ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
 RUN .\vs2017.exe --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.Component.MSBuild --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.Windows10SDK.15063.Desktop --add Microsoft.Net.Component.4.5.TargetingPack --quiet --wait
@@ -41,20 +36,16 @@ RUN del install.ps1
 
 # Refresh environment variables.
 RUN powershell.exe -Command "refreshenv"
-RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\tools\cygwin\bin', [EnvironmentVariableTarget]::Machine)"
+RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\cygwin64\bin', [EnvironmentVariableTarget]::Machine)"
 
 # Install cygwin packages
-ENV EVEREST_BRANCH master
-ADD ["https://raw.githubusercontent.com/project-everest/everest/$EVEREST_BRANCH/cygwin-packages", "everest-packages"]
-RUN powershell.exe -Command "Get-Content everest-packages | ForEach-Object { choco install $_ --source cygwin }"
-RUN del everest-packages
+ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
+RUN powershell.exe -Command "Get-Content cygwin-packages | ForEach-Object { choco install $_ --source cygwin }"
+RUN del cygwin-packages
 
 # configure Cygwin home directory to be the Windows home directory (c:\users\everest)
 RUN echo db_home:windows >> C:\cygwin64\etc\nsswitch.conf
 WORKDIR ".."
-
-COPY everestcheck.sh .
-RUN C:\cygwin64\bin\bash.exe --login /cygdrive/c/ewerest/everestcheck.sh
 
 # TODO Enable SSH
 #WORKDIR "openssh"
@@ -66,7 +57,17 @@ RUN C:\cygwin64\bin\bash.exe --login /cygdrive/c/ewerest/everestcheck.sh
 #WORKDIR ".."
 
 # Used by downstream Dockerfiles
-ENV MYHOME c:\\users\\everest
+ENV MYHOME C:\\cygwin64\\home\\everest
+COPY bash.ps1 .
+
+# Setup the user that will be used to interact with github.
+RUN powershell.exe bash.ps1 git config --global user.email "everbld@microsoft.com"
+RUN powershell.exe bash.ps1 git config --global user.name "Dzomo the everest Yak"
+
+RUN powershell.exe bash.ps1 git clone https://github.com/project-everest/everest.git
+RUN powershell.exe bash.ps1 rm -rf .git
+RUN powershell.exe bash.ps1 ./everest/everest --yes check
+RUN powershell.exe bash.ps1 eval $(opam config env)
 
 ENTRYPOINT ["powershell.exe"]
 
