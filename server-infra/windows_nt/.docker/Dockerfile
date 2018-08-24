@@ -34,9 +34,13 @@ RUN powershell.exe c:\ewerest\cygwin\install.ps1
 RUN powershell.exe -Command "choco install cygwin -y --params='/InstallDir:C:\\cygwin64 /NoStartMenu'"
 RUN del install.ps1
 
+# Install Python 2 and 3
+ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
+RUN powershell.exe -Command "choco install python2 python3 -y"
+
 # Refresh environment variables.
 RUN powershell.exe -Command "refreshenv"
-RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)"
+RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;C:\\Python27\\;', [EnvironmentVariableTarget]::Machine)"
 
 # Install cygwin packages
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
@@ -46,12 +50,6 @@ RUN del cygwin-packages
 # configure Cygwin home directory to be the Windows home directory (c:\users\everest)
 RUN echo db_home:windows >> C:\cygwin64\etc\nsswitch.conf
 WORKDIR ".."
-
-# Install Python 2 and 3
-ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
-RUN powershell.exe -Command "choco install python2 -y"
-RUN powershell.exe -Command "choco install python3 -y"
-RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\Python27\\;', [EnvironmentVariableTarget]::Machine)"
 
 # Install Scons
 WORKDIR "scons"
@@ -75,13 +73,13 @@ ENV MYHOME C:\\cygwin64\\home\\everest
 COPY bash.ps1 .
 
 # Setup the user that will be used to interact with github.
-RUN powershell.exe .\bash.ps1 git config --global user.email "`"everbld@microsoft.com`""
-RUN powershell.exe .\bash.ps1 git config --global user.name "`"Dzomo the everest Yak`""
+RUN powershell.exe .\bash.ps1 git config --global user.email "'everbld@microsoft.com'"
+RUN powershell.exe .\bash.ps1 git config --global user.name "'Dzomo the everest Yak'"
 
 RUN powershell.exe .\bash.ps1 git clone https://github.com/project-everest/everest.git
 RUN powershell.exe .\bash.ps1 rm -rf .git
 RUN powershell.exe .\bash.ps1 ./everest/everest --yes check
-RUN powershell.exe .\bash.ps1 eval "`$(opam config env)"
+RUN powershell.exe .\bash.ps1 eval "'`$(opam config env)'"
 
 ENTRYPOINT ["powershell.exe"]
 
