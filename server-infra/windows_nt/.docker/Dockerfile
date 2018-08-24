@@ -36,7 +36,7 @@ RUN del install.ps1
 
 # Refresh environment variables.
 RUN powershell.exe -Command "refreshenv"
-RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\cygwin64\bin', [EnvironmentVariableTarget]::Machine)"
+RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', '$($env:Path);C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)"
 
 # Install cygwin packages
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
@@ -45,6 +45,20 @@ RUN del cygwin-packages
 
 # configure Cygwin home directory to be the Windows home directory (c:\users\everest)
 RUN echo db_home:windows >> C:\cygwin64\etc\nsswitch.conf
+WORKDIR ".."
+
+# Install Python 2 and 3
+ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
+RUN powershell.exe -Command "choco install python2 -y"
+RUN powershell.exe -Command "choco install python3 -y"
+RUN powershell.exe -Command "[Environment]::SetEnvironmentVariable('Path', '$($env:Path);C:\\Python27\\;', [EnvironmentVariableTarget]::Machine)"
+
+# Install Scons
+WORKDIR "scons"
+ADD ["https://downloads.sourceforge.net/project/scons/scons/3.0.1/scons-3.0.1.zip?ts=1535119051", "scons-3.0.1.zip"]
+RUN powershell.exe Expand-Archive scons-3.0.1.zip
+RUN python.exe scons-3.0.1/scons-3.0.1/setup.py install
+RUN del scons-3.0.1.zip
 WORKDIR ".."
 
 # TODO Enable SSH
