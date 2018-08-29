@@ -79,7 +79,7 @@ RUN Invoke-BashCmd git config --global user.name `'Dzomo the everest Yak`'
 # Run everest check to install any missing piece
 RUN Invoke-BashCmd git clone https://github.com/project-everest/everest.git
 RUN Invoke-BashCmd ./everest/everest --yes check
-RUN Invoke-BashCmd eval `'$(opam config env)`'
+RUN Invoke-BashCmd eval `''$(opam config env)'`'
 RUN Invoke-BashCmd rm -rf .git
 
 ENTRYPOINT ["powershell.exe"]
