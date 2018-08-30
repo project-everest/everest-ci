@@ -1,6 +1,6 @@
 # This script is responsible to remove all images older than 24 hours.
 
-$knownImages = "ubuntu", "everest_base_image", "everest_windows_base_image", "microsoft/windowsservercore", "microsoft/nanoserver"
+$knownImages = "ubuntu", "everest_base_image", "microsoft/windowsservercore"
 
 $images = docker images --format '{{json .}}' | ConvertFrom-Json
 $images | ForEach-Object {
