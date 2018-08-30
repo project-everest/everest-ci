@@ -15,7 +15,7 @@ function global:Invoke-BashCmd
     c:\cygwin64\bin\bash.exe --login -c "cd $cygpath && $args" | Out-File $outputFile
 
     If ((Test-Path $outputFile) -eq $true) {
-        Get-Content $outputFile -Raw | Write-Host
+        Get-Content $outputFile -Raw | Write-Output
         Remove-Item $outputFile -Force
     }
 
