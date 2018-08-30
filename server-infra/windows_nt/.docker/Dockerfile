@@ -41,7 +41,6 @@ WORKDIR "tools"
 WORKDIR "cygwin"
 ADD ["https://chocolatey.org/install.ps1", "install.ps1"]
 RUN & .\install.ps1; choco install cygwin -y --params='/InstallDir:C:\\cygwin64 /NoStartMenu'
-RUN choco install git -y
 
 # Install Python 2 and 3
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
