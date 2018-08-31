@@ -3,7 +3,9 @@
 param
 (
     [Parameter(Mandatory=$true)]
-    [String] $fstarversionFile
+    [String] $fstarversionFile,
+    [Parameter(Mandatory=$true)]
+    [String] $OSName
 )
 
 # if version does not exist then we don't need a base image.
@@ -27,7 +29,8 @@ if ($commitId -eq "latest") {
 Write-Host "##vso[task.setvariable variable=PartialCommitId]$commitId"
 
 # this is the name of the image we are looking for
-$baseImage = "fstar:$commitId"
+$baseImage = "fstar-$($OSName):$commitId"
+Write-Host "Looking for: $baseImage"
 
 # the image we are looking for should have this string in the args
 $fstarSourceVersion = "FSTARSOURCEVERSION=$fullCommitId"

@@ -5,7 +5,9 @@ param
     [Parameter(Mandatory=$true)]
     [String] $CommitInfoFileName,
     [Parameter(Mandatory=$true)]
-    [String] $BuildRepositoryName
+    [String] $BuildRepositoryName,
+    [Parameter(Mandatory=$true)]
+    [String] $OSName
 )
 
 If (!(Test-Path $CommitInfoFileName))
@@ -42,11 +44,10 @@ ForEach ($c in [char[]]$buildRequestedAuthor) {
 
 $buildRequestedAuthor = $author.Normalize([System.Text.NormalizationForm]::FormC)
 
-
 Write-Host "##vso[task.setvariable variable=BuildRequestedAuthor]$buildRequestedAuthor"
 
 # Now we format the Container image name
-$repoName = $BuildRepositoryName.Split("/")[1].ToLower();
+$repoName = $BuildRepositoryName.Split("/")[1].ToLower() + "-$OSName";
 
 Write-Host "##vso[task.setvariable variable=AzureRepositoryName]$repoName"
 
