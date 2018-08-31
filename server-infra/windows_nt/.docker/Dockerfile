@@ -42,12 +42,12 @@ WORKDIR "cygwin"
 ADD ["https://chocolatey.org/install.ps1", "install.ps1"]
 RUN & .\install.ps1; choco install cygwin -y --params='/InstallDir:C:\\cygwin64 /NoStartMenu'
 
-# Install Python 2 and 3
+# Install Python 3
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
-RUN choco install python2 python3 -y
+RUN choco install python3 -y
 
 # Refresh environment variables.
-RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;C:\\Python27\\;', [EnvironmentVariableTarget]::Machine)
+RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)
 
 # Install cygwin packages
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
