@@ -72,8 +72,8 @@ WORKDIR ".."
 WORKDIR ".."
 
 # Setup the user that will be used to interact with github.
-RUN Invoke-BashCmd git config --global user.email '"'everbld@microsoft.com'"'
-RUN Invoke-BashCmd git config --global user.name '"'Dzomo the everest Yak'"'
+RUN Invoke-BashCmd git config --global user.email '\"everbld@microsoft.com\"'
+RUN Invoke-BashCmd git config --global user.name '\"Dzomo the everest Yak\"'
 
 # Run everest check to install any missing piece
 RUN Invoke-BashCmd git clone https://github.com/project-everest/everest.git
