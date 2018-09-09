@@ -6,6 +6,16 @@
 # Where $V is the number of the version above
 FROM microsoft/windowsservercore:ltsc2016
 
+# Enable IIS
+RUN powershell -Command \
+    Add-WindowsFeature Web-Server; \
+    Invoke-WebRequest -UseBasicParsing -Uri "https://dotnetbinaries.blob.core.windows.net/servicemonitor/2.0.1.3/ServiceMonitor.exe" -OutFile "C:\ServiceMonitor.exe"
+
+# Install Powershell
+ADD ["https://github.com/PowerShell/PowerShell/releases/download/v6.0.0/PowerShell-6.0.0-win-x64.zip", "c:/powershell.zip"]
+RUN powershell.exe -Command Expand-Archive c:/powershell.zip c:/PS6; Remove-Item c:/powershell.zip
+RUN C:/PS6/pwsh.EXE -Command C:/PS6/Install-PowerShellRemoting.ps1
+
 WORKDIR 'c:\\cygwin64\\home\\everest'
 COPY bash.ps1 .
 
@@ -82,6 +92,7 @@ RUN Invoke-BashCmd '. ''.opam/opam-init/init.sh'' > /dev/null 2> /dev/null || tr
 RUN Invoke-BashCmd 'eval ''$(opam config env)'''
 RUN Invoke-BashCmd rm -rf .git
 
-ENTRYPOINT ["powershell.exe"]
+EXPOSE 80 22
 
-EXPOSE 22 80
+COPY start.ps1 c:/start.ps1
+ENTRYPOINT ["C:/PS6/pwsh.EXE", "-NoExit", "c:/start.ps1"]
