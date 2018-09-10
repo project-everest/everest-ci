@@ -6,15 +6,50 @@
 # Where $V is the number of the version above
 FROM microsoft/windowsservercore:ltsc2016
 
+# Create user, with no password, and switch to user mode
+# Subsequent RUN commands will fail if there is a password
+RUN net user everest /add
+RUN net localgroup Administrators everest /add
+USER everest
+
 # Enable IIS
 RUN powershell -Command \
     Add-WindowsFeature Web-Server; \
     Invoke-WebRequest -UseBasicParsing -Uri "https://dotnetbinaries.blob.core.windows.net/servicemonitor/2.0.1.3/ServiceMonitor.exe" -OutFile "C:\ServiceMonitor.exe"
 
-# Install Powershell
+# Install Powershell Core
 ADD ["https://github.com/PowerShell/PowerShell/releases/download/v6.0.0/PowerShell-6.0.0-win-x64.zip", "c:/powershell.zip"]
 RUN powershell.exe -Command Expand-Archive c:/powershell.zip c:/PS6; Remove-Item c:/powershell.zip
 RUN C:/PS6/pwsh.EXE -Command C:/PS6/Install-PowerShellRemoting.ps1
+
+# Enable SSH
+ADD ["https://github.com/PowerShell/Win32-OpenSSH/releases/download/v7.7.0.0p1-Beta/OpenSSH-Win64.zip", "OpenSSH-Win64.zip"]
+RUN c:/PS6/pwsh.exe -Command Expand-Archive OpenSSH-Win64.zip c:/; Remove-Item OpenSSH-Win64.zip
+RUN c:/PS6/pwsh.exe -Command c:/OpenSSH-Win64/install-sshd.ps1
+RUN c:/PS6/pwsh.exe -Command Set-Service sshd -StartupType Automatic
+RUN c:/PS6/pwsh.exe -Command Set-Service ssh-agent -StartupType Automatic
+
+# Configure SSH
+COPY sshd_config c:/OpenSSH-Win64/sshd_config
+COPY sshd_banner c:/OpenSSH-Win64/sshd_banner
+COPY sshd_config C:/ProgramData/ssh/sshd_config
+COPY sshd_banner C:/ProgramData/ssh/sshd_banner
+
+WORKDIR c:/OpenSSH-Win64/
+RUN c:/OpenSSH-Win64/ssh-keygen.exe -t dsa -N "" -f ssh_host_dsa_key
+RUN c:/OpenSSH-Win64/ssh-keygen.exe -t rsa -N "" -f ssh_host_rsa_key
+RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ecdsa -N "" -f ssh_host_ecdsa_key
+RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ed25519 -N "" -f ssh_host_ed25519_key
+
+# Set Powershell Core as default ssh shell
+RUN C:/PS6/pwsh.EXE -Command \
+    New-Item -Path HKLM:\SOFTWARE -Name OpenSSH -Force; \
+    New-ItemProperty -Path HKLM:\SOFTWARE\OpenSSH -Name DefaultShell -Value c:\ps6\pwsh.exe -PropertyType string -Force;
+
+# Fix ssh permissions
+RUN C:/PS6/pwsh.EXE -Command \
+    c:/OpenSSH-Win64/Install-sshd.ps1; \
+    c:/OpenSSH-Win64/FixHostFilePermissions.ps1 -Confirm:$false;
 
 WORKDIR 'c:\\cygwin64\\home\\everest'
 COPY bash.ps1 .
@@ -29,21 +64,6 @@ RUN del vs2017.exe
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 RUN .\bash.ps1; New-BashCmdProfile;
 RUN Remove-Item 'bash.ps1'
-
-# Create a new user, with no password.  It will become the
-# default user context for new Docker commands to run in
-# after the CI build completes.  The 'everest' user
-# account will be password-protected, meaning it can be
-# accessed via SSH, but not Docker, as Docker has no way
-# to pass a password through to CreateProcessAsUser()
-RUN net user root /add
-RUN net localgroup Administrators root /add
-
-# Create user, with no password, and switch to user mode
-# Subsequent RUN commands will fail if there is a password
-RUN net user everest /add
-RUN net localgroup Administrators everest /add
-USER everest
 
 WORKDIR "tools"
 
@@ -69,15 +89,6 @@ WORKDIR "scons"
 ADD ["https://downloads.sourceforge.net/project/scons/scons/3.0.1/scons-3.0.1.zip?ts=1535119051", "scons-3.0.1.zip"]
 RUN Expand-Archive scons-3.0.1.zip; python scons-3.0.1/scons-3.0.1/setup.py install; Remove-Item scons-3.0.1.zip
 WORKDIR ".."
-
-# TODO Enable SSH
-#WORKDIR "openssh"
-#ADD ["https://github.com/PowerShell/Win32-OpenSSH/releases/download/v7.7.0.0p1-Beta/OpenSSH-Win64.zip", "OpenSSH-Win64.zip"]
-#RUN powershell.exe Expand-Archive OpenSSH-Win64.zip
-#RUN powershell.exe OpenSSH-Win64\OpenSSH-Win64\install-sshd.ps1
-#RUN powershell.exe Set-Service sshd -StartupType Automatic
-#RUN powershell.exe Set-Service ssh-agent -StartupType Automatic
-#WORKDIR ".."
 
 WORKDIR ".."
 
