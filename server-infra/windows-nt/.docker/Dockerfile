@@ -52,22 +52,12 @@ WORKDIR "cygwin"
 ADD ["https://chocolatey.org/install.ps1", "install.ps1"]
 RUN & .\install.ps1; choco install cygwin -y --params='/InstallDir:C:\\cygwin64 /NoStartMenu'
 
-# Install Python 2
-ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
-RUN choco install python2 -y
-
 # Refresh environment variables.
-RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;C:\\Python27\\;', [EnvironmentVariableTarget]::Machine)
+RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)
 
-# Install cygwin packages
-ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
-RUN Get-Content cygwin-packages | ForEach-Object { choco install $_ --source cygwin }
-WORKDIR ".."
-
-# Install Scons
-WORKDIR "scons"
-ADD ["https://downloads.sourceforge.net/project/scons/scons/3.0.1/scons-3.0.1.zip?ts=1535119051", "scons-3.0.1.zip"]
-RUN Expand-Archive scons-3.0.1.zip; python scons-3.0.1/scons-3.0.1/setup.py install; Remove-Item scons-3.0.1.zip
+# Install cygwin packages (we need to do this here because it is no longer possible to do that from within the container)
+ADD ["https://raw.githubusercontent.com/project-everest/everest/verify/cygwin-packages", "cygwin-packages"]
+RUN Get-Content cygwin-packages | ForEach-Object { choco install $_ -y --source cygwin }
 WORKDIR ".."
 
 # TODO Enable SSH
@@ -86,7 +76,7 @@ RUN Invoke-BashCmd git config --global user.email '\"everbld@microsoft.com\"'
 RUN Invoke-BashCmd git config --global user.name '\"Dzomo the everest Yak\"'
 
 # Run everest check to install any missing piece
-RUN Invoke-BashCmd git clone https://github.com/project-everest/everest.git
+RUN Invoke-BashCmd git clone --branch verify https://github.com/project-everest/everest.git
 RUN Invoke-BashCmd ./everest/everest --yes check
 RUN Invoke-BashCmd '. ''.opam/opam-init/init.sh'' > /dev/null 2> /dev/null || true'
 RUN Invoke-BashCmd 'eval ''$(opam config env)'''
