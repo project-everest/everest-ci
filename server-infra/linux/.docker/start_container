@@ -1,4 +1,7 @@
 #!/bin/bash
 
+# Start Http server
+sudo http-server ~/ -p 80 &
+
 # Run OpenSSH server in daemon mode
 sudo /usr/sbin/sshd -D

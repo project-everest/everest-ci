@@ -92,6 +92,9 @@ RUN npm install -g less
 # Install madoko
 RUN npm install madoko -g
 
+# Install node server
+RUN npm install http-server -g
+
 # Setup ssh
 RUN mkdir /var/run/sshd
 
