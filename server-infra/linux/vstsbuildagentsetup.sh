@@ -9,7 +9,7 @@ if [ -z "$1" ]; then
     exit
 fi
 
-Setup () 
+Setup ()
 {
     numberOfAgents=8
     sudo bash ./bootstrap.sh $numberOfAgents $USER
@@ -26,9 +26,6 @@ Setup ()
         #Build our Everest base image
         docker build -f .docker/Dockerfile -t everest_base_image:1 .
     fi
-
-    echo "Make sure to copy buildtask_scripts and config folders to be under /home/builder"
-    echo "Make sure to populate config.json file with correct settings."
 }
 
 Setup

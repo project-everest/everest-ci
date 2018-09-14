@@ -60,9 +60,5 @@ if ($null -eq $images -or $images.Count -eq 0) {
     }
 }
 
-Copy-Item "$originalLocation\..\buildtask_scripts" -Destination "c:\home\builder\buildtask_scripts" -Force -Recurse
-Copy-Item "$originalLocation\..\config" -Destination "c:\home\builder\config" -Force -Recurse
-write-host "Make sure to populate /home/builder/config/config.json file with correct settings."
-
 write-host "Done with setup."
 Set-Location $originalLocation
