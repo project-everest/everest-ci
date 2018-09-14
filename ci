@@ -630,17 +630,21 @@ function fetch_mitls() {
 }
 
 function fetch_vale() {
-  if [ ! -d vale ]; then
-    git clone https://github.com/project-everest/vale vale
+  vale_dir="$1"
+  if [ -z "$vale_dir" ] ; then
+    vale_dir=vale
   fi
-  cd vale
+  if [ ! -d "$vale_dir" ]; then
+    git clone https://github.com/project-everest/vale "$vale_dir"
+  fi
+  cd "$vale_dir"
   git fetch origin
   echo Switching to vale to fstar_ci
   git clean -fdx .
   git reset --hard origin/fstar_ci
   nuget.exe restore tools/Vale/src/packages.config -PackagesDirectory tools/FsLexYacc
   cd ..
-  export_home VALE "$(pwd)/vale"
+  export_home VALE "$(pwd)/$vale_dir"
 }
 
 function build_pki_if() {
@@ -672,9 +676,14 @@ function hacl_test() {
   fetch_and_make_kremlin
   fetch_and_make_mlcrypto
   fetch_mitls # for mitlsffi.h, sigh
+  fetch_vale valebin
   export_home OPENSSL "$(pwd)/mlcrypto/openssl"
   export_home HACL "$(pwd)"
-  env VALE_SCONS_PARALLEL_OPT="$PARALLEL_OPT" make $PARALLEL_OPT ci -k
+  export VALE_SCONS_PARALLEL_OPT="$PARALLEL_OPT"
+  # Build Vale first
+  pushd valebin && ./run_scons.sh $PARALLEL_OPT --FSTAR-MY-VERSION && popd &&
+  # then build HACL*
+  env make $PARALLEL_OPT ci -k
 }
 
 function hacl_test_and_hints() {
