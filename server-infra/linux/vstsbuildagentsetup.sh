@@ -75,7 +75,7 @@ Setup ()
     # Remove linux agent file.
     rm vsts-agent-linux-x64-2.131.0.tar.gz
 
-    for i in $(seq 1 $numberOfAgents)
+    for i in $(seq $initialPoolIndex $finalPoolIndex)
     do
         agentNumber="agent-$i"
         bash ./removeagents.sh $vstsPat $agentNumber
