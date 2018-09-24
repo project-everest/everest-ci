@@ -45,16 +45,6 @@ Setup ()
 {
     sudo bash ./bootstrap.sh $USER
 
-    # Check if we have the agents folder, create it if needed.
-    if ! [ -d /home/builder/build/agents ]; then
-        mkdir -p /home/builder/build/agents
-    fi
-
-    if ! [ -d /home/builder/build/agents ]; then
-        echo "Unable to create /home/builder/build/agents directory"
-        exit
-    fi
-
     # Download VSTS linux agent
     cd /home/builder/build/agents
     curl -O https://vstsagentpackage.azureedge.net/agent/2.140.0/vsts-agent-osx-x64-2.140.0.tar.gz
@@ -67,14 +57,14 @@ Setup ()
             # copy agent file to directory, if required and extract it.
             mkdir $agentNumber
 
-            cp  vsts-agent-linux-x64-2.131.0.tar.gz $agentNumber/vsts-agent-linux-x64-2.131.0.tar.gz
+            cp  vsts-agent-osx-x64-2.140.0.tar.gz $agentNumber/vsts-agent-osx-x64-2.140.0.tar.gz
             cd $agentNumber
 
             # extract files.
-            tar zxvf vsts-agent-linux-x64-2.131.0.tar.gz
+            tar zxvf vsts-agent-osx-x64-2.140.0.tar.gz
 
             # compressed file.
-            rm vsts-agent-linux-x64-2.131.0.tar.gz
+            rm vsts-agent-osx-x64-2.140.0.tar.gz
             cd ..
         fi
 
@@ -86,14 +76,14 @@ Setup ()
             # copy agent file to directory, if required and extract it.
             mkdir $agentNumber
 
-            cp  vsts-agent-linux-x64-2.131.0.tar.gz $agentNumber/vsts-agent-linux-x64-2.131.0.tar.gz
+            cp  vsts-agent-osx-x64-2.140.0.tar.gz $agentNumber/vsts-agent-osx-x64-2.140.0.tar.gz
             cd $agentNumber
 
             # extract files.
-            tar zxvf vsts-agent-linux-x64-2.131.0.tar.gz
+            tar zxvf vsts-agent-osx-x64-2.140.0.tar.gz
 
             # compressed file.
-            rm vsts-agent-linux-x64-2.131.0.tar.gz
+            rm vsts-agent-osx-x64-2.140.0.tar.gz
             cd ..
         fi
 
@@ -102,7 +92,7 @@ Setup ()
     done
 
     # Remove linux agent file.
-    rm vsts-agent-linux-x64-2.131.0.tar.gz
+    rm vsts-agent-osx-x64-2.140.0.tar.gz
 
     for i in $(seq $initialPoolIndex $finalPoolIndex)
     do
