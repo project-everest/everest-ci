@@ -22,16 +22,15 @@ ConfigAgents ()
 {
     local vstsPat=$1
     local poolName=$2
-    local agentFolder=$3
-    local agentNumber=$4
-    local remove=$5
+    local agentName=$3
+    local remove=$4
 
     echo /home/builder/build/agents/$agentFolder
 
     if [ "$remove" = true ]; then
-        if [ -d /home/builder/build/agents/$agentFolder ]; then
-            echo Remove $agentNumber on $poolName
-            cd /home/builder/build/agents/$agentFolder
+        if [ -d /home/builder/build/agents/$agentName ]; then
+            echo Remove $agentName on $poolName
+            cd /home/builder/build/agents/$agentName
 
             # Remove agents from a previous agent setup.
             sudo bash ./svc.sh stop >1
@@ -39,11 +38,11 @@ ConfigAgents ()
             bash ./config.sh remove --auth pat --token $vstsPat
         fi
     else
-        echo Install $agentNumber on $poolName
-        cd /home/builder/build/agents/$agentFolder
+        echo Install $agentName on $poolName
+        cd /home/builder/build/agents/$agentName
 
         # Now we setup the new agent.
-        bash ./config.sh --unattended --url https://msr-project-everest.visualstudio.com --auth pat --token $vstsPat --pool $poolName --agent $agentNumber --acceptTeeEula
+        bash ./config.sh --unattended --url https://msr-project-everest.visualstudio.com --auth pat --token $vstsPat --pool $poolName --agent $agentName --acceptTeeEula
 
         sudo bash ./svc.sh install >1
         sudo bash ./svc.sh start >1
@@ -105,13 +104,13 @@ Setup ()
 
     for i in $(seq $initialPoolIndex $finalPoolIndex)
     do
-        agentNumber="agent-$i"
-        ConfigAgents $vstsPat $poolName $agentNumber $agentNumber true
-        ConfigAgents $vstsPat $poolName $agentNumber $agentNumber false
+        agentName="agent-$i"
+        ConfigAgents $vstsPat $poolName $agentName true
+        ConfigAgents $vstsPat $poolName $agentName false
 
-        agentFolder="agent-ondemand-$i"
-        ConfigAgents $vstsPat $poolNameOndemand $agentFolder $agentNumber true
-        ConfigAgents $vstsPat $poolNameOndemand $agentFolder $agentNumber false
+        agentName="agent-ondemand-$i"
+        ConfigAgents $vstsPat $poolNameOndemand $agentName true
+        ConfigAgents $vstsPat $poolNameOndemand $agentName false
     done
 }
 
