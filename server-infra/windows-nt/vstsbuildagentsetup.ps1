@@ -25,6 +25,8 @@ Write-Host FinalPoolIndex = $finalPoolIndex
 function ConfigAgents {
     Param ([string] $vstsPat, [string] $poolName, [string] $agentName, [bool] $shouldRemove)
 
+    Write-Host "$agentName on $poolName"
+
     $args = "--unattended --url https://msr-project-everest.visualstudio.com --auth path --token $vstsPat --pool $poolName --agent $agentName --acceptTeeEula --runAsService"
     if ($shouldRemove) {
         $args = "remove", $args
@@ -90,7 +92,7 @@ for ($i=$initialPoolIndex; $i -le $finalPoolIndex; $i++) {
     $agentName="agent-ondemand-$i"
     Set-Location "$agentsFolder\$agentName"
     ConfigAgents $vstsPat $poolNameOndemand $agentName $true
-    ConfigAgents $vstsPat $ppoolNameOndemand $agentName $false
+    ConfigAgents $vstsPat $poolNameOndemand $agentName $false
 
     if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
         $Error
