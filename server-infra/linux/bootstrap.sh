@@ -175,6 +175,16 @@ Bootstrap ()
         sleep 5
         sudo shutdown -r 0
     fi
+
+    # Check if we have the agents folder, create it if needed.
+    if ! [ -d /home/builder/build/agents ]; then
+        mkdir -p /home/builder/build/agents
+    fi
+
+    if ! [ -d /home/builder/build/agents ]; then
+        echo "Unable to create /home/builder/build/agents directory"
+        exit
+    fi
 }
 
 Bootstrap
