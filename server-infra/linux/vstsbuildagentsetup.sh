@@ -25,7 +25,7 @@ ConfigAgents ()
     local agentName=$3
     local remove=$4
 
-    echo /home/builder/build/agents/$agentFolder
+    echo /home/builder/build/agents/$agentName
 
     if [ "$remove" = true ]; then
         if [ -d /home/builder/build/agents/$agentName ]; then
