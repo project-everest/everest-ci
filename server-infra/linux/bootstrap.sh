@@ -3,10 +3,9 @@
 # This script is responsible to setup the linux build machine.
 # Run it if you need to setup or resetup the linux build server.
 
-numberOfAgents=$1
-serviceUser=$2
+serviceUser=$1
 
-Bootstrap () 
+Bootstrap ()
 {
     # This part of script should run as root/sudo.
     if [ $(/usr/bin/id -u) -ne 0 ]; then
@@ -32,7 +31,7 @@ Bootstrap ()
         echo "DenyUsers $serviceUser" >> /etc/ssh/sshd_config
         must_restart_ssh=true
     fi
-    
+
     if $must_restart_ssh ; then
         service sshd restart
     fi
@@ -71,8 +70,8 @@ Bootstrap ()
         apt-get install -y libuuid1
         apt-get install -y libkrb5-3
         apt-get install -y zlib1g
-        apt-get install -y curl 
-        apt-get install -y gettext 
+        apt-get install -y curl
+        apt-get install -y gettext
         apt-get install -y apt-transport-https
         apt-get install -y gnupg
         apt-get install -y ca-certificates
@@ -170,52 +169,12 @@ Bootstrap ()
         fi
 
         usermod -a -G docker $serviceUser
-        
+
         # Restart machine to take any effect that requires a restart.
         echo "Restarting machine, please re-run script once it is back."
         sleep 5
         sudo shutdown -r 0
     fi
-
-    # Check if we have the agents folder, create it if needed.
-    if ! [ -d /home/builder/build/agents ]; then
-        mkdir -p /home/builder/build/agents
-    fi
-
-    if ! [ -d /home/builder/build/agents ]; then
-        echo "Unable to create /home/builder/build/agents directory"
-        exit
-    fi
-
-    # Download VSTS linux agent
-    cd /home/builder/build/agents
-    curl -O https://vstsagentpackage.azureedge.net/agent/2.131.0/vsts-agent-linux-x64-2.131.0.tar.gz
-
-    for i in $(seq 1 $numberOfAgents)
-    do
-        # Create agent directories if directory does not exist
-        agentNumber="agent-$i"
-        if ! [ -d $agentNumber ]; then
-            # copy agent file to directory, if required and extract it.
-            mkdir $agentNumber 
-
-            cp  vsts-agent-linux-x64-2.131.0.tar.gz $agentNumber/vsts-agent-linux-x64-2.131.0.tar.gz
-            cd $agentNumber
-
-            # extract files.
-            tar zxvf vsts-agent-linux-x64-2.131.0.tar.gz
-
-            # compressed file.
-            rm vsts-agent-linux-x64-2.131.0.tar.gz
-            cd ..
-        fi
-
-        # make directory accessible so we can run config script later.
-        sudo chmod 777 $agentNumber
-    done
-
-    # Remove linux agent file.
-    rm vsts-agent-linux-x64-2.131.0.tar.gz
 }
 
 Bootstrap
