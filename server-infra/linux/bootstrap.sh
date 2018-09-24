@@ -95,7 +95,7 @@ Bootstrap ()
 
         # Install dotnet core
         apt-get update -y
-        apt-get install -y dotnet-sdk-2.0.0
+        apt-get install -y dotnet-sdk-2.1
 
         export PATH=$PATH:$HOME/dotnet
 

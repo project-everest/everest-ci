@@ -42,7 +42,7 @@ mkdir -Force $agents_dir | Out-Null
 
 # download the VSTS windows agent to that directory
 write-host "Downloading VSTS Windows Agent"
-wget "https://vstsagentpackage.azureedge.net/agent/2.134.2/vsts-agent-win-x64-2.134.2.zip" -outfile "$agents_dir\vsts-agent.zip"
+wget "https://vstsagentpackage.azureedge.net/agent/2.140.0/vsts-agent-win-x64-2.140.0.zip" -outfile "$agents_dir\vsts-agent.zip"
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
