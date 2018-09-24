@@ -6,7 +6,7 @@ param
     [Parameter(Mandatory=$true, HelpMessage="VSTS Personal Access Token")]
     [string] $vstsPat,
     [Parameter(Mandatory=$false, HelpMessage="Agent pool name")]
-    [string] $poolName = "MsrEverestPoolWindows",
+    [string] $poolName = "Msr-EverestPool-Windows",
     [Parameter(Mandatory=$false, HelpMessage="Initial pool name index")]
     [int] $initialPoolIndex = 1,
     [Parameter(Mandatory=$false, HelpMessage="Finally pool name index")]
@@ -16,10 +16,16 @@ param
 $Error.Clear()
 $LastExitCode = 0
 
-function ConfigAgents {
-    Param ([string] $vstsPat, [string] $poolName, [string] $agentNumber, [bool] $shouldRemove)
+$poolNameOndemand = "$poolName-ondemand"
+Write-Host PoolName = $poolName
+Write-Host PoolNameOnDemand = $poolNameOndemand
+Write-Host InitialPoolIndex = $initialPoolIndex
+Write-Host FinalPoolIndex = $finalPoolIndex
 
-    $args = "--unattended --url https://msr-project-everest.visualstudio.com --auth path --token $vstsPat --pool $poolName --agent $agentNumber --acceptTeeEula --runAsService"
+function ConfigAgents {
+    Param ([string] $vstsPat, [string] $poolName, [string] $agentName, [bool] $shouldRemove)
+
+    $args = "--unattended --url https://msr-project-everest.visualstudio.com --auth path --token $vstsPat --pool $poolName --agent $agentName --acceptTeeEula --runAsService"
     if ($shouldRemove) {
         $args = "remove", $args
     }
@@ -73,16 +79,18 @@ Remove-Item "$agents_dir\vsts-agent.zip"
 Write-Host "Setup all agents."
 $agentsFolder = "/home/builder/build/agents"
 for ($i=$initialPoolIndex; $i -le $finalPoolIndex; $i++) {
-    $agentNumber="agent-$i"
-    Set-Location "$agentsFolder\$agentNumber"
 
-    # First we remove agent if it exists.
-    ConfigAgents $vstsPat $poolName $agentNumber $true
-    ConfigAgents $vstsPat $poolName-ondemand $agentNumber $true
+    # First we add regular agent
+    $agentName="agent-$i"
+    Set-Location "$agentsFolder\$agentName"
+    ConfigAgents $vstsPat $poolName $agentName $true
+    ConfigAgents $vstsPat $poolName $agentName $false
 
-    # Add agent
-    ConfigAgents $vstsPat $poolName $agentNumber $false
-    ConfigAgents $vstsPat $poolName-ondemand $agentNumber $false
+    # Add agent on demand
+    $agentName="agent-ondemand-$i"
+    Set-Location "$agentsFolder\$agentName"
+    ConfigAgents $vstsPat $poolNameOndemand $agentName $true
+    ConfigAgents $vstsPat $ppoolNameOndemand $agentName $false
 
     if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
         $Error
