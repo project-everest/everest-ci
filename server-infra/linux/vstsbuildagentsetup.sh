@@ -25,6 +25,7 @@ ConfigAgents ()
 
     if [ "$remove" = true ]; then
         if [ -d /home/builder/build/agents/$agentFolder ]; then
+            echo Remove $agentNumber on $poolName
             cd /home/builder/build/agents/$agentFolder
 
             # Remove agents from a previous agent setup.
@@ -33,6 +34,7 @@ ConfigAgents ()
             bash ./config.sh remove --auth pat --token $vstsPat
         fi
     else
+        echo Install $agentNumber on $poolName
         cd /home/builder/build/agents/$agentFolder
 
         # Now we setup the new agent.
