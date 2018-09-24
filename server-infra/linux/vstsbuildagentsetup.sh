@@ -20,11 +20,11 @@ fi
 
 ConfigAgents ()
 {
-    vstsPat=$1
-    poolName=$2
-    agentFolder=$3
-    agentNumber=$4
-    remove=$5
+    local vstsPat=$1
+    local poolName=$2
+    local agentFolder=$3
+    local agentNumber=$4
+    local remove=$5
 
     echo /home/builder/build/agents/$agentFolder
 
