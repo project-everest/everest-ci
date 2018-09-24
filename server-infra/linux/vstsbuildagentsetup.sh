@@ -47,7 +47,7 @@ Setup ()
 
     # Download VSTS linux agent
     cd /home/builder/build/agents
-    curl -O https://vstsagentpackage.azureedge.net/agent/2.140.0/vsts-agent-osx-x64-2.140.0.tar.gz
+    sudo curl -O https://vstsagentpackage.azureedge.net/agent/2.140.0/vsts-agent-osx-x64-2.140.0.tar.gz
 
     for i in $(seq $initialPoolIndex $finalPoolIndex)
     do
@@ -55,16 +55,16 @@ Setup ()
         agentNumber="agent-$i"
         if ! [ -d $agentNumber ]; then
             # copy agent file to directory, if required and extract it.
-            mkdir $agentNumber
+            sudo mkdir $agentNumber
 
-            cp  vsts-agent-osx-x64-2.140.0.tar.gz $agentNumber/vsts-agent-osx-x64-2.140.0.tar.gz
+            sudo cp  vsts-agent-osx-x64-2.140.0.tar.gz $agentNumber/vsts-agent-osx-x64-2.140.0.tar.gz
             cd $agentNumber
 
             # extract files.
-            tar zxvf vsts-agent-osx-x64-2.140.0.tar.gz
+            sudo tar zxvf vsts-agent-osx-x64-2.140.0.tar.gz
 
             # compressed file.
-            rm vsts-agent-osx-x64-2.140.0.tar.gz
+            sudo rm vsts-agent-osx-x64-2.140.0.tar.gz
             cd ..
         fi
 
@@ -74,16 +74,16 @@ Setup ()
         agentNumber="agent-ondemand-$i"
         if ! [ -d $agentNumber ]; then
             # copy agent file to directory, if required and extract it.
-            mkdir $agentNumber
+            sudo mkdir $agentNumber
 
-            cp  vsts-agent-osx-x64-2.140.0.tar.gz $agentNumber/vsts-agent-osx-x64-2.140.0.tar.gz
+            sudo cp  vsts-agent-osx-x64-2.140.0.tar.gz $agentNumber/vsts-agent-osx-x64-2.140.0.tar.gz
             cd $agentNumber
 
             # extract files.
-            tar zxvf vsts-agent-osx-x64-2.140.0.tar.gz
+            sudo tar zxvf vsts-agent-osx-x64-2.140.0.tar.gz
 
             # compressed file.
-            rm vsts-agent-osx-x64-2.140.0.tar.gz
+            sudo rm vsts-agent-osx-x64-2.140.0.tar.gz
             cd ..
         fi
 
@@ -92,7 +92,7 @@ Setup ()
     done
 
     # Remove linux agent file.
-    rm vsts-agent-osx-x64-2.140.0.tar.gz
+    sudo rm vsts-agent-osx-x64-2.140.0.tar.gz
 
     for i in $(seq $initialPoolIndex $finalPoolIndex)
     do
