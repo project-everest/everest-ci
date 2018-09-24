@@ -12,6 +12,33 @@ if [ -z "$1" ]; then
     exit
 fi
 
+ConfigAgents ()
+{
+    vstsPat=$1
+    poolName=$2
+    agentNumber=$3
+    remove=$4
+
+    if [ "$remove" = true ]; then
+        if [ -d /home/builder/build/agents/$agentNumber ]; then
+            cd /home/builder/build/agents/$agentNumber
+
+            # Remove agents from a previous agent setup.
+            sudo bash ./svc.sh stop >1
+            sudo bash ./svc.sh uninstall >1
+            bash ./config.sh remove --auth pat --token $vstsPat
+        fi
+    else
+        cd /home/builder/build/agents/$agentNumber
+
+        # Now we setup the new agent.
+        bash ./config.sh --unattended --url https://msr-project-everest.visualstudio.com --auth pat --token $vstsPat --pool $poolName --agent $agentNumber --acceptTeeEula
+
+        bash ./svc.sh install >1
+        bash ./svc.sh start >1
+    fi
+}
+
 Setup ()
 {
     sudo bash ./bootstrap.sh $USER
@@ -78,14 +105,12 @@ Setup ()
     for i in $(seq $initialPoolIndex $finalPoolIndex)
     do
         agentNumber="agent-$i"
-        bash ./removeagents.sh $vstsPat $agentNumber
-        bash ./configagents.sh $vstsPat $agentNumber
-        sudo bash ./startagents.sh $vstsPat $agentNumber
+        ConfigAgents $vstsPat $poolName $agentNumber true
+        ConfigAgents $vstsPat $poolName $agentNumber false
 
         agentNumber="agent-ondemand-$i"
-        bash ./removeagents.sh $vstsPat $agentNumber
-        bash ./configagents.sh $vstsPat $agentNumber
-        sudo bash ./startagents.sh $vstsPat $agentNumber
+        ConfigAgents $vstsPat $poolName-ondemand $agentNumber true
+        ConfigAgents $vstsPat $poolName-ondemand $agentNumber false
     done
 }
 
