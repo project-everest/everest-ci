@@ -4,9 +4,14 @@
 
 vstsPat=$1
 poolName=${2:-Msr-EverestPool-Linux}
-poolNameOndemand=$poolName-ondemand
+poolNameOndemand=$(echo $poolName)-ondemand
 initialPoolIndex=${3:-1}
 finalPoolIndex=${3:-8}
+
+echo PoolName = $poolName
+echo PoolNameOnDemand = $poolNameOndemand
+echo InitialPoolIndex = $initialPoolIndex
+echo FinalPoolIndex = $finalPoolIndex
 
 if [ -z "$1" ]; then
     echo "VSTS Personal Access Token was not provided."
