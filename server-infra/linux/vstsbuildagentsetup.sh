@@ -36,7 +36,7 @@ ConfigAgents ()
         cd /home/builder/build/agents/$agentFolder
 
         # Now we setup the new agent.
-        bash ./config.sh --unattended --url https://msr-project-everest.visualstudio.com --auth pat --token $vstsPat --pool $= --agent $agentNumber --acceptTeeEula
+        bash ./config.sh --unattended --url https://msr-project-everest.visualstudio.com --auth pat --token $vstsPat --pool $poolName --agent $agentNumber --acceptTeeEula
 
         sudo bash ./svc.sh install >1
         sudo bash ./svc.sh start >1
