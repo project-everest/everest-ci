@@ -3,7 +3,7 @@
 # This script is responsible to do the complete setup in order to have build agents running on the linux build machine.
 
 vstsPat=$1
-poolName=${2:-MsrEverestPoolLinux}
+poolName=${2:-Msr-EverestPool-Linux}
 poolNameOndemand=$poolName-ondemand
 initialPoolIndex=${3:-1}
 finalPoolIndex=${3:-8}
