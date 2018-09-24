@@ -61,7 +61,9 @@ Bootstrap ()
         apt-get install -y libunwind8
         apt-get install -y liblttng-ust0
         apt-get install -y libcurl3
+        apt-get install -y libicu-dev
         apt-get install -y libuuid1
+        apt-get install -y libssl1.0.0
         apt-get install -y libkrb5-3
         apt-get install -y zlib1g
         apt-get install -y curl
@@ -72,11 +74,13 @@ Bootstrap ()
         apt-get install -y software-properties-common
         apt-get install -y dirmngr
 
+        add-apt-repository "deb http://security.debian.org/debian-security wheezy/updates main"
+
         # Download script to install dotnet runtime
         echo "Download dotnet core install script."
         curl -O https://dot.net/v1/dotnet-install.sh
         chmod +x dotnet-install.sh
-        ./dotnet-install.sh
+        ./dotnet-install.sh -c Current
 
         # Install System components and prepare instalation for Debian 9
         apt-get update -y
@@ -84,12 +88,21 @@ Bootstrap ()
         curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
         mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
 
+        wget -q https://packages.microsoft.com/config/debian/9/prod.list
+        mv prod.list /etc/apt/sources.list.d/microsoft-prod.list
+
+        chown root:root /etc/apt/trusted.gpg.d/microsoft.gpg
+        chown root:root /etc/apt/sources.list.d/microsoft-prod.list
+
+        apt-get update -y
+
         # Register the Microsoft Product feed
         echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-stretch-prod stretch main" > /etc/apt/sources.list.d/microsoft.list
 
         # Install dotnet core
         apt-get update -y
         apt-get install -y dotnet-sdk-2.1
+        apt-get install -y dotnet-runtime-2.0.9
 
         export PATH=$PATH:$HOME/dotnet
 
