@@ -26,12 +26,6 @@ Bootstrap ()
         must_restart_ssh=true
     fi
 
-    if ! grep '^ *DenyUsers \(.* \)*'$serviceUser'\( \|$\)' /etc/ssh/sshd_config ; then
-        # Disable SSH login for the service user
-        echo "DenyUsers $serviceUser" >> /etc/ssh/sshd_config
-        must_restart_ssh=true
-    fi
-
     if $must_restart_ssh ; then
         service sshd restart
     fi
