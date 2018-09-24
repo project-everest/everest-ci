@@ -57,7 +57,7 @@ Setup ()
 
     # Download VSTS linux agent
     cd /home/builder/build/agents
-    curl -O https://vstsagentpackage.azureedge.net/agent/2.131.0/vsts-agent-linux-x64-2.131.0.tar.gz
+    curl -O https://vstsagentpackage.azureedge.net/agent/2.140.0/vsts-agent-osx-x64-2.140.0.tar.gz
 
     for i in $(seq $initialPoolIndex $finalPoolIndex)
     do
