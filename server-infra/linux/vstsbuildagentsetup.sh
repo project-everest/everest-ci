@@ -4,6 +4,7 @@
 
 vstsPat=$1
 poolName=${2:-MsrEverestPoolLinux}
+poolNameOndemand=$poolName-ondemand
 initialPoolIndex=${3:-1}
 finalPoolIndex=${3:-8}
 
@@ -34,8 +35,8 @@ ConfigAgents ()
         # Now we setup the new agent.
         bash ./config.sh --unattended --url https://msr-project-everest.visualstudio.com --auth pat --token $vstsPat --pool $poolName --agent $agentNumber --acceptTeeEula
 
-        bash ./svc.sh install >1
-        bash ./svc.sh start >1
+        sudo bash ./svc.sh install >1
+        sudo bash ./svc.sh start >1
     fi
 }
 
@@ -109,8 +110,8 @@ Setup ()
         ConfigAgents $vstsPat $poolName $agentNumber false
 
         agentNumber="agent-ondemand-$i"
-        ConfigAgents $vstsPat $poolName-ondemand $agentNumber true
-        ConfigAgents $vstsPat $poolName-ondemand $agentNumber false
+        ConfigAgents $vstsPat $poolNameOndemand $agentNumber true
+        ConfigAgents $vstsPat $poolNameOndemand $agentNumber false
     done
 }
 
