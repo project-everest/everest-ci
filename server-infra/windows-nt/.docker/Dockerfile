@@ -93,7 +93,9 @@ WORKDIR ".."
 
 RUN Remove-Item .\tools -Force -Recurse
 
-RUN Invoke-BashCmd alias ls='\"ls --color=auto\"'
+RUN Invoke-BashCmd "echo alias ls='ls --color=auto' >> ~/.bashrc"
+RUN Invoke-BashCmd "echo alias clear='printf \"\033c\"' >> ~/.bashrc"
+RUN Invoke-BashCmd "echo . ~/.bashrc >> ~/.bash_profile"
 
 # Setup the user that will be used to interact with github.
 RUN Invoke-BashCmd git config --global user.email '\"everbld@microsoft.com\"'
