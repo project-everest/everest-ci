@@ -78,7 +78,13 @@ RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\
 # Install cygwin packages
 ADD ["https://raw.githubusercontent.com/project-everest/everest/verify/cygwin-packages", "cygwin-packages"]
 RUN Get-Content cygwin-packages | ForEach-Object { choco install $_ --source cygwin }
+
 WORKDIR ".."
+
+# Install Madoko (we need nodejs)
+RUN choco install nodejs -y
+RUN refreshenv;
+RUN npm install madoko -g
 
 WORKDIR ".."
 
