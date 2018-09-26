@@ -86,6 +86,9 @@ RUN choco install nodejs -y
 RUN refreshenv;
 RUN npm install madoko -g
 
+# Install Pandoc
+RUN choco install pandoc -y
+
 WORKDIR ".."
 
 RUN Remove-Item .\tools -Force -Recurse
