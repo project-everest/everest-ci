@@ -1,3 +1,4 @@
-echo export TERM=cygwin
-echo alias ls="ls --color=auto"
+export TERM=cygwin
+alias ls="ls --color=auto"
 alias clear='printf "\033c"'
+eval $(opam config env)
