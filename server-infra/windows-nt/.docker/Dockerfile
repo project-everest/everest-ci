@@ -94,8 +94,8 @@ WORKDIR ".."
 RUN Remove-Item .\tools -Force -Recurse
 
 # Setup the user that will be used to interact with github.
-RUN Invoke-BashCmd 'git config --global user.email \\"everbld@microsoft.com\\"'
-RUN Invoke-BashCmd 'git config --global user.name \\"Dzomo the everest Yak\\"'
+RUN Invoke-BashCmd 'git config --global user.email \\\"everbld@microsoft.com\\\"'
+RUN Invoke-BashCmd 'git config --global user.name \\\"Dzomo the everest Yak\\\"'
 
 # Run everest check to install any missing piece
 RUN Invoke-BashCmd 'git clone -b verify --single-branch https://github.com/project-everest/everest.git'
@@ -104,12 +104,9 @@ RUN Invoke-BashCmd '. \\\".opam/opam-init/init.sh\\\" > /dev/null 2> /dev/null |
 RUN Invoke-BashCmd 'eval \\\"$(opam config env)\\\"'
 RUN Invoke-BashCmd 'rm -rf .git'
 
-
 # Setup bash prompt
+COPY default_bashrc 'c:\\cygwin64\\home\\everest\\.bashrc'
 RUN Invoke-BashCmd 'echo . ~/.bashrc | tee -a ~/.bash_profile'
-RUN Invoke-BashCmd 'echo export TERM=cygwin | tee -a ~/.bashrc'
-RUN Invoke-BashCmd 'echo alias ls=\\\"ls --color=auto\\\" | tee -a ~/.bashrc'
-RUN Invoke-BashCmd echo alias clear=\\\'''printf \\\"\\\033c\\\"\\\''' ' | tee -a ~/.bashrc'
 
 EXPOSE 80 22
 
