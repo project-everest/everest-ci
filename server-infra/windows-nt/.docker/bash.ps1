@@ -5,10 +5,6 @@ function global:Invoke-BashCmd
 
     Write-Host "Args:" $args
 
-    # Escape quotes
-    $args = $args -replace '"','""'
-    $args = $args -replace "'","''"
-
     # Exec command
     $cygpath = c:\cygwin64\bin\cygpath.exe -u ${pwd}
     c:\cygwin64\bin\bash.exe --login -c "cd $cygpath && $args" | Write-Output
