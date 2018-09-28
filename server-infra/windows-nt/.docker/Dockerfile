@@ -45,7 +45,7 @@ RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ed25519 -N "" -f ssh_host_ed25519_key
 # Set Powershell Core as default ssh shell
 RUN C:/PS6/pwsh.EXE -Command \
     New-Item -Path HKLM:\SOFTWARE -Name OpenSSH -Force; \
-    New-ItemProperty -Path HKLM:\SOFTWARE\OpenSSH -Name DefaultShell -Value '"c:\\ps6\\pwsh.exe -NoExit -File C:\\PS6\\launch_cygwin.ps1"' -PropertyType string -Force;
+    New-ItemProperty -Path HKLM:\SOFTWARE\OpenSSH -Name DefaultShell -Value c:\\ps6\\pwsh.exe -PropertyType string -Force;
 
 # Fix ssh permissions
 RUN C:/PS6/pwsh.EXE -Command \
