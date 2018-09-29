@@ -107,7 +107,7 @@ COPY default_bashrc 'c:\\cygwin64\\home\\everest\\.bashrc'
 RUN Invoke-BashCmd 'echo . ~/.bashrc | tee -a ~/.bash_profile'
 
 # Create a bash shortcut for when ssh connection is open, it automatically calls the bash
-RUN echo '\"c:/cygwin64/bin/bash.exe --login -I\"' > c:/ps6/Microsoft.PowerShell_profile.ps1;
+RUN echo \"'c:/cygwin64/bin/bash.exe --login -I'\" > c:/ps6/Microsoft.PowerShell_profile.ps1
 
 EXPOSE 80 22
 
