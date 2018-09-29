@@ -21,7 +21,6 @@ RUN powershell -Command \
 ADD ["https://github.com/PowerShell/PowerShell/releases/download/v6.0.0/PowerShell-6.0.0-win-x64.zip", "c:/powershell.zip"]
 RUN powershell.exe -Command Expand-Archive c:/powershell.zip c:/PS6; Remove-Item c:/powershell.zip
 RUN C:/PS6/pwsh.EXE -Command C:/PS6/Install-PowerShellRemoting.ps1
-COPY launch_cygwin.ps1 'C:\\PS6\\launch_cygwin.ps1'
 
 # Enable SSH
 ADD ["https://github.com/PowerShell/Win32-OpenSSH/releases/download/v7.7.0.0p1-Beta/OpenSSH-Win64.zip", "OpenSSH-Win64.zip"]
@@ -101,7 +100,6 @@ RUN Invoke-BashCmd 'git config --global user.name \\\"Dzomo the everest Yak\\\"'
 # Run everest check to install any missing piece
 RUN Invoke-BashCmd 'git clone -b verify --single-branch https://github.com/project-everest/everest.git'
 RUN Invoke-BashCmd './everest/everest --yes check'
-#RUN Invoke-BashCmd '. \\\".opam/opam-init/init.sh\\\" > /dev/null 2> /dev/null || true'
 RUN Invoke-BashCmd 'rm -rf .git'
 
 # Setup bash prompt
