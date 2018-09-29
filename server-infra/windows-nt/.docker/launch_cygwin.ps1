@@ -1,1 +1,0 @@
-c:\cygwin64\bin\bash.exe --login -I
