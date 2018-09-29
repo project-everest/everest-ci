@@ -12,3 +12,23 @@ $svcs | ForEach-Object {
         Start-Service $_.Name
     }
 }
+
+# Here we check if Docker service is up and running
+$svcs = Get-Service "Docker"
+$svcs | Write-Output "C:\home\builder\check health\log.txt"
+$svcs | ForEach-Object {
+    if ($_.Status -ne "Running") {
+        Start-Service $_.Name | Write-Output "C:\home\builder\check health\log.txt"
+    }
+}
+
+# Another way to check if Docker is in trouble, even if service says it is running.
+$LASTEXITCODE = 0
+docker stats --no-stream
+if ($LASTEXITCODE -ne 0) {
+    $svcs = Get-Service "Docker"
+    $svcs | ForEach-Object {
+        Stop-Service $_.Name
+        Start-Service $_.Name
+    }
+}
