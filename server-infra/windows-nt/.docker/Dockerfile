@@ -55,7 +55,7 @@ WORKDIR 'c:\\cygwin64\\home\\everest'
 COPY bash.ps1 .
 
 # Set IIS virtual directory to point to Everest folder and then enable web directory browsing
-RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:/cygwin64/home/everest'
+RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:\cygwin64\home\everest'
 RUN powershell.exe -Command Get-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath
 RUN powershell.exe -Command Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -name enabled -PSPath "\"IIS:\\Sites\\Default Web Site\"" -Value true
 
