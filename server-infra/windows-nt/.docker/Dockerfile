@@ -54,6 +54,10 @@ RUN C:/PS6/pwsh.EXE -Command \
 WORKDIR 'c:\\cygwin64\\home\\everest'
 COPY bash.ps1 .
 
+# Set IIS virtual directory to point to Everest folder and then enable web directory browsing
+RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -name physicalPath -value  'c:\\cygwin64\\home\\everest'
+RUN powershell.exe -Command Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -name enabled -PSPath 'IIS:\\Sites\\Default Web Site' -Value true
+
 # Install Windows SDK and .NET Framework 4.5 (not 4.5.x) needed to rebuild F* with F#
 ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
 RUN .\vs2017.exe --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.Component.MSBuild --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.Windows10SDK.15063.Desktop --add Microsoft.Net.Component.4.5.TargetingPack --add Microsoft.VisualStudio.Component.Roslyn.Compiler --quiet --wait
@@ -64,10 +68,6 @@ RUN del vs2017.exe
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 RUN .\bash.ps1; New-BashCmdProfile;
 RUN Remove-Item 'bash.ps1'
-
-# Set IIS virtual directory to point to Everest folder and then enable web directory browsing
-RUN Set-WebConfigurationProperty "system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']" -name physicalPath -value  'c:\\cygwin64\\home\\everest'
-RUN Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -name enabled -PSPath 'IIS:\\Sites\\Default Web Site' -Value true
 
 WORKDIR "tools"
 
