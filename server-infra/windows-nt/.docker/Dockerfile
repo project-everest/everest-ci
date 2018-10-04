@@ -56,8 +56,7 @@ COPY bash.ps1 .
 
 # Set IIS virtual directory to point to Everest folder and then enable web directory browsing
 RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:\cygwin64\home\everest'
-RUN powershell.exe -Command Get-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath
-RUN powershell.exe -Command Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -name enabled -PSPath "\"IIS:\\Sites\\Default Web Site\"" -Value true
+RUN powershell.exe -Command Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -Name enabled -PSPath "\"IIS:\Sites\Default Web Site\"" -Value true
 
 # Install Windows SDK and .NET Framework 4.5 (not 4.5.x) needed to rebuild F* with F#
 ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
