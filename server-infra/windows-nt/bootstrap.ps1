@@ -1,19 +1,13 @@
 # Bootstrap a fresh Windows Server OS to become a build agent server.
 
-param
-(
-    [Parameter(Mandatory=$true)]
-    [uint32] [ValidateRange(1,256)] $numberOfAgents
-)
-
 $Error.Clear()
 $LastExitCode = 0
 
 # Rename machine name.
-# Server machine should be name as Everest-BuildServer-Windows
-if ($env:COMPUTERNAME -ne "Everest-Win-Bld") {
+# Server machine should have a name that starts with Everest-Win*
+if (($env:COMPUTERNAME -ilike "Everest-Win*") -eq $false) {
     # Enable Remote Desktop
-    Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" –Value 0
+    Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -Name "fDenyTSConnections" -Value 0
     Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
     # Rename machine
@@ -104,7 +98,7 @@ if ($null -eq $dockerExists) {
     Write-Host "Installing Docker"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
     Install-Module -Name DockerMsftProvider -Force
-    Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+    Install-Package -Name docker -ProviderName DockerMsftProvider -RequiredVersion 18.03 -Update -Force
 
     Write-Host "Restarting machine, please re-run script once it is back."
     Start-Sleep -Seconds 10
@@ -164,30 +158,6 @@ if ($null -eq $tscExists) {
         return
     }
 }
-
-# create /home/builder/build/agents
-$agents_dir = "$($(Get-Location).Path)\agents"
-mkdir -Force $agents_dir | Out-Null
-
-# download the VSTS windows agent to that directory
-write-host "Downloading VSTS Windows Agent"
-wget "https://vstsagentpackage.azureedge.net/agent/2.134.2/vsts-agent-win-x64-2.134.2.zip" -outfile "$agents_dir\vsts-agent.zip"
-
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-
-# for each in $numberOfAgents
-#  create agent-# subdir
-#  copy the agent binary into the subdir and extract from the downloaded .zip
-for ($i=1; $i -le $numberOfAgents; $i++) {
-  $agent = "$((Get-Location).Path)\agents\agent-$i"
-  if ((Test-Path "$agent") -eq $false) {
-    mkdir "$agent" | Out-Null
-    write-host "Unzipping agent $i on $agent"
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("$agents_dir\vsts-agent.zip", "$agent")
-  }
-}
-
-Remove-Item "$agents_dir\vsts-agent.zip"
 
 Write-Host "Bootstrap done."
 $Error.Clear()

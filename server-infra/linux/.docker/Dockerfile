@@ -92,6 +92,9 @@ RUN npm install -g less
 # Install madoko
 RUN npm install madoko -g
 
+# Install node server
+RUN npm install http-server -g
+
 # Setup ssh
 RUN mkdir /var/run/sshd
 
@@ -135,7 +138,7 @@ RUN git config --global user.name "Dzomo the everest Yak"
 # /etc/profile so that all users benefit from them. Note: had to modify
 # init_container.sh so that its dumb writeout of the entire environment goes
 # before our customizations.
-RUN git clone https://github.com/project-everest/everest.git
+RUN git clone --branch verify https://github.com/project-everest/everest.git
 RUN rm -rf .git
 ENV EVEREST_ENV_DEST_FILE ${MYHOME}/.profile
 RUN ./everest/everest --yes check

@@ -1,0 +1,5 @@
+echo $(date -u '+%Y-%m-%d %H:%M:%S') > ~/mru.txt
+export TERM=cygwin
+alias ls="ls --color=auto"
+alias clear='printf "\033c"'
+eval $(opam config env)
