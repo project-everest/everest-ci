@@ -144,7 +144,7 @@ ENV EVEREST_ENV_DEST_FILE ${MYHOME}/.profile
 RUN ./everest/everest --yes check
 RUN  eval $(opam config env)
 
-EXPOSE 22 80
+EXPOSE 22 80 443
 
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
