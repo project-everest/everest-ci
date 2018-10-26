@@ -59,7 +59,7 @@ RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHo
 RUN powershell.exe -Command Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -Name enabled -PSPath "\"IIS:\Sites\Default Web Site\"" -Value true
 
 RUN powershell.exe -Command " \
-    Get-WebBinding -Name "Default Web Site"; \
+    Get-WebBinding -Name \"Default Web Site\"; \
     cd cert:; \
     $cert = New-SelfSignedCertificate -DnsName  myweb -Friendlyname MyCert -CertStoreLocation Cert:\\LocalMachine\\My; \
     $rootStore = New-Object System.Security.Cryptography.X509Certificates.X509Store -ArgumentList Root, LocalMachine; \
@@ -68,8 +68,8 @@ RUN powershell.exe -Command " \
     $rootStore.Close(); \
     cd iis:; \
     new-item -path IIS:\\SslBindings\\0.0.0.0!443 -value $cert; \
-    New-WebBinding -Name "Default Web Site" -IP "*" -Port 443 -Protocol https; \
-    Get-WebBinding -Name "Default Web Site"; "
+    New-WebBinding -Name \"Default Web Site\" -IP "*" -Port 443 -Protocol https; \
+    Get-WebBinding -Name \"Default Web Site\"; "
 
 # Install Windows SDK and .NET Framework 4.5 (not 4.5.x) needed to rebuild F* with F#
 ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]

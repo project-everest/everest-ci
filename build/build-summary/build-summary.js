@@ -43,7 +43,7 @@ function checkContainerStatus() {
 $(document).ready(function () {
 
     var offendersText = $('#offendersText').text();
-    if (offendersText.indexOf('$Offenders') === -1) {
+    if (offendersText.indexOf('Offenders') === -1) {
         $('#Offenders').show();
     }
 
