@@ -1,14 +1,10 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <meta http-equiv="cache-control" content="max-age=0" />
-        <meta http-equiv="cache-control" content="no-cache" />
-        <meta http-equiv="expires" content="0" />
-        <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
-        <meta http-equiv="pragma" content="no-cache" />
         <title>$BuildDefinitionName - Build:$BuildNumber</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
-            integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+            integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+            crossorigin="anonymous">
         <link rel="stylesheet"
             href="https://everestlogstorage.blob.core.windows.net/everestresources/build-summary.css" />
     </head>
@@ -66,14 +62,14 @@
                     </div>
                     <div id="Offenders" style="display:none;">
                         <div class="row col-xl-12">
-                            <div class="headerRow overflowText col-2">`$HintsNumber hints failed to replay</div>
-                            <div id="offendersText" class="contentRow overflowText col-10">`$Offenders</div>
+                            <div class="headerRow overflowText col-2">{HintsNumber} hints failed to replay</div>
+                            <div id="offendersText" class="contentRow overflowText col-10">{Offenders}</div>
                         </div>
                     </div>
                     <div id="ContainerTable" class="containerSummaryRow" style="display:none;">
                         <div class="row col-xl-12">
                             <div class="headerRow overflowText col">Container</div>
-                            <div id="containerText" class="contentRow overflowText col-10">ssh everest@`$ContainerIP</div>
+                            <div id="containerText" class="contentRow overflowText col-10">ssh everest@{ContainerIP}</div>
                         </div>
                         <div class="row col-xl-12">
                             <div class="headerRow overflowText col"></div>

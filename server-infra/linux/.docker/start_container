@@ -3,7 +3,7 @@
 openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=www.msr-everest.com"
 
 # Start Http server
-sudo http-server ~/ -p 443 -S -C cert.pem -o &
+sudo http-server ~/ -p 80 & sudo http-server ~/ -p 443 -S -C cert.pem -o &
 
 # Run OpenSSH server in daemon mode
 sudo /usr/sbin/sshd -D

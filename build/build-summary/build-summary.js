@@ -1,32 +1,20 @@
 // This function is responsible to check the state of a container.
 function checkContainerStatus() {
+
     var containerText = $('#containerText').text();
-    if (containerText.indexOf('ContainerIP') != -1) {
-        return;
-    }
-
-    $('#ContainerTable').show();
-
     var ipPos = containerText.indexOf('@');
     var ip = containerText.substring(ipPos + 1);
-    var url = "http://" + ip;
+    var url = "https://" + ip;
 
     $.ajax({
         url: url,
         type: 'GET',
         crossDomain: true,
         dataType: 'jsonp',
-        timeout: 30000,
+        timeout: 10000,
         headers: { "Access-Control-Allow-Origin": "*" },
-        complete: function (data) {
-            if (data.readyState == '4' && data.status == '200') {
-
-                // Container is running
-                $('#containerStatus').text('Running');
-                $('#containerStatus').css({ "font-weight" : "Bold" });
-            }
-            else {
-
+        error: function(xmlhttprequest, textStatus, message) {
+            if(textStatus === "timeout") {
                 // Check if container was already destroyed.
                 var dateTime = $('#buildDataTime').text();
                 var startTime = moment.utc(dateTime, 'MM/DD/YYYY HH:mm:ss');
@@ -42,6 +30,10 @@ function checkContainerStatus() {
                 // Still deploying
                 $('#containerStatus').text('Deploying...');
                 setTimeout(checkContainerStatus(), 300000);
+            } else {
+                // Container is running
+                $('#containerStatus').text('Running');
+                $('#containerStatus').css({ "font-weight" : "Bold" });
             }
         }
     });
@@ -55,7 +47,11 @@ $(document).ready(function () {
         $('#Offenders').show();
     }
 
-    // $('#containerText').text('ssh everest@104.42.41.81');
-    // $('#buildDataTime').text('10/24/2018 07:50:28');
-    setTimeout(checkContainerStatus(), 1000);
+    var containerText = $('#containerText').text();
+    if (containerText.indexOf('ContainerIP') != -1) {
+        return;
+    }
+
+    $('#ContainerTable').show();
+    checkContainerStatus();
 });
