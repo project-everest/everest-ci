@@ -58,6 +58,18 @@ COPY bash.ps1 .
 RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:\cygwin64\home\everest'
 RUN powershell.exe -Command Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -Name enabled -PSPath "\"IIS:\Sites\Default Web Site\"" -Value true
 
+RUN powershell.exe -Command " \
+    cd cert:;\
+    $cert = New-SelfSignedCertificate -DnsName  myweb -Friendlyname MyCert -CertStoreLocation Cert:\\LocalMachine\\My; \
+    $rootStore = New-Object System.Security.Cryptography.X509Certificates.X509Store -ArgumentList Root, LocalMachine; \
+    $rootStore.Open(\"MaxAllowed\");\
+    $rootStore.Add($cert); \
+    $rootStore.Close(); \
+    cd iis:; \
+    new-item -path IIS:\\SslBindings\\0.0.0.0!443 -value $cert; \
+    New-WebBinding -Name "Default Web Site" -IP "*" -Port 443 -Protocol https; \
+    iisreset; "
+
 # Install Windows SDK and .NET Framework 4.5 (not 4.5.x) needed to rebuild F* with F#
 ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
 RUN .\vs2017.exe --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.Component.MSBuild --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.Windows10SDK.15063.Desktop --add Microsoft.Net.Component.4.5.TargetingPack --add Microsoft.VisualStudio.Component.Roslyn.Compiler --quiet --wait
@@ -113,7 +125,7 @@ RUN Invoke-BashCmd 'echo . ~/.bashrc | tee -a ~/.bash_profile'
 # Create a bash shortcut for when ssh connection is open, it automatically calls the bash
 RUN echo 'c:/cygwin64/bin/bash.exe --login -I' > c:/ps6/Microsoft.PowerShell_profile.ps1
 
-EXPOSE 80 22
+EXPOSE 22 80 443
 
 COPY start.ps1 c:/start.ps1
 ENTRYPOINT ["powershell.exe", "-NoExit", "c:/start.ps1"]
