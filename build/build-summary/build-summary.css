@@ -1,0 +1,68 @@
+body {
+    font-family: 'Segoe UI Semibold WestEuropean','Segoe UI Semibold','Segoe UI',Tahoma,Arial,sans-serif;
+    color: #555;
+}
+
+.SummaryHeader {
+    font-size: 24px;
+    padding-top: 18px;
+}
+
+#SummaryTable {
+    font-size: 14px;
+    padding-top: 18px;
+}
+
+.parentRow {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.headerRow {
+    float: left;
+    min-width: 80px;
+    font-weight: bold;
+}
+
+.contentRow {
+
+}
+
+.logRow {
+    padding-top: 60px;
+}
+
+.containerSummaryRow {
+    padding-top: 24px;
+}
+
+.overflowText {
+    float: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.container-fluid {
+    padding: 5px 10px 5px 10px;
+}
+
+html, body, .container-table {
+    height: 100%;
+}
+
+.container-table {
+    display: table;
+}
+
+.logLine {
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.logLineError {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: red;
+    font-weight: bold;
+}
