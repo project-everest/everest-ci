@@ -41,7 +41,7 @@ function checkContainerStatus() {
 
                 // Still deploying
                 $('#containerStatus').text('Deploying...');
-                setTimeout(checkContainerStatus(), 60000);
+                setTimeout(checkContainerStatus(), 300000);
             }
         }
     });
@@ -49,9 +49,6 @@ function checkContainerStatus() {
 
 // On Document ready
 $(document).ready(function () {
-
-    $('#pageLoading').hide();
-    $('#pageContent').show();
 
     var offendersText = $('#offendersText').text();
     if (offendersText.indexOf('$Offenders') === -1) {
