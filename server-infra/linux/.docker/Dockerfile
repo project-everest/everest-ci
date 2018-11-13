@@ -151,6 +151,11 @@ EXPOSE 22 80 443
 # Set the final directory entrypoint
 WORKDIR ${MYHOME}/everest
 
+# Copy ssh files
+COPY ./sshd_banner /etc/ssh/sshd_banner
+COPY ./sshd_config /etc/ssh/sshd_config
+COPY ./authorized_keys /home/everest/.ssh/authorized_keys
+
 ADD ./start_container /start_container
 RUN sudo chmod +x /start_container
 CMD ["/start_container"]
