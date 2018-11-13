@@ -50,7 +50,7 @@ TCPKeepAlive yes
 # Allow client to pass locale environment variables
 AcceptEnv LANG LC_*
 
-Banner sshd_banner
+Banner /etc/ssh/sshd_banner
 
 Subsystem sftp /usr/lib/openssh/sftp-server
 
