@@ -144,6 +144,8 @@ ENV EVEREST_ENV_DEST_FILE ${MYHOME}/.profile
 RUN ./everest/everest --yes check
 RUN  eval $(opam config env)
 
+RUN echo "echo \$(date -u '+%Y-%m-%d %H:%M:%S') > ~/mru.txt" >> ~/.bashrc
+
 EXPOSE 22 80 443
 
 # Set the final directory entrypoint
