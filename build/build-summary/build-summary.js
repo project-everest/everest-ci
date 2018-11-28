@@ -63,7 +63,7 @@ function deployContainer() {
 // On Document ready
 $(document).ready(function () {
 
-    $( '#deployText' ).click(function() {
+    $('.deployContainer').click(function() {
         deployContainer();
     });
 
