@@ -39,8 +39,31 @@ function checkContainerStatus() {
     });
 }
 
+// This function is responsible to deploy container.
+function deployContainer() {
+
+    var url = "https://everestdeploycontainer.azurewebsites.net/api/HttpTriggerContainerDeployment?code=MsgeHNEPwpJ7DAn2qH3NBYecW5lZ0EfqHaS2vWNsCxDnNjlZN3Nasg==";
+
+    $.ajax({
+        url: url,
+        type: 'POST',
+        crossDomain: true,
+        dataType: 'jsonp',
+        success: function(data, textStatus, xhr) {
+            alert("success");
+        },
+        error: function(xhr, textStatus, message) {
+            alert("error");
+        }
+    });
+}
+
 // On Document ready
 $(document).ready(function () {
+
+    $( "#deployText" ).click(function() {
+        deployContainer();
+    });
 
     var offendersText = $('#offendersText').text();
     if (offendersText.indexOf('Offenders') === -1) {
