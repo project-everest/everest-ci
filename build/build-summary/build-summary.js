@@ -44,6 +44,7 @@ function deployContainer() {
 
     alert("test");
 
+    /*
     var url = "https://everestdeploycontainer.azurewebsites.net/api/HttpTriggerContainerDeployment?code=MsgeHNEPwpJ7DAn2qH3NBYecW5lZ0EfqHaS2vWNsCxDnNjlZN3Nasg==";
 
     $.ajax({
@@ -58,12 +59,13 @@ function deployContainer() {
             alert("error");
         }
     });
+    */
 }
 
 // On Document ready
 $(document).ready(function () {
 
-    $('.deployContainer').click(function() {
+    $('#deployContainerText').click(function() {
         deployContainer();
     });
 
