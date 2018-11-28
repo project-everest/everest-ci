@@ -6,7 +6,7 @@
             integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
             crossorigin="anonymous">
         <link rel="stylesheet"
-            href="https://everestlogstorage.blob.core.windows.net/everestresources/build-summary.css" />
+            href="https://raw.githubusercontent.com/project-everest/everest-ci/master/build/build-summary/build-summary.css" />
     </head>
     <body>
         <div id="pageContent" class="container-fluid">
@@ -69,7 +69,7 @@
                     <div id="DeploymentTable" class="containerSummaryRow" tag="@{$ContainerImage}">
                         <div class="row col-xl-12">
                             <div class="headerRow overflowText col">(Please Ignore this)</div>
-                            <div id="deployText" class="contentRow overflowText col-10"><a href="#" class="deployContainer">(Test)</a></div>
+                            <div id="deployText" class="contentRow overflowText col-10 deployContainer"><a href="#">(Test)</a></div>
                         </div>
                     </div>
                     <div id="ContainerTable" class="containerSummaryRow" style="display:none;">
@@ -106,6 +106,6 @@
             integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
             crossorigin="anonymous"></script>
         <script src="https://rawgit.com/moment/moment/2.2.1/min/moment.min.js"></script>
-        <script src="https://everestlogstorage.blob.core.windows.net/everestresources/build-summary.js" type="text/javascript"></script>
+        <script src="https://raw.githubusercontent.com/project-everest/everest-ci/master/build/build-summary/build-summary.js" type="text/javascript"></script>
     </body>
 </html>
