@@ -42,24 +42,19 @@ function checkContainerStatus() {
 // This function is responsible to deploy container.
 function deployContainer() {
 
-    alert("test1");
-
     var url = "https://everestdeploycontainer.azurewebsites.net/api/HttpTriggerContainerDeployment?code=MsgeHNEPwpJ7DAn2qH3NBYecW5lZ0EfqHaS2vWNsCxDnNjlZN3Nasg==";
 
     $.ajax({
         url: url,
         type: 'POST',
         crossDomain: true,
-        dataType: 'jsonp',
         success: function(data, textStatus, xhr) {
-            alert("success");
+            location.reload();
         },
         error: function(xhr, textStatus, message) {
-            alert("error:" + message);
+
         }
     });
-
-    alert("test2");
 }
 
 // On Document ready
