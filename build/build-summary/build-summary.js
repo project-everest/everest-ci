@@ -16,7 +16,7 @@ function checkContainerStatus() {
         error: function(xmlhttprequest, textStatus, message) {
             if(textStatus === "timeout") {
                 // Check if container was already destroyed.
-                var dateTime = $('#DeploymentDateTime').text();
+                var dateTime = $('#deploymentDataTime').text();
                 if (dateTime) {
                     var startTime = moment.utc(dateTime, 'MM/DD/YYYY HH:mm:ss');
                     var currentTime = moment.utc();

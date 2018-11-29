@@ -138,7 +138,7 @@ namespace Microsoft.Msr.Everest
             logFile = logFile.Replace("id=\"DeploymentTable\" ", "id=\"DeploymentTable\" style=\"display:none;\"> ");
 
             // Update deployment datetime
-            logFile = logFile.Replace("{DeploymentDateTime}", DateTime.UtcNow.ToString("MM/DD/YYYY HH:mm:ss"));
+            logFile = logFile.Replace("{DeploymentDateTime}", DateTime.UtcNow.ToString("MM/dd/yyyy HH:mm:ss"));
 
             // Get blob storage container (index 0) name and file name (index 1)
             var names = urlReferrer.Replace("https://everestlogstorage.blob.core.windows.net/", string.Empty).Split('/');
