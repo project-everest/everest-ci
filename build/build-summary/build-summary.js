@@ -42,6 +42,9 @@ function checkContainerStatus() {
 // This function is responsible to deploy container.
 function deployContainer() {
 
+    $('#deployContainerLink').hide();
+    $('#deployContainerPanel').show();
+
     var url = "https://everestdeploycontainer.azurewebsites.net/api/HttpTriggerContainerDeployment?code=MsgeHNEPwpJ7DAn2qH3NBYecW5lZ0EfqHaS2vWNsCxDnNjlZN3Nasg==";
 
     $.ajax({
@@ -52,7 +55,12 @@ function deployContainer() {
             location.reload();
         },
         error: function(xhr, textStatus, message) {
-
+            $('#deployContainerPanel').text('Error. Try again later!');
+            $('#deployContainerPanel').fadeOut(5000, function(){
+                $('#deployContainerLink').show();
+                $('#deployContainerPanel').hide();
+                $('#deployContainerPanel').text('Requesting deployment...');
+            });
         }
     });
 }
@@ -60,7 +68,7 @@ function deployContainer() {
 // On Document ready
 $(document).ready(function () {
 
-    $('#deployContainerText').click(function() {
+    $('body').on('click', '#deployContainerText', function() {
         deployContainer();
     });
 
