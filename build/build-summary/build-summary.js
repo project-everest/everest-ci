@@ -16,15 +16,17 @@ function checkContainerStatus() {
         error: function(xmlhttprequest, textStatus, message) {
             if(textStatus === "timeout") {
                 // Check if container was already destroyed.
-                var dateTime = $('#buildDataTime').text();
-                var startTime = moment.utc(dateTime, 'MM/DD/YYYY HH:mm:ss');
-                var currentTime = moment.utc();
+                var dateTime = $('#DeploymentDateTime').text();
+                if (dateTime) {
+                    var startTime = moment.utc(dateTime, 'MM/DD/YYYY HH:mm:ss');
+                    var currentTime = moment.utc();
 
-                var duration = moment.duration(currentTime.diff(startTime));
-                var hours = duration.asHours();
-                if (hours >= 12) {
-                    $('#containerStatus').text('Destroyed!');
-                    return;
+                    var duration = moment.duration(currentTime.diff(startTime));
+                    var hours = duration.asHours();
+                    if (hours >= 12) {
+                        $('#containerStatus').text('Destroyed!');
+                        return;
+                    }
                 }
 
                 // Still deploying
