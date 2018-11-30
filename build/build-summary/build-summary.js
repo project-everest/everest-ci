@@ -44,6 +44,19 @@ function checkContainerStatus() {
 // This function is responsible to deploy container.
 function deployContainer() {
 
+    var dateTime = $('#buildDataTime').text();
+    if (dateTime) {
+        var startTime = moment.utc(dateTime, 'MM/DD/YYYY HH:mm:ss');
+        var currentTime = moment.utc();
+
+        var duration = moment.duration(currentTime.diff(startTime));
+        var hours = duration.asHours();
+        if (hours >= 12) {
+            $('#deployContainerText').text('Cannot deploy container from build older than 12 hours.');
+            return;
+        }
+    }
+
     $('#deployContainerLink').hide();
     $('#deployContainerPanel').show();
 
