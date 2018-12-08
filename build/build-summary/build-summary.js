@@ -1,3 +1,6 @@
+// Used to verify if deploying is running, we check 3 times to confirm.
+count = 0;
+
 // This function is responsible to check the state of a container.
 function checkContainerStatus() {
 
@@ -6,15 +9,18 @@ function checkContainerStatus() {
     var ip = containerText.substring(ipPos + 1);
     var url = "https://" + ip;
 
+    var start = new Date().getTime(); //gets time of start
+    var timeout = 10000;
     $.ajax({
         url: url,
         type: 'GET',
-        crossDomain: true,
+        cache: false,
+        global: false,
+        timeout: timeout,
         dataType: 'jsonp',
-        timeout: 10000,
-        headers: { "Access-Control-Allow-Origin": "*" },
-        error: function(xmlhttprequest, textStatus, message) {
-            if(textStatus === "timeout") {
+    }).always(function(data, textStatus, errorThrown) {
+            var msec = new Date().getTime() - start; // duration
+            if (textStatus == "timeout" || msec >= timeout / 2) {
                 // Check if container was already destroyed.
                 var dateTime = $('#deploymentDataTime').text();
                 if (dateTime) {
@@ -32,13 +38,18 @@ function checkContainerStatus() {
                 // Still deploying
                 $('#containerStatus').text('Deploying...');
                 setTimeout(checkContainerStatus(), 300000);
+
+                count = 0;
             } else {
-                // Container is running
-                $('#containerStatus').text('Running');
-                $('#containerStatus').css({ "font-weight" : "Bold" });
+                if (++count == 3) {
+                    // Container is running
+                    $('#containerStatus').text('Running');
+                    $('#containerStatus').css({ "font-weight" : "Bold" });
+                } else {
+                    setTimeout(checkContainerStatus(), 10000);
+                }
             }
-        }
-    });
+        });
 }
 
 // This function is responsible to deploy container.
