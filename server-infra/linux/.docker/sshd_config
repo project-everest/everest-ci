@@ -18,7 +18,7 @@ LogLevel INFO
 
 # Authentication:
 LoginGraceTime 120
-PermitRootLogin yes
+PermitRootLogin no
 StrictModes yes
 
 RSAAuthentication yes
@@ -34,8 +34,8 @@ IgnoreRhosts yes
 RhostsRSAAuthentication no
 
 # To disable tunneled clear text passwords, change to no here!
-PasswordAuthentication yes
-PermitEmptyPasswords yes
+PasswordAuthentication no
+PermitEmptyPasswords no
 
 # Change to yes to enable challenge-response passwords (beware issues with
 # some PAM modules and threads)
