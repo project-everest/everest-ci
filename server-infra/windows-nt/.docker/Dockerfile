@@ -129,7 +129,7 @@ RUN echo 'c:/cygwin64/bin/bash.exe --login -I' > c:/ps6/Microsoft.PowerShell_pro
 EXPOSE 22 80 443
 
 # Copy ssh files
-COPY authorized_keys 'c:\\cygwin64\\home\\everest\\.ssh\\authorized_keys'
+#COPY authorized_keys 'c:\\cygwin64\\home\\everest\\.ssh\\authorized_keys'
 COPY authorized_keys 'c:\\Users\\everest\\.ssh\\authorized_keys'
 #RUN Invoke-BashCmd 'chmod 700 ~everest/.ssh'
 #RUN Invoke-BashCmd 'chmod 600 ~everest/.ssh/authorized_keys'
