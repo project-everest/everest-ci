@@ -70,6 +70,7 @@ RUN until apt-get install --no-install-recommends --yes \
         libc6-dev-i386 \
         gcc-multilib \
         g++-multilib \
+        jq \
         ; do apt-get --yes update ; done
 
 #Install scons
