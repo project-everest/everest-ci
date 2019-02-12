@@ -115,7 +115,7 @@ RUN Invoke-BashCmd 'git config --global user.email \\\"everbld@microsoft.com\\\"
 RUN Invoke-BashCmd 'git config --global user.name \\\"Dzomo the everest Yak\\\"'
 
 # Run everest check to install any missing piece
-RUN Invoke-BashCmd 'git clone -b verify --single-branch https://github.com/project-everest/everest.git'
+RUN Invoke-BashCmd 'git clone -b master --single-branch https://github.com/project-everest/everest.git'
 RUN Invoke-BashCmd './everest/everest --yes check'
 RUN Invoke-BashCmd 'rm -rf .git'
 
