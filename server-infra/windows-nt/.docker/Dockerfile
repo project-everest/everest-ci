@@ -93,7 +93,7 @@ RUN & .\install.ps1; choco install cygwin -y --params='/InstallDir:C:\\cygwin64 
 RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)
 
 # Install cygwin packages
-ADD ["https://raw.githubusercontent.com/project-everest/everest/verify/cygwin-packages", "cygwin-packages"]
+ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
 RUN Get-Content cygwin-packages | ForEach-Object { choco install $_ --source cygwin }
 
 WORKDIR ".."
