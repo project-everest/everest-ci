@@ -122,6 +122,7 @@ RUN Invoke-BashCmd 'rm -rf .git'
 # Setup bash prompt
 COPY default_bashrc 'c:\\cygwin64\\home\\everest\\.bashrc'
 RUN Invoke-BashCmd 'echo . ~/.bashrc | tee -a ~/.bash_profile'
+RUN Invoke-BashCmd 'dos2unix ~/.bash_profile'
 
 # Create a bash shortcut for when ssh connection is open, it automatically calls the bash
 RUN echo 'c:/cygwin64/bin/bash.exe --login -I' > c:/ps6/Microsoft.PowerShell_profile.ps1
@@ -129,10 +130,7 @@ RUN echo 'c:/cygwin64/bin/bash.exe --login -I' > c:/ps6/Microsoft.PowerShell_pro
 EXPOSE 22 80 443
 
 # Copy ssh files
-#COPY authorized_keys 'c:\\cygwin64\\home\\everest\\.ssh\\authorized_keys'
 COPY authorized_keys 'c:\\Users\\everest\\.ssh\\authorized_keys'
-#RUN Invoke-BashCmd 'chmod 700 ~everest/.ssh'
-#RUN Invoke-BashCmd 'chmod 600 ~everest/.ssh/authorized_keys'
 
 COPY start.ps1 c:/start.ps1
 ENTRYPOINT ["powershell.exe", "-NoExit", "c:/start.ps1"]
