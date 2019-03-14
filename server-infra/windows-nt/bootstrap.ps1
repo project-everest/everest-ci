@@ -98,7 +98,7 @@ if ($null -eq $dockerExists) {
     Write-Host "Installing Docker"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
     Install-Module -Name DockerMsftProvider -Force
-    Install-Package -Name docker -ProviderName DockerMsftProvider -RequiredVersion 18.03 -Update -Force
+    Install-Package -Name docker -ProviderName DockerMsftProvider -Update -Force
 
     Write-Host "Restarting machine, please re-run script once it is back."
     Start-Sleep -Seconds 10
