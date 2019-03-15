@@ -45,7 +45,7 @@ if ($null -eq $dotnetCoreExists) {
 
     # Now that all dependencies of dotnet core are installed install dontnet core sdk 2.0
     Write-Host "Download and Install dotnetCore SDK"
-    wget "https://download.microsoft.com/download/9/D/2/9D2354BE-778B-42D6-BA4F-3CEF489A4FDE/dotnet-sdk-2.1.400-win-x64.exe" -outfile "dotnet_sdk_setup.exe"
+    wget "https://download.microsoft.com/download/9/D/2/9D2354BE-778B-42D6-BA4F-3CEF489A4FDE/dotnet-sdk-2.2.105-win-x64.exe" -outfile "dotnet_sdk_setup.exe"
     Start-Process dotnet_sdk_setup.exe -Wait -ArgumentList "-q"
     Remove-Item "dotnet_sdk_setup.exe"
 
