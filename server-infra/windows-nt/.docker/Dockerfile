@@ -87,7 +87,7 @@ WORKDIR "tools"
 # Install cygwin
 WORKDIR "cygwin"
 ADD ["https://chocolatey.org/install.ps1", "install.ps1"]
-RUN & .\install.ps1; choco install cygwin -y --params='/InstallDir:C:\\cygwin64 /Site:http://mirrors.kernel.org/sourceware/cygwin/ /NoStartMenu'
+RUN & .\install.ps1; choco install cygwin -y --params='/InstallDir:C:\\cygwin64 /NoStartMenu'
 
 # Refresh environment variables.
 RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)
