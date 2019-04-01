@@ -44,6 +44,7 @@ RUN until apt-get install --no-install-recommends --yes \
         pkg-config \
         python \
         libgmp3-dev \
+        zip \
         unzip \
         build-essential \
         automake \
