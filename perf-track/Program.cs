@@ -8,6 +8,7 @@ namespace PerfTrack
 {
     using System;
     using System.IO;
+    using System.Reflection;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Configuration;
@@ -49,7 +50,7 @@ namespace PerfTrack
             }
 
             var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
             var configuration = builder.Build();

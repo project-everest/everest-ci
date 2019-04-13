@@ -28,6 +28,11 @@ namespace PerfTrack.Data
         /// <param name="connectionstring">The connectionstring value.</param>
         public DataManager(string connectionstring)
         {
+            if (string.IsNullOrWhiteSpace(connectionstring))
+            {
+                throw new ArgumentNullException("connectionstring");
+            }
+
             var storageAccount = CloudStorageAccount.Parse(connectionstring);
 
             // Create the table client.
