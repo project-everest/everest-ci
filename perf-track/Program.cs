@@ -37,11 +37,12 @@ namespace PerfTrack
         /// arg[3] -> Platform
         /// arg[4] -> Metrics to be collected
         /// arg[5] -> Log Path
+        /// arg[6] -> output file
         /// </param>
         public static void Main(string[] args)
         {
             // Validate args
-            if (args.Length != 6)
+            if (args.Length != 7)
             {
                 Console.WriteLine(Environment.NewLine + "Usage: perf-track [build-id] [project-name] [branch-name] [log-path]");
                 return;
@@ -61,6 +62,8 @@ namespace PerfTrack
                 Console.WriteLine($"Error - Unable to find log file: {logPath}");
                 return;
             }
+
+            Console.WriteLine($"args:\n{args[0]}\n{args[1]}\n{args[2]}\n{args[3]}\n{args[4]}\n{args[5]}\n{args[6]}");
 
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))
@@ -164,7 +167,7 @@ namespace PerfTrack
                 file.Close();
 
                 var json = JsonConvert.SerializeObject(resultMetrics);
-                using (var fs = File.Create("perftrack.txt"))
+                using (var fs = File.Create(args[6]))
                 {
                     // Add some text to file
                     Byte[] title = new UTF8Encoding(true).GetBytes(json);

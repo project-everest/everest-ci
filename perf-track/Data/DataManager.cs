@@ -62,7 +62,6 @@ namespace PerfTrack.Data
             {
                 await this.table.ExecuteBatchAsync(batchOperation);
             }
-
         }
 
         /// <summary>
