@@ -7,11 +7,15 @@
 namespace PerfTrack
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
+    using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Configuration;
+    using Newtonsoft.Json;
     using PerfTrack.Data;
     using PerfTrack.Models;
 
@@ -25,13 +29,21 @@ namespace PerfTrack
         /// <summary>
         /// The main method entry point.
         /// </summary>
-        /// <param name="args">The arguments array.</param>
+        /// <param name="args">
+        /// The arguments array.
+        /// arg[0] -> Build Id
+        /// arg[1] -> Project name
+        /// arg[2] -> Branch name
+        /// arg[3] -> Platform
+        /// arg[4] -> Metrics to be collected
+        /// arg[5] -> Log Path
+        /// </param>
         public static void Main(string[] args)
         {
             // Validate args
-            if (args.Length != 4)
+            if (args.Length != 6)
             {
-                PrintCommandHelp();
+                Console.WriteLine(Environment.NewLine + "Usage: perf-track [build-id] [project-name] [branch-name] [log-path]");
                 return;
             }
 
@@ -43,9 +55,10 @@ namespace PerfTrack
             }
 
             // Validate log path
-            if (!File.Exists(args[3]))
+            var logPath = args[5];
+            if (!File.Exists(logPath))
             {
-                Console.WriteLine($"Error - Unable to find log file: {args[2]}");
+                Console.WriteLine($"Error - Unable to find log file: {logPath}");
                 return;
             }
 
@@ -57,15 +70,19 @@ namespace PerfTrack
             var storageConnection = configuration.GetConnectionString("DefaultStorageConnection");
 
             // GenerateMetrics
-            var projectName =  args[1];
+            var projectName = args[1];
             var branchName = args[2];
-            var logPath = args[3];
+            var platform = args[3];
+            var collectMetrics = args[4].Split(" ");
 
             var regEx = new Regex(MathPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
             var dataManager = new DataManager(storageConnection);
 
             using (var file = new System.IO.StreamReader(logPath))
             {
+                var batchMetrics = new List<Metric>();
+                var resultMetrics = new List<Metric>();
+
                 string line;
                 while ((line = file.ReadLine()) != null)
                 {
@@ -87,39 +104,73 @@ namespace PerfTrack
                     var metrics = statistics.Split(" ");
 
                     // For each metric Track it.
-                    foreach(var m in metrics)
+                    foreach (var m in metrics)
                     {
                         // break metric name and metric value
                         var mInfo = m.Split("=");
 
+                        // If metric is not marked to be collect ignore it.
+                        if (!collectMetrics.Contains(mInfo[0]))
+                        {
+                            continue;
+                        }
+
+                        var previousData = dataManager.GetPreviousMetricValue(projectName, platform, queryName, mInfo[0]).GetAwaiter().GetResult();
                         var metric = new Metric()
                         {
                             MetricId = Guid.NewGuid().ToString(),
                             ProjectName = projectName,
                             BranchName = branchName,
+                            Platform = platform,
                             BuildId = buildId,
                             QueryName = queryName,
-                            MetricName =  mInfo[0],
+                            MetricName = mInfo[0],
                             MetricValue = double.Parse(mInfo[1]),
+                            PreviousMetricValue = previousData.Item1,
+                            CurrentAverageMetricValue = previousData.Item2,
                             SourceCode = sourceCode,
                             Status = status
-
                         };
 
-                        dataManager.TrackMetric(metric).ConfigureAwait(false).GetAwaiter().GetResult();
+                        batchMetrics.Add(metric);
+
+                        // We upload every 1000 items
+                        // We only persist master branch metrics.
+                        if (branchName == "master" && batchMetrics.Count == 100)
+                        {
+                            if (batchMetrics.Count > 0)
+                            {
+                                dataManager.TrackMetric(batchMetrics).ConfigureAwait(false).GetAwaiter().GetResult();
+                            }
+
+                            resultMetrics.AddRange(batchMetrics);
+                            batchMetrics.Clear();
+                        }
                     }
                 }
 
-                file.Close();
-            }
-        }
+                // We only persist master branch metrics.
+                if (branchName == "master")
+                {
+                    if (batchMetrics.Count > 0)
+                    {
+                        dataManager.TrackMetric(batchMetrics).ConfigureAwait(false).GetAwaiter().GetResult();
+                    }
 
-        /// <summary>
-        /// Prints the command line help.
-        /// </summary>
-        private static void PrintCommandHelp()
-        {
-            Console.WriteLine(Environment.NewLine + "Usage: perf-track [build-id] [project-name] [branch-name] [log-path]");
+                    resultMetrics.AddRange(batchMetrics);
+                    batchMetrics.Clear();
+                }
+
+                file.Close();
+
+                var json = JsonConvert.SerializeObject(resultMetrics);
+                using (var fs = File.Create("perftrack.txt"))
+                {
+                    // Add some text to file
+                    Byte[] title = new UTF8Encoding(true).GetBytes(json);
+                    fs.Write(title, 0, title.Length);
+                }
+            }
         }
     }
 }

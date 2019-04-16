@@ -54,6 +54,11 @@ namespace PerfTrack.Models
         public string BranchName { get; set; }
 
         /// <summary>
+        /// Gets or set the platform.
+        /// </summary>
+        public string Platform { get; set; }
+
+        /// <summary>
         /// Gets or sets the Build id.
         /// </summary>
         public int BuildId { get; set; }
@@ -83,5 +88,15 @@ namespace PerfTrack.Models
         /// Gets or sets the metric value.
         /// </summary>
         public double MetricValue { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Previous metric value.
+        /// </summary>
+        public double PreviousMetricValue { get; set; }
+
+        /// <summary>
+        /// Gets or sets the current average metric value.
+        /// </summary>
+        public double CurrentAverageMetricValue { get; set; }
     }
 }
