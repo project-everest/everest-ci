@@ -62,6 +62,12 @@
                         <div class="headerRow overflowText col"><a href='buildlogfile_$BuildNumber.txt'>Raw log</a></div>
                         <div class="contentRow overflowText col-10">$compressedFolder</div>
                     </div>
+                    <div id="PerfTrack" style="display:none;">
+                        <div class="row col-xl-12">
+                            <div class="headerRow overflowText col"><a href='https://everestperftrack.blob.core.windows.net/perftrack/chart.html?buildid=$buildId'>Performance chart</a></div>
+                            <div class="contentRow overflowText col-10"></div>
+                        </div>
+                    </div>
                     <div id="Offenders" style="display:none;">
                         <div class="row col-xl-12">
                             <div class="headerRow overflowText col-2">{HintsNumber} hints failed to replay</div>
