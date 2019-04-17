@@ -1,0 +1,63 @@
+body {
+    font-family: 'Segoe UI Semibold WestEuropean','Segoe UI Semibold','Segoe UI',Tahoma,Arial,sans-serif;
+    color: #555;
+}
+
+.trackSelectorHeader {
+    font-size: 18px;
+}
+
+#TrackTable {
+    display:none;
+    font-size: 12px;
+    padding-top: 12px;
+}
+
+.parentRow {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.titleRow {
+    width:calc(100% - 20px);
+    height: 20px;
+    vertical-align: middle;
+}
+
+.actionRow {
+    float: right;
+    cursor: pointer;
+}
+
+.headerRow {
+    float: left;
+    min-width: 80px;
+}
+
+.contentRow {
+    width:calc(100% - 120px);
+}
+
+.overflowText {
+    float: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.container-fluid {
+    padding: 5px 10px 5px 10px;
+}
+
+html, body, .container-table {
+    height: 100%;
+}
+
+.container-table {
+    display: table;
+}
+
+.vertical-center-row {
+    display: table-cell;
+    vertical-align: middle;
+}
