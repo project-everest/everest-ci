@@ -116,7 +116,11 @@ RUN Invoke-BashCmd 'git config --global user.name \\\"Dzomo the everest Yak\\\"'
 
 # Run everest check to install any missing piece
 RUN Invoke-BashCmd 'git clone -b master --single-branch https://github.com/project-everest/everest.git'
-RUN Invoke-BashCmd 'TERM=cygwin ./everest/everest --yes check'
+#RUN Invoke-BashCmd 'TERM=cygwin ./everest/everest --yes check'
+COPY build_helper.sh .
+COPY build.sh .
+RUN Invoke-BashCmd ./build_helper.sh
+RUN Invoke-BashCmd rm build.sh build_helper.sh
 RUN Invoke-BashCmd 'rm -rf .git'
 
 # Setup bash prompt
