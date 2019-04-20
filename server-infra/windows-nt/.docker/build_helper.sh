@@ -14,6 +14,10 @@ tail_pd=$!
 echo "Build finished" >> $out_file
 kill $tail_pd
 
+echo "======= TRYING TO GET THE END OF THE LOG ======"
+tail -n 100 $out_file
+echo "======= END TRYING TO GET THE END OF THE LOG ======"
+
 echo $(date -u "+%Y-%m-%d %H:%M:%S") >> $out_file
 
 eval $(ssh-agent)
