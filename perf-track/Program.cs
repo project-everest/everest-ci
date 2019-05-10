@@ -80,7 +80,9 @@ namespace PerfTrack
             using (var context = new DbContextFactory().CreateDbContext())
             {
                 var dateTime = DateTime.UtcNow;
-                var filter = $"{projectName}-{platform}-{branchName}";
+
+                // we always compare against master
+                var filter = $"{projectName}-{platform}-master";
                 var rows = context.Metrics.Where(m => m.ProjectName == filter).ToList();
 
                 using (var file = new System.IO.StreamReader(logPath))
