@@ -4,7 +4,7 @@
 # also update all references to use the new version, this image should be built using:
 # docker build -f Dockerfile -t everest_base_image:$V .
 # Where $V is the number of the version above
-FROM microsoft/windowsservercore:ltsc2016
+FROM microsoft/windowsservercore:ltsc2019
 
 # Create user, with no password, and switch to user mode
 # Subsequent RUN commands will fail if there is a password
