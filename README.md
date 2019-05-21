@@ -2,7 +2,7 @@
 
 The main source of CI for Project Everest is a machine that runs behind the
 corporate network, dubbed `everest-ci`. It is powerful (72-cores), and is
-connected to VSTS, a private, invitation-only, proprietary CI system.
+connected to Azure DevOps, a private, invitation-only, proprietary CI system.
 
 One can log onto the machine if connected to the Microsoft Corporate Network,
 via rdesktop (user: everbld, password: ask Jonathan or Sreekanth), or using Mark
@@ -10,7 +10,7 @@ Russinovitch's excellent psexec.
 
 One can skip CI by putting `***NO_CI***` in the commit message.
 
-One can connect to the VSTS web interface via https://msresearch-ext.visualstudio.com/Everest -- if you don't have access, that's an issue, ask us to get access.
+One can connect to the Azure DevOps web interface via https://msr-project-everest.visualstudio.com/Everest -- if you don't have access, that's an issue, ask us to get access.
 
 ## Build summary:
 -  **Everest-CI-Windows** - Check that the designated revisions of all projects (in hashes.sh) lead to a successful build & run of mitls.exe 
