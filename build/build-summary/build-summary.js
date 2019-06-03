@@ -71,7 +71,7 @@ function deployContainer() {
     $('#deployContainerLink').hide();
     $('#deployContainerPanel').show();
 
-    var url = "https://everestdeploycontainer.azurewebsites.net/api/HttpTriggerContainerDeployment?code=IqL6wqHCgYo4aUbvjHhTofnvMH5vdhhMSdBkIkNlfhRYCh7ev9seuQ==";
+    var url = "https://everestdeploycontainer.azurewebsites.net/api/HttpTriggerContainerDeployment?code=OnuoKmYNHc2QHNf4vXHWQDpjcRm2xK2BR4KCnuaR7EJldwwxBwWNGA==";
 
     $.ajax({
         url: url,
