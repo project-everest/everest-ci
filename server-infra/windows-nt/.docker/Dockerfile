@@ -4,7 +4,7 @@
 # also update all references to use the new version, this image should be built using:
 # docker build -f Dockerfile -t everest_base_image:$V .
 # Where $V is the number of the version above
-FROM microsoft/windowsservercore:ltsc2016
+FROM mcr.microsoft.com/windows/servercore:ltsc2019
 
 # Create user, with no password, and switch to user mode
 # Subsequent RUN commands will fail if there is a password
@@ -116,7 +116,11 @@ RUN Invoke-BashCmd 'git config --global user.name \\\"Dzomo the everest Yak\\\"'
 
 # Run everest check to install any missing piece
 RUN Invoke-BashCmd 'git clone -b z3-4.8.4 --single-branch https://github.com/project-everest/everest.git'
-RUN Invoke-BashCmd './everest/everest --yes check'
+#RUN Invoke-BashCmd 'TERM=cygwin ./everest/everest --yes check'
+COPY build_helper.sh .
+COPY build.sh .
+RUN Invoke-BashCmd ./build_helper.sh
+RUN Invoke-BashCmd rm build.sh build_helper.sh
 RUN Invoke-BashCmd 'rm -rf .git'
 
 # Setup bash prompt

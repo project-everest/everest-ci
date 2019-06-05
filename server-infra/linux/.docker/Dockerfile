@@ -54,6 +54,7 @@ RUN until apt-get install --no-install-recommends --yes \
         libcurl3 \
         sudo \
         python3.6 \
+        python3-pip \
         nuget \
         ca-certificates \
         cmake \
@@ -73,6 +74,9 @@ RUN until apt-get install --no-install-recommends --yes \
         g++-multilib \
         jq \
         ; do apt-get --yes update ; done
+
+#Install sphinx (for the Low* tutorial)
+RUN pip3 install sphinx==1.7.2 sphinx_rtd_theme
 
 #Install scons
 RUN wget https://downloads.sourceforge.net/project/scons/scons/3.0.1/scons-3.0.1.tar.gz
