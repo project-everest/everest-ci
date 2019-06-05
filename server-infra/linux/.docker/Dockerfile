@@ -144,7 +144,7 @@ RUN git config --global user.name "Dzomo the everest Yak"
 # /etc/profile so that all users benefit from them. Note: had to modify
 # init_container.sh so that its dumb writeout of the entire environment goes
 # before our customizations.
-RUN git clone --branch z3-4.8.4 https://github.com/project-everest/everest.git
+RUN git clone --branch z3-4.8.5 https://github.com/project-everest/everest.git
 RUN rm -rf .git
 ENV EVEREST_ENV_DEST_FILE ${MYHOME}/.profile
 RUN ./everest/everest --yes check
