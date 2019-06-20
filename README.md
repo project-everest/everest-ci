@@ -1,53 +1,43 @@
 # Continuous Integration for Project Everest
 
-The main source of CI for Project Everest is a machine that runs behind the
-corporate network, dubbed `everest-ci`. It is powerful (72-cores), and is
-connected to Azure DevOps, a private, invitation-only, proprietary CI system.
+## Build definitions and triggers
 
-One can log onto the machine if connected to the Microsoft Corporate Network,
-via rdesktop (user: everbld, password: ask Jonathan or Sreekanth), or using Mark
-Russinovitch's excellent psexec.
+- We use [an instance](https://msr-project-everest.visualstudio.com/Everest/) of Azure DevOps (formerly known as VSTS) for CI.
+- We have Linux and Windows [build definitions](https://msr-project-everest.visualstudio.com/Everest/_build?definitionId=1).
+- Linux builds trigger automatically on every commit to every branch **not** starting with an underscore of the Everest, FStar, KreMLin, hacl-star, mitls-fstar, Vale, and QuackyDucky repositories.
+- We schedule daily Linux builds for all the above projects and have some scheduled builds for specific tasks: Everest automatic upgrades (daily), FStar binaries (weekly, Windows and Linux), FStar docs (weekly).
+- Builds can be triggered from Azure DevOps by clicking on the "Queue" button in the build definition. Using this method, one can specify the branch and commit hash to use as well as an alternative Slack channel to receive a notification when the build finishes.
+ 
+## Workflow
 
-One can skip CI by putting `***NO_CI***` in the commit message.
+- The build logic of every project under CI is in the `.docker/build` folder in the top directory
+- Every build is based on [this template](https://msr-project-everest.visualstudio.com/Everest/_taskgroup/0576cfad-6efe-47a5-b530-2646fb3cc914).
+- Every project has a `config.json` file that sets variables used in the build definition. Importantly, it specifies a Docker base image (e.g. `"BaseContainerImageName" : "everest-ci"`) to start the build from and the branch and commit hash to use (`"BaseContainerImageTagOrCommitId": "latest"`, `"BranchName" : "master"`). `BaseContainerImageTagOrCommitId` can be either a commit hash or the special value `latest`, indicating the latest commit in the branch.
+- These values should be changed only in very rare exceptions in main branches. If you would like to test a feature that requires a different commit or branch, then create a private branch and update `config.json` accordingly.
+- A build starts by checking out from GitHub the branch and commit hash specified in the Azure DevOps queue dialog, or whichever commit triggered the build. It then uses the variables in the config file to either pull the specified base image from [Docker Hub](https://hub.docker.com/u/projecteverest) if it exists, or trigger a separate build and wait for it to finish if the base image has not been built yet.
 
-One can connect to the Azure DevOps web interface via https://msr-project-everest.visualstudio.com/Everest -- if you don't have access, that's an issue, ask us to get access.
+## FStar binary and documentation builds
 
-## Build summary:
--  **Everest-CI-Windows** - Check that the designated revisions of all projects (in hashes.sh) lead to a successful build & run of mitls.exe 
-- **Everest-Nightly Upgrade-Windows** - Check that the latest revisions of all projects lead to a successful build & run of mitls.exe; record it as a new set of revisions 
-- **Everest-Nightly-Windows** - Generate a docker image in which we build, verify and extract all the projects, then upload it to the Docker Hub if successful. 
-- **Hacl\*-CI-Windows** – Extract the hacl-star code to C using KreMLin, and check that it compiles and runs; lax-check the hacl-star code against the constant-time restricted integer modules; verify the hacl-star code. 
-- **FStar-CI-Windows** - Run on every push, doesn't include expensive verification like crypto. Note – this runs on every branch, not just changes to master. 
-- **FStar-Nightly-Linux** - Verify all the things, including crypto and everything in examples/ -- also regenerate the hints, the ocaml snapshot, and push to repo 
-- **FStar-Docs Nightly-Linux** –  Parse the special documentation comments and generate a series of markdown files that document the modules in fstar/ulib; then, translate them to HTML and upload them to fstarlang.github.io 
-- **miTLS-CI-Windows** - Run on every commit, run verification and build the FFI 
-- **miTLS-Nightly-Windows** - Run verification, build the FFI and regenerate the hints. 
-- **VALE-CI-Linux** - Build on every push, but only builds Vale. It does NOT do verification. 
-- **VALE-x64 CI-Windows** - Build on every push, but only builds Vale. It does NOT do verification. 
-- **VALE-x86 CI-Windows** - Build and verify every check in for VALE. Build is x86 but verification is x86, x64 and ARM. This is the main verification run as X64 and Linux just build VALE and NOT do any verification
+- FStar binary and documentation builds use `config-binaries.json` and `config-docs.json` instead of `config.json`.
+- These builds use as base image a regular build of FStar.
+- `config-binaries.json` used to specify `"BaseContainerImageTagOrCommitId": "latest"`, `"BranchName" : "master"` to use a build of the latest commit to FStar@master as base image. To avoid confusions and as an exception to the normal workflow, these variables are now *commented out* and FStar binaries and documentation builds use the Azure DevOps variables to get the base image branch and commit hash.
+- Binaries and documentation builds from the latest commit to FStar@master continue to work as usual.
+- Binaries and documentation builds from other branches or from previous commits to `master` will use the same branch and commit hash as base image.
+- To use a different base image, remove the leading `_` from `_BaseContainerImageTagOrCommitId` and `_BranchName` in `config-{binaries,docs}.json` and modify their values accordingly.
 
-Read [ci](ci) for more information on how the CI was implemented.
+## Debugging build failures
 
-For up to date build results, details, logs and history, go to the [Project Everest Dashboard](http://everestdashboard.azurewebsites.net/). 
+- Build notifications in Slack have a link to the build summary (click on the result, i.e. Sucess/Failure ...). These summaries have a link to the raw log (only the docker build phase). `wget`/`curl` the log and `grep` it locally at leisure, or quickly search in it from a browser (but beware logs can be huge).
+- Build summaries also have a link to deploy the Docker container on Azure and make it available via SSH (`Click here to deploy Container`). This can be either arbitrarily long. The text of the link will update with the IP of the deployed container (e.g. `ssh everest@13.83.2.169`). To login you'll need to have added your public SSH key [here](https://github.com/project-everest/everest-ci/blob/master/server-infra/keys/authorized_keys) *before* the build happened.
+- We upload images to [Docker Hub](https://hub.docker.com/u/projecteverest) at the end of the build process. If you have Docker installed, you can pull the image and run a container. The repository names in Docker Hub are self-descriptive, the tags are the commit hash (as specified in the VSTS build that uploaded the image). E.g.
+```
+$ docker pull projecteverest/fstar-binaries-linux:8c80e4840ab6
+$ docker run --rm -it projecteverest/fstar-binaries-linux:8c80e4840ab6 /bin/bash
+```
+- Alternatively, projects have a `build_local.sh` script in the top folder that will replicate the build workflow locally (requires Docker). This is largely untested, but do try to fix or report any issues you experience.
+- Build notifications in Slack also have a link to the VSTS build log (click on the duration). Infrastructure errors and other errors that don't show in the docker build phase can be debugged using the logs here.
+- Finally, if you need help debugging a tricky issue, ask @s-zanella, @tahina-pro, @nikswamy, @protz, @wintersteiger (or @gugavaro) who are familiar with the workflow and will be happy to help.
 
-The logs are also pushed to a public [repository](https://github.com/project-everest/ci-logs). The CI machine uses GitHub SSH-key authentication to push build logs as the user "dzomo". A dzomo is a hybrid betweek a yak and domestic cattle, and is used to carry workloads for Everest expeditions.
+## Issues and feature requests
 
-## Usage
-
-See `./everest-ci help`.
-
-## Adding new targets
-
-The script takes as an argument the exact action to be performed (e.g.
-`fstar-nightly`). Adding a new action is often as simple as adding a new
-argument, and creating a corresponding build definition on the VSTS side of
-things.
-
-## Contributing
-
-We welcome pull requests to this script, using the usual fork project + pull
-request GitHub model. For members of Everest, Jonathan Protzenko has the keys
-to the everest project on GitHub and can grant write permissions on this
-repository so that you can develop your feature in a branch directly. Jonathan
-watches pull requests and will provide timely feedback unless he's on vacations
-or in another timezone.
+If you want to file an issue or a feature request about CI please do it [here](https://msr-project-everest.visualstudio.com/Everest/_workitems/).
