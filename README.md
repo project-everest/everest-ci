@@ -41,3 +41,7 @@ $ docker run --rm -it projecteverest/fstar-binaries-linux:8c80e4840ab6 /bin/bash
 ## Issues and feature requests
 
 If you want to file an issue or a feature request about CI please do it [here](https://msr-project-everest.visualstudio.com/Everest/_workitems/).
+
+## In-depth technical information
+
+More technical details about the CI process are available in [this wiki](https://github.com/mitls/mitls-papers/wiki#ci-system).
