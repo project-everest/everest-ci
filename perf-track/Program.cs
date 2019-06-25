@@ -156,7 +156,7 @@ namespace PerfTrack
                     if (branchName == "master" && resultMetrics.Count > 0)
                     {
                         // Remove old records
-                        var rowsToDelete = context.Metrics.Where(m => m.RowDateTime < DateTime.UtcNow.AddDays(-30)).ToList();
+                        var rowsToDelete = context.Metrics.Where(m => m.RowDateTime < DateTime.UtcNow.AddDays(-2)).ToList();
                         if (rowsToDelete.Any())
                         {
                             context.Metrics.RemoveRange(rowsToDelete);
