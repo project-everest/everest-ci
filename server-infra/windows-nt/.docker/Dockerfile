@@ -41,13 +41,10 @@ RUN c:/OpenSSH-Win64/ssh-keygen.exe -t rsa -N "" -f ssh_host_rsa_key
 RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ecdsa -N "" -f ssh_host_ecdsa_key
 RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ed25519 -N "" -f ssh_host_ed25519_key
 
-# Set Powershell Core as default ssh shell
+# Set Powershell Core as default ssh shell; fix ssh permissions
 RUN C:/PS6/pwsh.EXE -Command \
     New-Item -Path HKLM:\SOFTWARE -Name OpenSSH -Force; \
-    New-ItemProperty -Path HKLM:\SOFTWARE\OpenSSH -Name DefaultShell -Value c:\\ps6\\pwsh.exe -PropertyType string -Force;
-
-# Fix ssh permissions
-RUN C:/PS6/pwsh.EXE -Command \
+    New-ItemProperty -Path HKLM:\SOFTWARE\OpenSSH -Name DefaultShell -Value c:\\ps6\\pwsh.exe -PropertyType string -Force; \
     c:/OpenSSH-Win64/Install-sshd.ps1; \
     c:/OpenSSH-Win64/FixHostFilePermissions.ps1 -Confirm:$false;
 
@@ -55,11 +52,10 @@ WORKDIR 'c:\\cygwin64\\home\\everest'
 COPY bash.ps1 .
 
 # Set IIS virtual directory to point to Everest folder and then enable web directory browsing
-RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:\cygwin64\home\everest'
-RUN powershell.exe -Command Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -Name enabled -PSPath "\"IIS:\Sites\Default Web Site\"" -Value true
-
-RUN powershell.exe -Command " \
-    Get-WebBinding -Name \"Default Web Site\"; \
+RUN powershell.exe -Command \
+    Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:\cygwin64\home\everest' ;\
+    Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -Name enabled -PSPath "\"IIS:\Sites\Default Web Site\"" -Value true \
+    Get-WebBinding -Name "\"Default Web Site\""; \
     cd cert:; \
     $cert = New-SelfSignedCertificate -DnsName  myweb -Friendlyname MyCert -CertStoreLocation Cert:\\LocalMachine\\My; \
     $rootStore = New-Object System.Security.Cryptography.X509Certificates.X509Store -ArgumentList Root, LocalMachine; \
@@ -68,8 +64,8 @@ RUN powershell.exe -Command " \
     $rootStore.Close(); \
     cd iis:; \
     new-item -path IIS:\\SslBindings\\0.0.0.0!443 -value $cert; \
-    New-WebBinding -Name \"Default Web Site\" -IP "*" -Port 443 -Protocol https; \
-    Get-WebBinding -Name \"Default Web Site\"; "
+    New-WebBinding -Name \"Default Web Site\" -IP \"*\" -Port 443 -Protocol https; \
+    Get-WebBinding -Name \"Default Web Site\";
 
 # Install Windows SDK and .NET Framework 4.5 (not 4.5.x) needed to rebuild F* with F#
 ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
@@ -84,13 +80,10 @@ RUN Remove-Item 'bash.ps1'
 
 WORKDIR "tools"
 
-# Install cygwin
+# Install cygwin; refresh environment variables.
 WORKDIR "cygwin"
 ADD ["https://chocolatey.org/install.ps1", "install.ps1"]
-RUN & .\install.ps1; choco install cygwin -y --params='/InstallDir:C:\\cygwin64 /NoStartMenu'
-
-# Refresh environment variables.
-RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)
+RUN & .\install.ps1; choco install cygwin -y --params='/InstallDir:C:\\cygwin64 /NoStartMenu'; refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)
 
 # Install cygwin packages
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
@@ -99,29 +92,22 @@ RUN Get-Content cygwin-packages | ForEach-Object { choco install $_ --source cyg
 WORKDIR ".."
 
 # Install Madoko (we need nodejs)
-RUN choco install nodejs -y
-RUN refreshenv;
-RUN npm install madoko -g
-
 # Install Pandoc
-RUN choco install pandoc -y
+RUN choco install pandoc nodejs -y; refreshenv; npm install madoko -g
 
 WORKDIR ".."
 
 RUN Remove-Item .\tools -Force -Recurse
 
 # Setup the user that will be used to interact with github.
-RUN Invoke-BashCmd 'git config --global user.email \\\"everbld@microsoft.com\\\"'
-RUN Invoke-BashCmd 'git config --global user.name \\\"Dzomo the everest Yak\\\"'
+RUN Invoke-BashCmd 'git config --global user.email \\\"everbld@microsoft.com\\\" ; git config --global user.name \\\"Dzomo the everest Yak\\\"'
 
 # Run everest check to install any missing piece
 RUN Invoke-BashCmd 'git clone -b master --single-branch https://github.com/project-everest/everest.git'
 #RUN Invoke-BashCmd 'TERM=cygwin ./everest/everest --yes check'
 COPY build_helper.sh .
 COPY build.sh .
-RUN Invoke-BashCmd ./build_helper.sh
-RUN Invoke-BashCmd rm build.sh build_helper.sh
-RUN Invoke-BashCmd 'rm -rf .git'
+RUN Invoke-BashCmd './build_helper.sh; -rf build.sh build_helper.sh .git'
 
 # Setup bash prompt
 COPY default_bashrc 'c:\\cygwin64\\home\\everest\\.bashrc'
