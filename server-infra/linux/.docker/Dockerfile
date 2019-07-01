@@ -55,6 +55,7 @@ RUN until apt-get install --no-install-recommends --yes \
         sudo \
         python3.6 \
         python3-pip \
+        python3-setuptools \
         nuget \
         ca-certificates \
         cmake \
