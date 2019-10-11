@@ -1,3 +1,4 @@
+set -e
 export OCAMLRUNPARAM=b
 ./everest/everest --yes check 2>&1
 eval $(opam config env)

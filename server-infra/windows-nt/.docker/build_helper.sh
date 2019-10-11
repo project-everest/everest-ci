@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 out_file=buildlog.txt
 
 # Add ssh identity
