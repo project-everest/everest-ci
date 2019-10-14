@@ -2,7 +2,6 @@
 
 set -e
 
-out_file=buildlog.txt
 
 # Add ssh identity
 identity_added=false
@@ -12,21 +11,13 @@ if [[ -e .ssh/id_rsa ]] ; then
     identity_added=true
 fi
 
-echo $(date -u "+%Y-%m-%d %H:%M:%S") >> $out_file
+echo $(date -u "+%Y-%m-%d %H:%M:%S")
 
-tail -f $out_file &
-tail_pd=$!
-exitcode=0
-{ { { { { { stdbuf -e0 -o0 ./build.sh ; exitcode=$? ; } 3>&1 1>&2 2>&3 ; } | sed -u 's!^![STDERR]!' ; } 3>&1 1>&2 2>&3 ; } | sed -u 's!^![STDOUT]!' ; } 2>&1 ; } >> $out_file
-echo "Build finished" >> $out_file
-kill $tail_pd
-[[ $exitcode -eq 0 ]] # necessary because sed pipes above reset the error code
+./build.sh
 
-echo "======= TRYING TO GET THE END OF THE LOG ======"
-tail -n 100 $out_file
-echo "======= END TRYING TO GET THE END OF THE LOG ======"
+echo "Build finished"
 
-echo $(date -u "+%Y-%m-%d %H:%M:%S") >> $out_file
+echo $(date -u "+%Y-%m-%d %H:%M:%S")
 
 if $identity_added ; then
     eval $(ssh-agent)
