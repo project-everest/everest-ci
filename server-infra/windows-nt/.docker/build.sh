@@ -1,6 +1,9 @@
 set -e
 export OCAMLRUNPARAM=b
-{ ./everest/everest --yes check 2>&1 ; } || true # this one is known to fail
-eval $(opam config env)
-./everest/everest --yes check
+ctr=5
+while [[ $ctr -gt 0 ]] && ! ./everest/everest --yes check
+do
+    ctr=$(($ctr - 1))
+done
 echo "End of build.sh"
+[[ $ctr -gt 0 ]] && eval $(opam config env)
