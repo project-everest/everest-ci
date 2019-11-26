@@ -119,7 +119,7 @@ RUN Invoke-BashCmd 'git clone -b master --single-branch https://github.com/proje
 #RUN Invoke-BashCmd 'TERM=cygwin ./everest/everest --yes check'
 COPY build_helper.sh .
 COPY build.sh .
-RUN Invoke-BashCmd ./build_helper.sh
+RUN Invoke-BashCmd ./build_helper.sh $Env:BUILDTARGET $Env:BUILDLOGFILE $Env:MAXTHREADS $Env:BRANCHNAME
 RUN Invoke-BashCmd rm build.sh build_helper.sh
 RUN Invoke-BashCmd 'rm -rf .git'
 
