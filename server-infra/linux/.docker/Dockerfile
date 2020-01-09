@@ -76,6 +76,9 @@ RUN until apt-get install --no-install-recommends --yes \
         jq \
         ; do apt-get --yes update ; done
 
+#Make python3 point to python3.6 (since update-alternatives does not seem to be used here)
+RUN ln -sf /usr/bin/python3.6 /usr/bin/python3
+
 #Install sphinx (for the Low* tutorial)
 RUN pip3 install sphinx==1.7.2 sphinx_rtd_theme
 
