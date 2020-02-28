@@ -52,8 +52,8 @@ COPY sshd_banner C:/ProgramData/ssh/sshd_banner
 #     c:/OpenSSH-Win64/Install-sshd.ps1; \
 #     c:/OpenSSH-Win64/FixHostFilePermissions.ps1 -Confirm:$false;
 
-# WORKDIR 'c:\\cygwin64\\home\\everest'
-# COPY bash.ps1 .
+WORKDIR 'c:\\cygwin64\\home\\everest'
+COPY bash.ps1 .
 
 # # Set IIS virtual directory to point to Everest folder and then enable web directory browsing
 # RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:\cygwin64\home\everest'
