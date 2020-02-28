@@ -34,6 +34,8 @@ RUN apt-get --yes update
 RUN until apt-get install --no-install-recommends --yes \
         libssl-dev \
         libsqlite3-dev \
+        g++-7 \
+        gcc-7 \
         g++-6 \
         gcc-6 \
         m4 \
