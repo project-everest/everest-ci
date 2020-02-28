@@ -10,7 +10,7 @@ FROM mcr.microsoft.com/dotnet/framework/sdk:4.8-windowsservercore-ltsc2019
 # Subsequent RUN commands will fail if there is a password
 RUN net user everest /add
 RUN net localgroup Administrators everest /add
-RUN wmic --% useraccount where Name="everest" set PasswordExpires=false
+RUN wmic useraccount where Name=`"everest`" set PasswordExpires=false
 USER everest
 
 # Enable IIS
