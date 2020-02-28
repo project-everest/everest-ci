@@ -103,7 +103,7 @@ RUN Get-Content cygwin-packages | ForEach-Object { choco install $_ --source cyg
 WORKDIR ".."
 
 # Install Madoko (we need nodejs)
-RUN choco install nodejs -y
+# RUN choco install nodejs -y
 RUN refreshenv;
 RUN npm install madoko -g
 
