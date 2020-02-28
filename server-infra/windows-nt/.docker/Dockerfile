@@ -90,6 +90,7 @@ WORKDIR "tools"
 # Install cygwin
 WORKDIR "cygwin"
 ADD ["https://chocolatey.org/install.ps1", "install.ps1"]
+ENV chocolateyUseWindowsCompression true
 RUN & .\install.ps1; choco install cygwin -y --params='/InstallDir:C:\\cygwin64 /NoStartMenu'
 
 # Refresh environment variables.
