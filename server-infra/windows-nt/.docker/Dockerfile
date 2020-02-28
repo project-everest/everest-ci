@@ -4,7 +4,7 @@
 # also update all references to use the new version, this image should be built using:
 # docker build -f Dockerfile -t everest_base_image:$V .
 # Where $V is the number of the version above
-FROM mcr.microsoft.com/windows/servercore:ltsc2019
+FROM mcr.microsoft.com/dotnet/framework/sdk:4.8-windowsservercore-ltsc2019
 
 # Create user, with no password, and switch to user mode
 # Subsequent RUN commands will fail if there is a password
@@ -74,9 +74,9 @@ RUN powershell.exe -Command " \
 
 # Install Windows SDK and .NET Framework 4.5 (not 4.5.x) needed to rebuild F* with F#
 ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
-RUN .\vs2017.exe --add Microsoft.VisualStudio.Component.VC.CoreIde \
+RUN .\vs2017.exe --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.Component.MSBuild --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.Windows10SDK.15063.Desktop --add Microsoft.VisualStudio.Component.Roslyn.Compiler \
     --quiet --nocache --norestart --wait
-# --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.Component.MSBuild --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.Windows10SDK.15063.Desktop --add Microsoft.Net.Component.4.5.TargetingPack --add Microsoft.VisualStudio.Component.Roslyn.Compiler
+#  --add Microsoft.Net.Component.4.5.TargetingPack
 RUN del vs2017.exe
 
 # Set powershell as the default shell and add the script file
