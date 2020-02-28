@@ -36,41 +36,41 @@ COPY sshd_banner c:/OpenSSH-Win64/sshd_banner
 COPY sshd_config C:/ProgramData/ssh/sshd_config
 COPY sshd_banner C:/ProgramData/ssh/sshd_banner
 
-WORKDIR c:/OpenSSH-Win64/
-RUN c:/OpenSSH-Win64/ssh-keygen.exe -t dsa -N `"`" -f ssh_host_dsa_key
-RUN c:/OpenSSH-Win64/ssh-keygen.exe -t rsa -N `"`" -f ssh_host_rsa_key
-RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ecdsa -N `"`" -f ssh_host_ecdsa_key
-RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ed25519 -N `"`" -f ssh_host_ed25519_key
+# WORKDIR c:/OpenSSH-Win64/
+# RUN c:/OpenSSH-Win64/ssh-keygen.exe -t dsa -N `"`" -f ssh_host_dsa_key
+# RUN c:/OpenSSH-Win64/ssh-keygen.exe -t rsa -N `"`" -f ssh_host_rsa_key
+# RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ecdsa -N `"`" -f ssh_host_ecdsa_key
+# RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ed25519 -N `"`" -f ssh_host_ed25519_key
 
-# Set Powershell Core as default ssh shell
-RUN C:/PS6/pwsh.EXE -Command \
-    New-Item -Path HKLM:\SOFTWARE -Name OpenSSH -Force; \
-    New-ItemProperty -Path HKLM:\SOFTWARE\OpenSSH -Name DefaultShell -Value c:\\ps6\\pwsh.exe -PropertyType string -Force;
+# # Set Powershell Core as default ssh shell
+# RUN C:/PS6/pwsh.EXE -Command \
+#     New-Item -Path HKLM:\SOFTWARE -Name OpenSSH -Force; \
+#     New-ItemProperty -Path HKLM:\SOFTWARE\OpenSSH -Name DefaultShell -Value c:\\ps6\\pwsh.exe -PropertyType string -Force;
 
-# Fix ssh permissions
-RUN C:/PS6/pwsh.EXE -Command \
-    c:/OpenSSH-Win64/Install-sshd.ps1; \
-    c:/OpenSSH-Win64/FixHostFilePermissions.ps1 -Confirm:$false;
+# # Fix ssh permissions
+# RUN C:/PS6/pwsh.EXE -Command \
+#     c:/OpenSSH-Win64/Install-sshd.ps1; \
+#     c:/OpenSSH-Win64/FixHostFilePermissions.ps1 -Confirm:$false;
 
-WORKDIR 'c:\\cygwin64\\home\\everest'
-COPY bash.ps1 .
+# WORKDIR 'c:\\cygwin64\\home\\everest'
+# COPY bash.ps1 .
 
-# Set IIS virtual directory to point to Everest folder and then enable web directory browsing
-RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:\cygwin64\home\everest'
-RUN powershell.exe -Command Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -Name enabled -PSPath "\"IIS:\Sites\Default Web Site\"" -Value true
+# # Set IIS virtual directory to point to Everest folder and then enable web directory browsing
+# RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:\cygwin64\home\everest'
+# RUN powershell.exe -Command Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -Name enabled -PSPath "\"IIS:\Sites\Default Web Site\"" -Value true
 
-RUN powershell.exe -Command " \
-    Get-WebBinding -Name \"Default Web Site\"; \
-    cd cert:; \
-    $cert = New-SelfSignedCertificate -DnsName  myweb -Friendlyname MyCert -CertStoreLocation Cert:\\LocalMachine\\My; \
-    $rootStore = New-Object System.Security.Cryptography.X509Certificates.X509Store -ArgumentList Root, LocalMachine; \
-    $rootStore.Open(\"MaxAllowed\"); \
-    $rootStore.Add($cert); \
-    $rootStore.Close(); \
-    cd iis:; \
-    new-item -path IIS:\\SslBindings\\0.0.0.0!443 -value $cert; \
-    New-WebBinding -Name \"Default Web Site\" -IP "*" -Port 443 -Protocol https; \
-    Get-WebBinding -Name \"Default Web Site\"; "
+# RUN powershell.exe -Command " \
+#     Get-WebBinding -Name \"Default Web Site\"; \
+#     cd cert:; \
+#     $cert = New-SelfSignedCertificate -DnsName  myweb -Friendlyname MyCert -CertStoreLocation Cert:\\LocalMachine\\My; \
+#     $rootStore = New-Object System.Security.Cryptography.X509Certificates.X509Store -ArgumentList Root, LocalMachine; \
+#     $rootStore.Open(\"MaxAllowed\"); \
+#     $rootStore.Add($cert); \
+#     $rootStore.Close(); \
+#     cd iis:; \
+#     new-item -path IIS:\\SslBindings\\0.0.0.0!443 -value $cert; \
+#     New-WebBinding -Name \"Default Web Site\" -IP "*" -Port 443 -Protocol https; \
+#     Get-WebBinding -Name \"Default Web Site\"; "
 
 # Install Windows SDK and .NET Framework 4.5 (not 4.5.x) needed to rebuild F* with F#
 ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
