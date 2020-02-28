@@ -37,10 +37,10 @@ COPY sshd_config C:/ProgramData/ssh/sshd_config
 COPY sshd_banner C:/ProgramData/ssh/sshd_banner
 
 WORKDIR c:/OpenSSH-Win64/
-RUN c:/OpenSSH-Win64/ssh-keygen.exe -t dsa -N "" -f ssh_host_dsa_key
-RUN c:/OpenSSH-Win64/ssh-keygen.exe -t rsa -N "" -f ssh_host_rsa_key
-RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ecdsa -N "" -f ssh_host_ecdsa_key
-RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ed25519 -N "" -f ssh_host_ed25519_key
+RUN c:/OpenSSH-Win64/ssh-keygen.exe -t dsa -N `"`" -f ssh_host_dsa_key
+RUN c:/OpenSSH-Win64/ssh-keygen.exe -t rsa -N `"`" -f ssh_host_rsa_key
+RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ecdsa -N `"`" -f ssh_host_ecdsa_key
+RUN c:/OpenSSH-Win64/ssh-keygen.exe -t ed25519 -N `"`" -f ssh_host_ed25519_key
 
 # Set Powershell Core as default ssh shell
 RUN C:/PS6/pwsh.EXE -Command \
