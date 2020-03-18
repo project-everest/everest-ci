@@ -78,6 +78,8 @@ RUN until apt-get install --no-install-recommends --yes \
         jq \
         ; do apt-get --yes update ; done
 
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 10 && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 10
+
 #Make python3 point to python3.6 (since update-alternatives does not seem to be used here)
 RUN ln -sf /usr/bin/python3.6 /usr/bin/python3
 
