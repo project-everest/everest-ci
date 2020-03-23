@@ -102,7 +102,8 @@ WORKDIR ".."
 # Install Madoko (we need nodejs)
 RUN choco install nodejs -y
 RUN refreshenv;
-RUN npm install madoko -g && npm install jsdoc -g
+RUN npm install madoko -g
+RUN npm install jsdoc -g
 
 # Install Pandoc
 RUN choco install pandoc -y
