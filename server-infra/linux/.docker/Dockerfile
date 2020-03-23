@@ -104,7 +104,7 @@ RUN npm install -g typescript
 RUN npm install -g less
 
 # Install madoko
-RUN npm install madoko -g
+RUN npm install madoko -g && npm install jsdoc -g
 
 # Install node server
 RUN npm install http-server -g
