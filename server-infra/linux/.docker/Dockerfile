@@ -140,10 +140,11 @@ SHELL ["/bin/bash", "--login", "-c"]
 USER everest
 WORKDIR ${MYHOME}
 
-# Prepare build (OCaml packages)
+# Prepare build (OCaml packages). Remove sandboxing once we upgrade to a saner
+# version of Ubuntu
 ENV opamv 4.05.0
 ENV OPAMYES true
-RUN opam init --auto-setup --comp ${opamv} --yes
+RUN opam init --auto-setup --disable-sandboxing --comp ${opamv} --yes
 
 # Setup the user that will be used to interact with github.
 RUN git config --global user.email "everbld@microsoft.com"
