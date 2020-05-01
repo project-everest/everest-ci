@@ -19,6 +19,7 @@ RUN apt-get --yes update
 # Configure new PPA for gcc-6
 RUN apt-get install --no-install-recommends --yes software-properties-common curl
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test
+RUN add-apt-repository ppa:avsm/ppa
 RUN apt-get --yes update
 
 # Configure repository for node.js 6.x LTS
