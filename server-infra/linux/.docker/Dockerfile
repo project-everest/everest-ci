@@ -20,7 +20,7 @@ RUN apt-get --yes update
 # from: https://www.mono-project.com/download/stable/#download-lin
 RUN apt-get install --no-install-recommends --yes software-properties-common curl gnupg ca-certificates
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-RUN "deb https://download.mono-project.com/repo/ubuntu stable-focal main" | tee /etc/apt/sources.list.d/mono-official-stable.list
+RUN echo "deb https://download.mono-project.com/repo/ubuntu stable-focal main" | tee /etc/apt/sources.list.d/mono-official-stable.list
 RUN apt-get --yes update
 
 # Configure repository for node.js 14.x LTS
