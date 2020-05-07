@@ -20,12 +20,12 @@ RUN apt-get --yes update
 # from: https://www.mono-project.com/download/stable/#download-lin
 RUN apt-get install --no-install-recommends --yes software-properties-common curl gnupg ca-certificates
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-RUN "deb https://download.mono-project.com/repo/ubuntu stable-focal main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+RUN "deb https://download.mono-project.com/repo/ubuntu stable-focal main" | tee /etc/apt/sources.list.d/mono-official-stable.list
 RUN apt-get --yes update
 
 # Configure repository for node.js 14.x LTS
 # from: https://github.com/nodesource/distributions/blob/master/README.md#debinstall
-RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 
 # Configure new PPA for python3.6
 # from: https://askubuntu.com/questions/865554/how-do-i-install-python-3-6-using-apt-get
