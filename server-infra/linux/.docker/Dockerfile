@@ -53,7 +53,6 @@ RUN until apt-get install --no-install-recommends --yes \
         ca-certificates-mono \
         fsharp \
         libunwind8 \
-        libcurl3 \
         sudo \
         python3.6 \
         python3-pip \
