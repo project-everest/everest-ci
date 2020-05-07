@@ -4,11 +4,11 @@
 # also update all references to use the new version, this image should be built using:
 # docker build -f Dockerfile -t everest_base_image:$V .
 # Where $V is the number of the version above
-FROM ubuntu:xenial
+FROM ubuntu:focal
 
 # Add a new mirror, maybe more stable than Docker's
-RUN echo 'deb http://mirror.pnl.gov/ubuntu/ xenial main' >> /etc/apt/sources.list
-RUN echo "deb http://mirror.math.ucdavis.edu/ubuntu/ xenial main" >> /etc/apt/sources.list
+RUN echo 'deb http://mirror.pnl.gov/ubuntu/ focal main' >> /etc/apt/sources.list
+RUN echo "deb http://mirror.math.ucdavis.edu/ubuntu/ focal main" >> /etc/apt/sources.list
 
 # Try to overcome the "Hash Sum Mismatch" failure by retrying if failed
 RUN echo "Acquire::Retries \"16\";" > /etc/apt/apt.conf.d/99acquire-retries
