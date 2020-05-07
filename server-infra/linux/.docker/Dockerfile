@@ -36,8 +36,8 @@ RUN apt-get --yes update
 RUN until apt-get install --no-install-recommends --yes \
         libssl-dev \
         libsqlite3-dev \
-        g++-7 \
-        gcc-7 \
+        g++ \
+        gcc \
         m4 \
         make \
         opam \
@@ -72,8 +72,8 @@ RUN until apt-get install --no-install-recommends --yes \
         libc6 \
         libc6-dev \
         libc6-dev-i386 \
-        gcc-7-multilib \
-        g++-7-multilib \
+        gcc-multilib \
+        g++-multilib \
         time \
         jq \
         nodejs \
