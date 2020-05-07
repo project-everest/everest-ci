@@ -16,29 +16,26 @@ RUN echo "Acquire::Retries \"16\";" > /etc/apt/apt.conf.d/99acquire-retries
 # Commit changes
 RUN apt-get --yes update
 
-# Configure new PPA for gcc-6
+# Configure new PPA for mono
 RUN apt-get install --no-install-recommends --yes software-properties-common curl
-RUN add-apt-repository ppa:ubuntu-toolchain-r/test
 RUN add-apt-repository ppa:avsm/ppa
 RUN apt-get --yes update
 
-# Configure repository for node.js 6.x LTS
-# from: https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+# Configure repository for node.js 14.x LTS
+# from: https://github.com/nodesource/distributions/blob/master/README.md#debinstall
+RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 
 # Configure new PPA for python3.6
 # from: https://askubuntu.com/questions/865554/how-do-i-install-python-3-6-using-apt-get
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get --yes update
 
-# Here start the Everest-specific packages.
+# Here start the Everest-specific packages
 RUN until apt-get install --no-install-recommends --yes \
         libssl-dev \
         libsqlite3-dev \
-        g++-7 \
-        gcc-7 \
-        g++-6 \
-        gcc-6 \
+        g++ \
+        gcc \
         m4 \
         make \
         opam \
@@ -78,9 +75,8 @@ RUN until apt-get install --no-install-recommends --yes \
         g++-multilib \
         time \
         jq \
+        nodejs \
         ; do apt-get --yes update ; done
-
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 10 && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 10
 
 #Make python3 point to python3.6 (since update-alternatives does not seem to be used here)
 RUN ln -sf /usr/bin/python3.6 /usr/bin/python3
@@ -94,10 +90,6 @@ RUN tar xf scons-3.0.1.tar.gz
 WORKDIR scons-3.0.1
 RUN python3.6 setup.py install
 WORKDIR ..
-
-#Install node.js
-RUN curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
-RUN apt-get install -y nodejs
 
 #install typescript
 RUN npm install -g typescript
@@ -143,7 +135,7 @@ WORKDIR ${MYHOME}
 
 # Prepare build (OCaml packages). Remove sandboxing once we upgrade to a saner
 # version of Ubuntu
-ENV opamv 4.05.0
+ENV opamv 4.09.1
 ENV OPAMYES true
 RUN opam init --auto-setup --disable-sandboxing --comp ${opamv} --yes
 
