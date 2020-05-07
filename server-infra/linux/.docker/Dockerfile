@@ -36,8 +36,8 @@ RUN apt-get --yes update
 RUN until apt-get install --no-install-recommends --yes \
         libssl-dev \
         libsqlite3-dev \
-        g++ \
-        gcc \
+        g++-7 \
+        gcc-7 \
         m4 \
         make \
         opam \
@@ -72,8 +72,8 @@ RUN until apt-get install --no-install-recommends --yes \
         libc6 \
         libc6-dev \
         libc6-dev-i386 \
-        gcc-multilib \
-        g++-multilib \
+        gcc-7-multilib \
+        g++-7-multilib \
         time \
         jq \
         nodejs \
@@ -136,7 +136,7 @@ WORKDIR ${MYHOME}
 
 # Prepare build (OCaml packages). Remove sandboxing once we upgrade to a saner
 # version of Ubuntu
-ENV opamv 4.09.1
+ENV opamv 4.05.0 # 4.09.1 would work, but would leave diffs in the F* snapshot
 ENV OPAMYES true
 RUN opam init --auto-setup --disable-sandboxing --comp ${opamv} --yes
 
