@@ -136,7 +136,8 @@ WORKDIR ${MYHOME}
 
 # Prepare build (OCaml packages). Remove sandboxing once we upgrade to a saner
 # version of Ubuntu
-ENV opamv 4.05.0 # 4.09.1 would work, but would leave diffs in the F* snapshot
+# 4.09.1 would work, but would leave diffs in the F* snapshot
+ENV opamv 4.05.0
 ENV OPAMYES true
 RUN opam init --auto-setup --disable-sandboxing --comp ${opamv} --yes
 
