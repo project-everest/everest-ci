@@ -117,7 +117,7 @@ RUN Invoke-BashCmd 'git config --global user.email \\\"everbld@microsoft.com\\\"
 RUN Invoke-BashCmd 'git config --global user.name \\\"Dzomo the everest Yak\\\"'
 
 # Run everest check to install any missing piece
-RUN Invoke-BashCmd 'git clone -b master --single-branch https://github.com/project-everest/everest.git'
+RUN Invoke-BashCmd 'git clone -b taramana_ocaml_4_09 --single-branch https://github.com/project-everest/everest.git'
 #RUN Invoke-BashCmd 'TERM=cygwin ./everest/everest --yes check'
 COPY build_helper.sh .
 COPY build.sh .
