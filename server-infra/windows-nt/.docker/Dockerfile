@@ -6,6 +6,8 @@
 # Where $V is the number of the version above
 FROM mcr.microsoft.com/windows/servercore:ltsc2019
 
+RUN echo
+
 # Create user, with no password, and switch to user mode
 # Subsequent RUN commands will fail if there is a password
 RUN net user everest /add
