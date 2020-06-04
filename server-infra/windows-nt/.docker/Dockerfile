@@ -82,6 +82,7 @@ RUN del vs2017.exe
 # Set powershell as the default shell and add the script file
 # to be load everytime powershell opens a new session.
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+RUN Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 RUN .\bash.ps1; New-BashCmdProfile;
 RUN Remove-Item 'bash.ps1'
 
