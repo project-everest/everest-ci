@@ -4,7 +4,7 @@
 # also update all references to use the new version, this image should be built using:
 # docker build -f Dockerfile -t everest_base_image:$V .
 # Where $V is the number of the version above
-FROM mcr.microsoft.com/windows/servercore:1809-KB4549949
+FROM mcr.microsoft.com/windows/servercore:1809-KB4546852
 
 RUN echo
 
