@@ -52,6 +52,7 @@ RUN until apt-get install --no-install-recommends --yes \
         automake \
         ca-certificates-mono \
         fsharp \
+        msbuild \
         libunwind8 \
         sudo \
         python3.6 \
