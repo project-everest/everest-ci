@@ -93,8 +93,10 @@ RUN start /wait setup-x86_64.exe -q --root C:\cygwin64 -P apt-cyg -X --site http
 # Set powershell as the default shell and add the script file
 # to be load everytime powershell opens a new session.
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
-RUN ..\..\bash.ps1; New-BashCmdProfile;
+WORKDIR ..\..
+RUN .\bash.ps1; New-BashCmdProfile;
 RUN Remove-Item 'bash.ps1'
+WORKDIR tools\cygwin
 
 # Refresh environment variables.
 RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)
