@@ -87,7 +87,7 @@ RUN powershell .\install.ps1
 # Install cygwin
 WORKDIR "cygwin"
 ADD ["https://cygwin.com/setup-x86_64.exe", "setup-x86_64.exe"]
-RUN start /wait setup-x86_64.exe -q --root C:\cygwin64 -P bash,apt-cyg -X --site http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2020/05/31/142136/
+RUN start /wait setup-x86_64.exe -q --root C:\cygwin64 -P bash -X --site http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2020/05/31/142136/
 
 # Set powershell as the default shell and add the script file
 # to be load everytime powershell opens a new session.
@@ -98,6 +98,11 @@ RUN Remove-Item 'bash.ps1'
 
 # Refresh environment variables.
 RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)
+
+# Install apt-cyg
+# From https://techdirectarchive.com/2020/03/13/how-to-install-cygwin-packages-from-the-command-line-using-apt-cyg/
+ADD ["https://raw.githubusercontent.com/transcode-open/apt-cyg/master/apt-cyg", "apt-cyg"]
+RUN install apt-cyg /bin
 
 # Install cygwin packages
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
