@@ -87,7 +87,7 @@ RUN powershell .\install.ps1
 # Install cygwin
 WORKDIR "cygwin"
 ADD ["https://cygwin.com/setup-x86_64.exe", "setup-x86_64.exe"]
-RUN start /wait setup-x86_64.exe -q --root C:\cygwin64 -P apt-cyg -X --site http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2020/05/31/142136/
+RUN start /wait setup-x86_64.exe -q --root C:\cygwin64 -P bash,apt-cyg -X --site http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2020/05/31/142136/
 
 # Set powershell as the default shell and add the script file
 # to be load everytime powershell opens a new session.
@@ -101,7 +101,7 @@ RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\
 
 # Install cygwin packages
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
-RUN Get-Content cygwin-packages | ForEach-Object { C:\cygwin64\bin\apt-cyg.exe install $_ }
+RUN Get-Content cygwin-packages | ForEach-Object { Invoke-BashCmd apt-cyg install $_ }
 
 WORKDIR ".."
 
