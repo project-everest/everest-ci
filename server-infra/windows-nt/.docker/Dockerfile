@@ -55,7 +55,6 @@ RUN C:/PS6/pwsh.EXE -Command \
     c:/OpenSSH-Win64/FixHostFilePermissions.ps1 -Confirm:$false;
 
 WORKDIR 'c:\\cygwin64\\home\\everest'
-COPY bash.ps1 .
 
 # Set IIS virtual directory to point to Everest folder and then enable web directory browsing
 RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:\cygwin64\home\everest'
@@ -93,10 +92,9 @@ RUN start /wait setup-x86_64.exe -q --root C:\cygwin64 -P apt-cyg -X --site http
 # Set powershell as the default shell and add the script file
 # to be load everytime powershell opens a new session.
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
-WORKDIR ..\..
+COPY bash.ps1 .
 RUN .\bash.ps1; New-BashCmdProfile;
 RUN Remove-Item 'bash.ps1'
-WORKDIR tools\cygwin
 
 # Refresh environment variables.
 RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)
