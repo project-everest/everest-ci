@@ -79,29 +79,29 @@ ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
 RUN .\vs2017.exe --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.Component.MSBuild --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.Windows10SDK.15063.Desktop --add Microsoft.Net.Component.4.5.TargetingPack --add Microsoft.VisualStudio.Component.Roslyn.Compiler --quiet --wait
 RUN del vs2017.exe
 
-# Set powershell as the default shell and add the script file
-# to be load everytime powershell opens a new session.
-SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
-RUN .\bash.ps1; New-BashCmdProfile;
-RUN Remove-Item 'bash.ps1'
-
 WORKDIR "tools"
 
 # Install choco
 ADD ["https://chocolatey.org/install.ps1", "install.ps1"]
-RUN & .\install.ps1
+RUN powershell .\install.ps1
 
 # Install cygwin
 WORKDIR "cygwin"
 ADD ["https://cygwin.com/setup-x86_64.exe", "setup-x86_64.exe"]
-RUN start /wait setup-x86_64.exe -q --root C:\cygwin64 -X --site http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2020/05/31/142136/
+RUN start /wait setup-x86_64.exe -q --root C:\cygwin64 -P apt-cyg -X --site http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2020/05/31/142136/
+
+# Set powershell as the default shell and add the script file
+# to be load everytime powershell opens a new session.
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+RUN ..\..\bash.ps1; New-BashCmdProfile;
+RUN Remove-Item 'bash.ps1'
 
 # Refresh environment variables.
 RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)
 
 # Install cygwin packages
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
-RUN Get-Content cygwin-packages | ForEach-Object { start /wait setup-x86_64.exe -q --root C:\cygwin64 -X --site http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2020/05/31/142136/ -P $_ }
+RUN Get-Content cygwin-packages | ForEach-Object { C:\cygwin64\bin\apt-cyg.exe install $_ }
 
 WORKDIR ".."
 
