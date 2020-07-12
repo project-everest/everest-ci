@@ -87,17 +87,21 @@ RUN Remove-Item 'bash.ps1'
 
 WORKDIR "tools"
 
+# Install choco
+ADD ["https://chocolatey.org/install.ps1", "install.ps1"]
+RUN & .\install.ps1
+
 # Install cygwin
 WORKDIR "cygwin"
-ADD ["https://chocolatey.org/install.ps1", "install.ps1"]
-RUN & .\install.ps1; choco install cygwin -y --params='/InstallDir:C:\\cygwin64 /NoStartMenu'
+ADD ["https://cygwin.com/setup-x86_64.exe", "setup-x86_64.exe"]
+RUN start /wait setup-x86_64.exe -q --root C:\cygwin64 -X --site http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2020/05/31/142136/
 
 # Refresh environment variables.
 RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\cygwin64\\bin;', [EnvironmentVariableTarget]::Machine)
 
 # Install cygwin packages
 ADD ["https://raw.githubusercontent.com/project-everest/everest/master/cygwin-packages", "cygwin-packages"]
-RUN Get-Content cygwin-packages | ForEach-Object { choco install $_ --source cygwin }
+RUN Get-Content cygwin-packages | ForEach-Object { start /wait setup-x86_64.exe -q --root C:\cygwin64 -X --site http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2020/05/31/142136/ -P $_ }
 
 WORKDIR ".."
 
