@@ -101,7 +101,7 @@ RUN refreshenv; [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\\
 
 # Install apt-cyg
 # From https://techdirectarchive.com/2020/03/13/how-to-install-cygwin-packages-from-the-command-line-using-apt-cyg/
-ADD ["https://raw.githubusercontent.com/transcode-open/apt-cyg/master/apt-cyg", "apt-cyg"]
+ADD ["https://raw.githubusercontent.com/tahina-pro/apt-cyg/master/apt-cyg", "apt-cyg"]
 RUN install apt-cyg /bin
 
 # Install cygwin packages
