@@ -4,7 +4,7 @@
 # also update all references to use the new version, this image should be built using:
 # docker build -f Dockerfile -t everest_base_image:$V .
 # Where $V is the number of the version above
-FROM mcr.microsoft.com/windows/servercore:ltsc2019
+FROM mcr.microsoft.com/windows:1909
 
 RUN echo
 
@@ -56,22 +56,22 @@ RUN C:/PS6/pwsh.EXE -Command \
 
 WORKDIR 'c:\\cygwin64\\home\\everest'
 
-# Set IIS virtual directory to point to Everest folder and then enable web directory browsing
-RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:\cygwin64\home\everest'
-RUN powershell.exe -Command Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -Name enabled -PSPath "\"IIS:\Sites\Default Web Site\"" -Value true
+# # Set IIS virtual directory to point to Everest folder and then enable web directory browsing
+# RUN powershell.exe -Command Set-WebConfigurationProperty "\"system.applicationHost/sites/site[@name='Default Web Site']/application[@path='/']/virtualDirectory[@path='/']\"" -Name physicalPath -Value 'c:\cygwin64\home\everest'
+# RUN powershell.exe -Command Set-WebConfigurationProperty -filter /system.webServer/directoryBrowse -Name enabled -PSPath "\"IIS:\Sites\Default Web Site\"" -Value true
 
-RUN powershell.exe -Command " \
-    Get-WebBinding -Name \"Default Web Site\"; \
-    cd cert:; \
-    $cert = New-SelfSignedCertificate -DnsName  myweb -Friendlyname MyCert -CertStoreLocation Cert:\\LocalMachine\\My; \
-    $rootStore = New-Object System.Security.Cryptography.X509Certificates.X509Store -ArgumentList Root, LocalMachine; \
-    $rootStore.Open(\"MaxAllowed\"); \
-    $rootStore.Add($cert); \
-    $rootStore.Close(); \
-    cd iis:; \
-    new-item -path IIS:\\SslBindings\\0.0.0.0!443 -value $cert; \
-    New-WebBinding -Name \"Default Web Site\" -IP "*" -Port 443 -Protocol https; \
-    Get-WebBinding -Name \"Default Web Site\"; "
+# RUN powershell.exe -Command " \
+#     Get-WebBinding -Name \"Default Web Site\"; \
+#     cd cert:; \
+#     $cert = New-SelfSignedCertificate -DnsName  myweb -Friendlyname MyCert -CertStoreLocation Cert:\\LocalMachine\\My; \
+#     $rootStore = New-Object System.Security.Cryptography.X509Certificates.X509Store -ArgumentList Root, LocalMachine; \
+#     $rootStore.Open(\"MaxAllowed\"); \
+#     $rootStore.Add($cert); \
+#     $rootStore.Close(); \
+#     cd iis:; \
+#     new-item -path IIS:\\SslBindings\\0.0.0.0!443 -value $cert; \
+#     New-WebBinding -Name \"Default Web Site\" -IP "*" -Port 443 -Protocol https; \
+#     Get-WebBinding -Name \"Default Web Site\"; "
 
 # Install Windows SDK and .NET Framework 4.5 (not 4.5.x) needed to rebuild F* with F#
 ADD ["https://aka.ms/vs/15/release/vs_community.exe", "vs2017.exe"]
@@ -82,7 +82,7 @@ WORKDIR "tools"
 
 # Install choco
 ADD ["https://chocolatey.org/install.ps1", "install.ps1"]
-RUN powershell .\install.ps1
+RUN c:/PS6/pwsh.exe .\install.ps1
 
 # Install cygwin
 WORKDIR "cygwin"
@@ -91,7 +91,7 @@ RUN start /wait setup-x86_64.exe -q --root C:\cygwin64 -P bash,wget -X --site ht
 
 # Set powershell as the default shell and add the script file
 # to be load everytime powershell opens a new session.
-SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+SHELL ["c:/PS6/pwsh.exe", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 COPY bash.ps1 .
 RUN .\bash.ps1; New-BashCmdProfile;
 RUN Remove-Item 'bash.ps1'
@@ -150,4 +150,4 @@ EXPOSE 22 80 443
 COPY authorized_keys 'c:\\Users\\everest\\.ssh\\authorized_keys'
 
 COPY start.ps1 c:/start.ps1
-ENTRYPOINT ["powershell.exe", "-NoExit", "c:/start.ps1"]
+ENTRYPOINT ["c:/PS6/pwsh.exe", "-NoExit", "c:/start.ps1"]
