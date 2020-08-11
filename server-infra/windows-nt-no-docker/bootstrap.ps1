@@ -34,7 +34,7 @@ if ($null -eq $azExists) {
 Write-Host "Install Cygwin with git"
 $Error.Clear()
 wget "https://www.cygwin.com/setup-x86_64.exe" -outfile "cygwinsetup.exe"
-.\cygwinsetup.exe -q --root C:\cygwin64 -P git,wget -X
+cmd.exe /c start /wait .\cygwinsetup.exe -q --root C:\cygwin64 -P git,wget -X
 Remove-Item "cygwinsetup.exe"
 if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
     $Error
