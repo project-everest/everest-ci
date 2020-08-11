@@ -16,6 +16,8 @@ param
 $Error.Clear()
 $LastExitCode = 0
 
+$ProgressPreference = 'SilentlyContinue'    # Subsequent calls to wget, etc. do not display UI.
+
 Write-Host PoolName = $poolName
 Write-Host InitialPoolIndex = $initialPoolIndex
 Write-Host FinalPoolIndex = $finalPoolIndex
