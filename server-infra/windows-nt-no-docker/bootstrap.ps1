@@ -31,11 +31,21 @@ if ($null -eq $azExists) {
     }
 }
 
-Write-Host "Install Cygwin with git"
 $Error.Clear()
+Write-Host "Install Cygwin with git"
 wget "https://www.cygwin.com/setup-x86_64.exe" -outfile "cygwinsetup.exe"
 cmd.exe /c start /wait .\cygwinsetup.exe -q --root C:\cygwin64 -P git,wget -X
 Remove-Item "cygwinsetup.exe"
+if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
+    $Error
+    return
+}
+
+$Error.Clear()
+Write-Host "Install Visual Studio"
+wget "https://aka.ms/vs/15/release/vs_community.exe" -outfile "vs2017.exe"
+cmd.exe /c start /wait .\vs2017.exe --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.Component.MSBuild --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.Windows10SDK.15063.Desktop --add Microsoft.Net.Component.4.5.TargetingPack --add Microsoft.VisualStudio.Component.Roslyn.Compiler --quiet --wait
+Remove-Item vs2017.exe
 if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
     $Error
     return
