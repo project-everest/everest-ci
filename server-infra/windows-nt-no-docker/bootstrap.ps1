@@ -51,5 +51,27 @@ if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
     return
 }
 
+$Error.Clear()
+Write-Host "Install bash.ps1"
+wget "https://raw.githubusercontent.com/project-everest/everest-ci/master/server-infra/windows-nt/.docker/bash.ps1" -outfile "bash.ps1"
+.\bash.ps1
+New-BashCmdProfile
+Remove-Item bash.ps1
+if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
+    $Error
+    return
+}
+
+$Error.Clear()
+Write-Host "Install everest dependencies"
+wget "https://github.com/project-everest/everest/archive/master.zip" -outfile "everest-master.zip"
+Expand-Archive -Path everest-master.zip -DestinationPath .
+Invoke-BashCmd "everest-master/everest --yes check"
+Remove-Item "everest-master.zip"
+if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
+    $Error
+    return
+}
+
 Write-Host "Bootstrap done."
 $Error.Clear()
