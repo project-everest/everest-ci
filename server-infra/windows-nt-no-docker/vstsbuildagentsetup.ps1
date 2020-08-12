@@ -8,9 +8,9 @@ param
     [Parameter(Mandatory=$false, HelpMessage="Initial pool name index")]
     [int] $initialPoolIndex = 1,
     [Parameter(Mandatory=$false, HelpMessage="Finally pool name index")]
-    [int] $finalPoolIndex = 1
+    [int] $finalPoolIndex = 1,
     [Parameter(Mandatory=$false, HelpMessage="Agent pool name")]
-    [string] $poolName = "Msr-EverestPool-Windows-20200811",
+    [string] $poolName = "Msr-EverestPool-Windows-20200811"
 )
 
 $Error.Clear()
