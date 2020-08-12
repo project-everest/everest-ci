@@ -5,6 +5,8 @@ param
 (
     [Parameter(Mandatory=$true, HelpMessage="VSTS Personal Access Token")]
     [string] $vstsPat,
+    [Parameter(Mandatory=$true, HelpMessage="Windows account logon password")]
+    [string] $windowsLogonPassword,
     [Parameter(Mandatory=$false, HelpMessage="Initial pool name index")]
     [int] $initialPoolIndex = 1,
     [Parameter(Mandatory=$false, HelpMessage="Finally pool name index")]
@@ -27,7 +29,8 @@ function ConfigAgents {
 
     Write-Host "$agentName on $poolName"
 
-    $args = "--unattended --url https://msr-project-everest.visualstudio.com --auth path --token $vstsPat --pool $poolName --agent $agentName --acceptTeeEula --runAsService"
+    $windowsLogonAccount = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    $args = "--unattended --url https://msr-project-everest.visualstudio.com --auth path --token $vstsPat --pool $poolName --agent $agentName --acceptTeeEula --runAsService --windowsLogonAccount $windowsLogonAccount --windowsLogonPassword $windowsLogonPassword"
     if ($shouldRemove) {
         $args = "remove", $args
     }
