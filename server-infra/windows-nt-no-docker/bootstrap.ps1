@@ -64,10 +64,12 @@ if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
 
 $Error.Clear()
 Write-Host "Install everest dependencies"
-wget "https://github.com/project-everest/everest/archive/master.zip" -outfile "everest-master.zip"
-Expand-Archive -Path everest-master.zip -DestinationPath .
+if (! (Test-Path -Path everest-master)) {
+    wget "https://github.com/project-everest/everest/archive/master.zip" -outfile "everest-master.zip"
+    Expand-Archive -Path everest-master.zip -DestinationPath .
+    Remove-Item "everest-master.zip"
+}
 Invoke-BashCmd "everest-master/everest --yes check"
-Remove-Item "everest-master.zip"
 if ($Error.Count -gt 0 -or $LastExitCode -ne 0) {
     $Error
     return
