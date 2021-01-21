@@ -143,10 +143,8 @@ Bootstrap ()
     # Verify Azure CLI is installed
     if ! command -v az > /dev/null 2>&1; then
         # Install Azure CLI
-        echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli stretch main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
-        apt-key adv --keyserver packages.microsoft.com --recv-keys 52E16F86FEE04B979B07E28DB02C46DF417A0893
-        apt-get update -y
-        apt-get install azure-cli -y
+        # From https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
          # Verify PowerShell was installed.
         if ! command -v az > /dev/null 2>&1; then
