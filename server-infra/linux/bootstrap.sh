@@ -47,15 +47,15 @@ Bootstrap ()
 
     # Check if we have build folder, create it if needed.
     if ! [ -d /home/build/build ]; then
-        mkdir -p /home/builder/build
+        mkdir -p /home/$serviceUser/build
     fi
 
-    if ! [ -d /home/builder/build ]; then
-        echo "Unable to create /home/builder/build directory"
+    if ! [ -d /home/$serviceUser/build ]; then
+        echo "Unable to create /home/$serviceUser/build directory"
         exit
     fi
 
-    cd /home/builder/build
+    cd /home/$serviceUser/build
 
     # Verify dotnet is not installed.
     if ! command -v dotnet > /dev/null 2>&1; then
@@ -180,12 +180,12 @@ Bootstrap ()
     fi
 
     # Check if we have the agents folder, create it if needed.
-    if ! [ -d /home/builder/build/agents ]; then
-        mkdir -p /home/builder/build/agents
+    if ! [ -d /home/$serviceUser/build/agents ]; then
+        mkdir -p /home/$serviceUser/build/agents
     fi
 
-    if ! [ -d /home/builder/build/agents ]; then
-        echo "Unable to create /home/builder/build/agents directory"
+    if ! [ -d /home/$serviceUser/build/agents ]; then
+        echo "Unable to create /home/$serviceUser/build/agents directory"
         exit
     fi
 }

@@ -9,6 +9,7 @@ initialPoolIndex=${2:-1}
 finalPoolIndex=${3:-8}
 poolName=${4:-Msr-EverestPool-Linux}
 poolNameOndemand=$(echo $poolName)-ondemand
+serviceUser=${5:$USER}
 
 echo PoolName = $poolName
 echo PoolNameOnDemand = $poolNameOndemand
@@ -27,12 +28,12 @@ ConfigAgents ()
     local agentName=$3
     local remove=$4
 
-    echo /home/builder/build/agents/$agentName
+    echo /home/$serviceUser/build/agents/$agentName
 
     if [ "$remove" = true ]; then
-        if [ -d /home/builder/build/agents/$agentName ]; then
+        if [ -d /home/$serviceUser/build/agents/$agentName ]; then
             echo Remove $agentName on $poolName
-            cd /home/builder/build/agents/$agentName
+            cd /home/$serviceUser/build/agents/$agentName
 
             # Remove agents from a previous agent setup.
             if sudo bash ./svc.sh stop >1 ; then
@@ -42,7 +43,7 @@ ConfigAgents ()
         fi
     else
         echo Install $agentName on $poolName
-        cd /home/builder/build/agents/$agentName
+        cd /home/$serviceUser/build/agents/$agentName
 
         # Now we setup the new agent.
         bash ./config.sh --unattended --url https://msr-project-everest.visualstudio.com --auth pat --token $vstsPat --pool $poolName --agent $agentName --acceptTeeEula
@@ -56,10 +57,10 @@ vsts_agent_version=2.181.0
 
 Setup ()
 {
-    sudo bash ./bootstrap.sh $USER
+    sudo bash ./bootstrap.sh $serviceUser
 
     # Download VSTS linux agent
-    cd /home/builder/build/agents
+    cd /home/$serviceUser/build/agents
     sudo curl -O https://vstsagentpackage.azureedge.net/agent/$vsts_agent_version/vsts-agent-linux-x64-$vsts_agent_version.tar.gz
 
     for i in $(seq $initialPoolIndex $finalPoolIndex)
