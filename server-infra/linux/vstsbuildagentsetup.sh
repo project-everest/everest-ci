@@ -47,6 +47,9 @@ ConfigAgents ()
         # Now we setup the new agent.
         bash ./config.sh --unattended --url https://msr-project-everest.visualstudio.com --auth pat --token $vstsPat --pool $poolName --agent $agentName --acceptTeeEula
 
+	# Fix the SVC_NAME line, which may be truncated by config.sh
+	sed -i 's!^SVC_NAME.*$!SVC_NAME=`systemd-escape --path "vsts.agent.everest.'$poolName'.'$agentName'.service"`!' svc.sh
+
         sudo bash ./svc.sh install >1
         sudo bash ./svc.sh start >1
     fi
