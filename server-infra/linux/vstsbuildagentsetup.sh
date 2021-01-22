@@ -9,7 +9,7 @@ initialPoolIndex=${2:-1}
 finalPoolIndex=${3:-8}
 poolName=${4:-Msr-EverestPool-Linux}
 poolNameOndemand=$(echo $poolName)-ondemand
-serviceUser=${5:$USER}
+serviceUser=${5:-$USER}
 
 echo PoolName = $poolName
 echo PoolNameOnDemand = $poolNameOndemand
