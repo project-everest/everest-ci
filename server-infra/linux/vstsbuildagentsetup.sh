@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # This script is responsible to do the complete setup in order to have build agents running on the linux build machine.
+set -e
+set -x
 
 vstsPat=$1
 initialPoolIndex=${2:-1}
@@ -33,9 +35,10 @@ ConfigAgents ()
             cd /home/builder/build/agents/$agentName
 
             # Remove agents from a previous agent setup.
-            sudo bash ./svc.sh stop >1
-            sudo bash ./svc.sh uninstall >1
-            bash ./config.sh remove --auth pat --token $vstsPat
+            if sudo bash ./svc.sh stop >1 ; then
+                sudo bash ./svc.sh uninstall >1
+                bash ./config.sh remove --auth pat --token $vstsPat
+            fi
         fi
     else
         echo Install $agentName on $poolName

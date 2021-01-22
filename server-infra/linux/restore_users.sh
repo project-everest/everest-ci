@@ -5,6 +5,9 @@
 # It will then copy the directories into /home, with the right ownership
 # and add each user to the same groups as the current user.
 
+set -e
+set -x
+
 for u in *
 do
     sudo adduser --disabled-password --gecos $u $u &&
