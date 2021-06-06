@@ -62,7 +62,7 @@ Bootstrap ()
 
         apt-get install -y libunwind8
         apt-get install -y liblttng-ust0
-        apt-get install -y libcurl3
+        apt-get install -y libcurl4
         apt-get install -y libicu-dev
         apt-get install -y libuuid1
         apt-get install -y libkrb5-3
@@ -114,7 +114,7 @@ Bootstrap ()
         rm dotnet-install.sh
 
         #Install node.js
-        curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
+        curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
         apt-get install -y nodejs
 
         #install typescript
