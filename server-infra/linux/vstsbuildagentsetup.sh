@@ -55,7 +55,7 @@ ConfigAgents ()
     fi
 }
 
-vsts_agent_version=2.181.0
+vsts_agent_version=2.186.1
 
 Setup ()
 {
