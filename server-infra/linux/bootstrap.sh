@@ -81,13 +81,13 @@ Bootstrap ()
         chmod +x dotnet-install.sh
         ./dotnet-install.sh -c Current
 
-        # Install System components and prepare instalation for Debian 9
+        # Install System components and prepare instalation for Ubuntu 20.04
         apt-get update -y
 
         curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
         mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
 
-        wget -q https://packages.microsoft.com/config/debian/9/prod.list
+        wget -q https://packages.microsoft.com/config/ubuntu/20.04/prod.list
         mv prod.list /etc/apt/sources.list.d/microsoft-prod.list
 
         chown root:root /etc/apt/trusted.gpg.d/microsoft.gpg
@@ -96,7 +96,7 @@ Bootstrap ()
         apt-get update -y
 
         # Register the Microsoft Product feed
-        echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-stretch-prod stretch main" > /etc/apt/sources.list.d/microsoft.list
+        echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-focal-prod focal main" > /etc/apt/sources.list.d/microsoft.list
 
         # Install dotnet core
         apt-get update -y
@@ -157,15 +157,24 @@ Bootstrap ()
 
     # Verify docker is not installed.
     if ! command -v docker > /dev/null 2>&1; then
-        # Install Docker
-        curl https://download.docker.com/linux/debian/gpg | apt-key add -
-        apt-key fingerprint 0EBFCD88
-        add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian stretch stable"
+	# Install Docker dependencies
+	apt-get update -y
+	apt-get install -y \
+		apt-transport-https \
+		ca-certificates \
+		curl \
+		gnupg \
+		lsb-release
 
+	# Install Docker
+	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+	echo \
+	    "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+	    	 $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
         apt-get update -y
-        apt-get install -y docker-ce
+        apt-get install -y docker-ce docker-ce-cli containerd.io
 
-        # Verify PowerShell was installed.
+        # Verify Docker was installed.
         if ! command -v docker > /dev/null 2>&1; then
             echo "Fail to install docker."
             exit
