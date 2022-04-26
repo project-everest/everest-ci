@@ -27,11 +27,6 @@ RUN apt-get --yes update
 # from: https://github.com/nodesource/distributions/blob/master/README.md#debinstall
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 
-# Configure new PPA for python3.6
-# from: https://askubuntu.com/questions/865554/how-do-i-install-python-3-6-using-apt-get
-RUN add-apt-repository ppa:deadsnakes/ppa
-RUN apt-get --yes update
-
 # Here start the Everest-specific packages
 RUN until apt-get install --no-install-recommends --yes \
         libssl-dev \
@@ -55,7 +50,7 @@ RUN until apt-get install --no-install-recommends --yes \
         msbuild \
         libunwind8 \
         sudo \
-        python3.6 \
+        python3 \
         python3-pip \
         python3-setuptools \
         python3-distutils \
@@ -81,9 +76,6 @@ RUN until apt-get install --no-install-recommends --yes \
         nodejs \
         ; do apt-get --yes update ; done
 
-#Make python3 point to python3.6 (since update-alternatives does not seem to be used here)
-RUN ln -sf /usr/bin/python3.6 /usr/bin/python3
-
 #Install sphinx (for the Low* tutorial)
 RUN pip3 install sphinx==1.7.2 sphinx_rtd_theme
 
@@ -91,7 +83,7 @@ RUN pip3 install sphinx==1.7.2 sphinx_rtd_theme
 RUN wget https://downloads.sourceforge.net/project/scons/scons/3.0.1/scons-3.0.1.tar.gz
 RUN tar xf scons-3.0.1.tar.gz
 WORKDIR scons-3.0.1
-RUN python3.6 setup.py install
+RUN python3 setup.py install
 WORKDIR ..
 
 #install typescript
