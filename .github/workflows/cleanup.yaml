@@ -1,0 +1,14 @@
+name: Upgrade Everest
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '1 2 * * 0'
+jobs:
+  build:
+    runs-on: [self-hosted, linux, X64]
+    steps:
+      - name: Check out repo        
+        uses: actions/checkout@v2
+      - name: Clean up and rebuild a F* image
+        run: |
+          ./cleanup.sh
